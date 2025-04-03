@@ -1,0 +1,308 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5% 64.9%;
+    
+    --radius: 0.5rem;
+    
+    /* Custom accent colors */
+    --accent-green: 142.1 76.2% 36.3%;
+    --accent-blue: 221.2 83.2% 53.3%;
+    --accent-purple: 262.1 83.3% 57.8%;
+    --accent-orange: 24.6 95% 53.1%;
+    --accent-red: 0 84.2% 60.2%;
+    --accent-teal: 173 80.4% 40.0%;
+  }
+
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+    
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-zinc-950 text-white;
+  }
+}
+
+/* Global styles */
+.page-container {
+  @apply px-4 md:px-6 lg:px-8 mx-auto max-w-7xl;
+}
+
+/* Glassmorphism effects */
+.glassmorphic {
+  @apply backdrop-blur-md bg-zinc-900/60 border-zinc-800/50;
+}
+
+.glassmorphic-dark {
+  @apply backdrop-blur-md bg-zinc-950/80 border-zinc-900/50;
+}
+
+/* Card styles for dark theme */
+.dark-card {
+  @apply bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50 text-white;
+}
+
+.dark-card-header {
+  @apply text-white;
+}
+
+.dark-card-description {
+  @apply text-zinc-400;
+}
+
+/* Button styles for dark theme */
+.dark-button {
+  @apply bg-zinc-800 hover:bg-zinc-700 text-white;
+}
+
+.dark-button-outline {
+  @apply border-zinc-700 hover:bg-zinc-800 text-zinc-400 hover:text-white;
+}
+
+/* Stats and metrics styles */
+.stat-value {
+  @apply text-2xl font-bold text-white;
+}
+
+.stat-label {
+  @apply text-sm text-zinc-400;
+}
+
+.stat-change-positive {
+  @apply text-xs text-green-400;
+}
+
+.stat-change-neutral {
+  @apply text-xs text-zinc-500;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Class for accent colors */
+.text-accent-color {
+  @apply text-[hsl(var(--accent-green))];
+}
+
+.accent-green .text-accent-color {
+  @apply text-[hsl(var(--accent-green))];
+}
+
+.accent-blue .text-accent-color {
+  @apply text-[hsl(var(--accent-blue))];
+}
+
+.accent-purple .text-accent-color {
+  @apply text-[hsl(var(--accent-purple))];
+}
+
+.accent-orange .text-accent-color {
+  @apply text-[hsl(var(--accent-orange))];
+}
+
+.accent-red .text-accent-color {
+  @apply text-[hsl(var(--accent-red))];
+}
+
+.accent-teal .text-accent-color {
+  @apply text-[hsl(var(--accent-teal))];
+}
+
+/* Background with accent color */
+.bg-accent-color {
+  @apply bg-[hsl(var(--accent-green))];
+}
+
+.accent-green .bg-accent-color {
+  @apply bg-[hsl(var(--accent-green))];
+}
+
+.accent-blue .bg-accent-color {
+  @apply bg-[hsl(var(--accent-blue))];
+}
+
+.accent-purple .bg-accent-color {
+  @apply bg-[hsl(var(--accent-purple))];
+}
+
+.accent-orange .bg-accent-color {
+  @apply bg-[hsl(var(--accent-orange))];
+}
+
+.accent-red .bg-accent-color {
+  @apply bg-[hsl(var(--accent-red))];
+}
+
+.accent-teal .bg-accent-color {
+  @apply bg-[hsl(var(--accent-teal))];
+}
+
+/* Background with accent color and opacity */
+.bg-accent-5 {
+  @apply bg-[hsl(var(--accent-green))]/5;
+}
+
+.accent-green .bg-accent-5 {
+  @apply bg-[hsl(var(--accent-green))]/5;
+}
+
+.accent-blue .bg-accent-5 {
+  @apply bg-[hsl(var(--accent-blue))]/5;
+}
+
+.accent-purple .bg-accent-5 {
+  @apply bg-[hsl(var(--accent-purple))]/5;
+}
+
+.accent-orange .bg-accent-5 {
+  @apply bg-[hsl(var(--accent-orange))]/5;
+}
+
+.accent-red .bg-accent-5 {
+  @apply bg-[hsl(var(--accent-red))]/5;
+}
+
+.accent-teal .bg-accent-5 {
+  @apply bg-[hsl(var(--accent-teal))]/5;
+}
+
+.bg-accent-10 {
+  @apply bg-[hsl(var(--accent-green))]/10;
+}
+
+.accent-green .bg-accent-10 {
+  @apply bg-[hsl(var(--accent-green))]/10;
+}
+
+.accent-blue .bg-accent-10 {
+  @apply bg-[hsl(var(--accent-blue))]/10;
+}
+
+.accent-purple .bg-accent-10 {
+  @apply bg-[hsl(var(--accent-purple))]/10;
+}
+
+.accent-orange .bg-accent-10 {
+  @apply bg-[hsl(var(--accent-orange))]/10;
+}
+
+.accent-red .bg-accent-10 {
+  @apply bg-[hsl(var(--accent-red))]/10;
+}
+
+.accent-teal .bg-accent-10 {
+  @apply bg-[hsl(var(--accent-teal))]/10;
+}
+
+/* Custom utility classes for dark theme */
+.text-dark-title {
+  @apply text-white;
+}
+
+.text-dark-subtitle {
+  @apply text-zinc-400;
+}
+
+.bg-dark-card {
+  @apply bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50;
+}
+
+.bg-dark-card-solid {
+  @apply bg-zinc-800 border-zinc-700;
+}
+
+.bg-dark-hover {
+  @apply hover:bg-zinc-800;
+}
+
+.border-dark {
+  @apply border-zinc-800;
+}
+
+/* Custom button styles for the dark theme */
+.button-green {
+  @apply bg-green-500 hover:bg-green-600 text-white;
+}
+
+.button-outline-dark {
+  @apply border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-400 hover:text-white;
+}
+
