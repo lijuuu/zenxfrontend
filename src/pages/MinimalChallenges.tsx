@@ -94,6 +94,15 @@ const MinimalChallenges = () => {
     setActiveChallengeId(challenge.id);
   };
 
+  // Fix: Render participant count instead of participants array
+  const renderParticipantCount = (challenge: Challenge) => {
+    return typeof challenge.participants === 'number' 
+      ? challenge.participants 
+      : Array.isArray(challenge.participants) 
+        ? challenge.participants.length 
+        : 0;
+  };
+
   // Mock top performers data
   const topPerformers: UserEntry[] = [
     {
@@ -276,7 +285,9 @@ const MinimalChallenges = () => {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">Problems: {challenge.problemCount}</p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Participants: {challenge.participants}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Participants: {renderParticipantCount(challenge)}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -335,7 +346,7 @@ const MinimalChallenges = () => {
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">{challenge.participants} participants</span>
+                              <span className="text-sm">{renderParticipantCount(challenge)} participants</span>
                               <Users className="h-4 w-4 text-zinc-500" />
                             </div>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
@@ -394,7 +405,7 @@ const MinimalChallenges = () => {
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">{challenge.participants} participants</span>
+                              <span className="text-sm">{renderParticipantCount(challenge)} participants</span>
                               <Users className="h-4 w-4 text-zinc-500" />
                             </div>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>

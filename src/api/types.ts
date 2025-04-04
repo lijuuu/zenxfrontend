@@ -1,3 +1,4 @@
+
 // Import correctly from problem-execution
 import type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload } from './types/problem-execution';
 // Import twoSumProblem as a value import, not a type
@@ -364,12 +365,14 @@ export interface CompileResponse {
 export interface ChallengeJoinResponse {
   success: boolean;
   challenge: Challenge;
+  message?: string; // Add message property to fix the error
 }
 
 // Export this to avoid duplication in challengeApi.ts
 export function joinChallengeWithCode(code: string): Promise<ChallengeJoinResponse> {
   return Promise.resolve({ 
     success: true,
+    message: "Successfully joined the challenge", // Add a default message
     challenge: {
       id: "mock-challenge-id",
       title: "Mock Challenge",
