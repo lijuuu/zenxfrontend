@@ -2,12 +2,6 @@
 import axios from 'axios';
 import { CompilerResponse } from '@/api/types/compiler';
 
-// Add the missing compileCode function
-export const compileCode = async ({ code, language }: { code: string; language: string }): Promise<CompilerResponse> => {
-  // This is an alias for executeCode to maintain compatibility
-  return executeCode(code, language);
-};
-
 export const executeCode = async (code: string, language: string): Promise<CompilerResponse> => {
   const environment = import.meta.env.VITE_ENVIRONMENT;
   const apiUrl =

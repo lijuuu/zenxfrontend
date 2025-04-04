@@ -1,315 +1,209 @@
-// Generate heatmap data function defined first
-export function generateHeatmapData() {
+import { UserProfile, Badge, Friend, Challenge, Problem, Submission, ChatChannel, ChatMessage, LeaderboardEntry } from './types';
+
+// Generate heatmap data for the last 365 days
+export const generateHeatmapData = () => {
   const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 365);
-  
   const data = [];
-  const startDateStr = startDate.toISOString().split('T')[0];
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - 364);
   
-  // Generate 365 days of data
   for (let i = 0; i < 365; i++) {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + i);
     const dateStr = date.toISOString().split('T')[0];
     
-    // Random contribution count
-    const count = Math.random() > 0.7 ? Math.floor(Math.random() * 5) : 0;
+    // Randomly determine activity
+    const present = Math.random() > 0.4;
+    const count = present ? Math.floor(Math.random() * 5) + 1 : 0;
     
     data.push({
       date: dateStr,
       count,
-      present: true
+      present
     });
   }
   
   return {
-    startDate: startDateStr,
-    data,
-    totalContributions: data.reduce((sum, day) => sum + day.count, 0),
-    currentStreak: Math.floor(Math.random() * 30) + 1,
-    longestStreak: Math.floor(Math.random() * 100) + 30
+    startDate: startDate.toISOString().split('T')[0],
+    data
   };
-}
-
-// Generate followers function
-export const generateFollowers = (count: number) => {
-  const followers = [];
-  for (let i = 1; i <= count; i++) {
-    followers.push(`user-${Math.floor(Math.random() * 1000)}`);
-  }
-  return followers;
 };
-
-import { UserProfile, Badge } from './types';
-
-// Mock user profiles
-export const mockUserProfiles: UserProfile[] = [
-  {
-    userID: "user-1",
-    userName: "johndoe",
-    firstName: "John",
-    lastName: "Doe",
-    avatarURL: "/assets/avatars/avatar-1.png",
-    email: "john.doe@example.com",
-    role: "user",
-    country: "US",
-    isBanned: false,
-    isVerified: true,
-    primaryLanguageID: "en",
-    muteNotifications: false,
-    socials: {
-      github: "github.com/johndoe",
-      twitter: "twitter.com/johndoe",
-      linkedin: "linkedin.com/in/johndoe",
-      website: "johndoe.com"
-    },
-    createdAt: Date.now(),
-    
-    // Backward compatibility fields
-    profileImage: "/assets/avatars/avatar-1.png",
-    joinedDate: "2021-01-01",
-    problemsSolved: 248,
-    dayStreak: 45,
-    ranking: 121,
-    is2FAEnabled: false,
-    followers: generateFollowers(20),
-    following: generateFollowers(15),
-    isOnline: true,
-    countryCode: "US",
-    bio: "Software Engineer",
-    
-    stats: {
-      easy: { solved: 100, total: 150 },
-      medium: { solved: 80, total: 200 },
-      hard: { solved: 68, total: 100 }
-    },
-    achievements: {
-      weeklyContests: 15,
-      monthlyContests: 5,
-      specialEvents: 3
-    },
-    badges: [],
-    activityHeatmap: generateHeatmapData()
-  },
-  {
-    userID: "user-2",
-    userName: "janesmith",
-    firstName: "Jane",
-    lastName: "Smith",
-    avatarURL: "/assets/avatars/avatar-2.png",
-    email: "jane.smith@example.com",
-    role: "user",
-    country: "UK",
-    isBanned: false,
-    isVerified: true,
-    primaryLanguageID: "en",
-    muteNotifications: false,
-    socials: {
-      github: "github.com/janesmith",
-      twitter: "twitter.com/janesmith",
-      linkedin: "linkedin.com/in/janesmith",
-      website: "janesmith.com"
-    },
-    createdAt: Date.now(),
-    
-    // Backward compatibility fields
-    profileImage: "/assets/avatars/avatar-2.png",
-    joinedDate: "2021-03-15",
-    problemsSolved: 197,
-    dayStreak: 23,
-    ranking: 245,
-    is2FAEnabled: true,
-    followers: generateFollowers(12),
-    following: generateFollowers(18),
-    isOnline: false,
-    countryCode: "GB",
-    bio: "Frontend Developer",
-    
-    stats: {
-      easy: { solved: 85, total: 150 },
-      medium: { solved: 72, total: 200 },
-      hard: { solved: 40, total: 100 }
-    },
-    achievements: {
-      weeklyContests: 10,
-      monthlyContests: 3,
-      specialEvents: 2
-    },
-    badges: [],
-    activityHeatmap: generateHeatmapData()
-  },
-  {
-    userID: "user-3",
-    userName: "robertjones",
-    firstName: "Robert",
-    lastName: "Jones",
-    avatarURL: "/assets/avatars/avatar-3.png",
-    email: "robert.jones@example.com",
-    role: "user",
-    country: "CA",
-    isBanned: false,
-    isVerified: false,
-    primaryLanguageID: "fr",
-    muteNotifications: false,
-    socials: {
-      github: "github.com/robertjones",
-      twitter: "twitter.com/robertjones",
-      linkedin: "linkedin.com/in/robertjones",
-      website: "robertjones.com"
-    },
-    createdAt: Date.now(),
-    
-    // Backward compatibility fields
-    profileImage: "/assets/avatars/avatar-3.png",
-    joinedDate: "2021-05-20",
-    problemsSolved: 153,
-    dayStreak: 12,
-    ranking: 382,
-    is2FAEnabled: false,
-    followers: generateFollowers(8),
-    following: generateFollowers(5),
-    isOnline: true,
-    countryCode: "CA",
-    bio: "Data Scientist",
-    
-    stats: {
-      easy: { solved: 70, total: 150 },
-      medium: { solved: 50, total: 200 },
-      hard: { solved: 33, total: 100 }
-    },
-    achievements: {
-      weeklyContests: 7,
-      monthlyContests: 2,
-      specialEvents: 1
-    },
-    badges: [],
-    activityHeatmap: generateHeatmapData()
-  },
-  {
-    userID: "user-4",
-    userName: "emilywilliams",
-    firstName: "Emily",
-    lastName: "Williams",
-    avatarURL: "/assets/avatars/avatar-4.png",
-    email: "emily.williams@example.com",
-    role: "user",
-    country: "AU",
-    isBanned: false,
-    isVerified: true,
-    primaryLanguageID: "en",
-    muteNotifications: false,
-    socials: {
-      github: "github.com/emilywilliams",
-      twitter: "twitter.com/emilywilliams",
-      linkedin: "linkedin.com/in/emilywilliams",
-      website: "emilywilliams.com"
-    },
-    createdAt: Date.now(),
-    
-    // Backward compatibility fields
-    profileImage: "/assets/avatars/avatar-4.png",
-    joinedDate: "2021-07-01",
-    problemsSolved: 212,
-    dayStreak: 58,
-    ranking: 95,
-    is2FAEnabled: true,
-    followers: generateFollowers(25),
-    following: generateFollowers(20),
-    isOnline: false,
-    countryCode: "AU",
-    bio: "Mobile App Developer",
-    
-    stats: {
-      easy: { solved: 92, total: 150 },
-      medium: { solved: 78, total: 200 },
-      hard: { solved: 42, total: 100 }
-    },
-    achievements: {
-      weeklyContests: 12,
-      monthlyContests: 4,
-      specialEvents: 2
-    },
-    badges: [],
-    activityHeatmap: generateHeatmapData()
-  },
-  {
-    userID: "user-5",
-    userName: "michaelbrown",
-    firstName: "Michael",
-    lastName: "Brown",
-    avatarURL: "/assets/avatars/avatar-5.png",
-    email: "michael.brown@example.com",
-    role: "user",
-    country: "DE",
-    isBanned: false,
-    isVerified: false,
-    primaryLanguageID: "de",
-    muteNotifications: false,
-    socials: {
-      github: "github.com/michaelbrown",
-      twitter: "twitter.com/michaelbrown",
-      linkedin: "linkedin.com/in/michaelbrown",
-      website: "michaelbrown.com"
-    },
-    createdAt: Date.now(),
-    
-    // Backward compatibility fields
-    profileImage: "/assets/avatars/avatar-5.png",
-    joinedDate: "2021-09-10",
-    problemsSolved: 185,
-    dayStreak: 31,
-    ranking: 168,
-    is2FAEnabled: false,
-    followers: generateFollowers(15),
-    following: generateFollowers(10),
-    isOnline: true,
-    countryCode: "DE",
-    bio: "AI Researcher",
-    
-    stats: {
-      easy: { solved: 80, total: 150 },
-      medium: { solved: 65, total: 200 },
-      hard: { solved: 40, total: 100 }
-    },
-    achievements: {
-      weeklyContests: 9,
-      monthlyContests: 3,
-      specialEvents: 1
-    },
-    badges: [],
-    activityHeatmap: generateHeatmapData()
-  }
-];
-
-// Mock friends list
-export const mockFriends = [
-  mockUserProfiles[1],
-  mockUserProfiles[2],
-  mockUserProfiles[3]
-];
 
 // Mock badges
 export const mockBadges: Badge[] = [
   {
-    id: "badge-1",
+    id: "b1",
     name: "Problem Solver",
     description: "Solved 100 problems",
-    icon: "/assets/badges/badge-1.png",
-    tier: "bronze"
+    icon: "trophy",
+    earnedDate: "2023-02-15",
+    rarity: "common"
   },
   {
-    id: "badge-2",
-    name: "Daily Streak",
-    description: "Maintained a 30-day streak",
-    icon: "/assets/badges/badge-2.png",
-    tier: "silver"
+    id: "b2",
+    name: "Streak Master",
+    description: "Maintained a 20-day streak",
+    icon: "flame",
+    earnedDate: "2023-03-10",
+    rarity: "uncommon"
   },
   {
-    id: "badge-3",
-    name: "Contest Master",
-    description: "Participated in 10 contests",
-    icon: "/assets/badges/badge-3.png",
-    tier: "gold"
+    id: "b3",
+    name: "Contest Champion",
+    description: "Won a weekly contest",
+    icon: "award",
+    earnedDate: "2023-03-25",
+    rarity: "rare"
   }
 ];
+
+// Mock user profiles
+export const mockUserProfiles: UserProfile[] = [
+  {
+    // Core identification
+    userID: "1",
+    userName: "johndoe",
+    firstName: "John",
+    lastName: "Doe",
+    avatarURL: "https://i.pravatar.cc/300?img=1",
+    email: "john.doe@example.com",
+    role: "user",
+    country: "USA",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "javascript",
+    muteNotifications: false,
+    socials: {
+      github: "johndoe",
+      twitter: "johndoe",
+      linkedin: "john-doe",
+      website: "https://johndoe.dev"
+    },
+    createdAt: new Date("2022-01-15").getTime(),
+    
+    // UI compatibility fields
+    id: "1",
+    username: "johndoe",
+    fullName: "John Doe",
+    joinedDate: "2022-01-15",
+    problemsSolved: 147,
+    dayStreak: 26,
+    ranking: 354,
+    profileImage: "https://i.pravatar.cc/300?img=1",
+    is2FAEnabled: false,
+    followers: 78,
+    following: 45,
+    countryCode: "US",
+    bio: "Software developer passionate about algorithms and data structures. Solving programming challenges in my free time.",
+    
+    // Stats and achievements
+    stats: {
+      easy: { solved: 78, total: 100 },
+      medium: { solved: 45, total: 150 },
+      hard: { solved: 24, total: 80 }
+    },
+    achievements: {
+      weeklyContests: 12,
+      monthlyContests: 5,
+      specialEvents: 2
+    },
+    badges: mockBadges,
+    activityHeatmap: generateHeatmapData(),
+    currentStreak: 26,
+    longestStreak: 52,
+    currentRating: 354,
+    globalRank: 354
+  },
+  {
+    // Core identification
+    userID: "2",
+    userName: "janedoe",
+    firstName: "Jane",
+    lastName: "Doe",
+    avatarURL: "https://i.pravatar.cc/300?img=5",
+    email: "jane.doe@example.com",
+    role: "user",
+    country: "USA",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "python",
+    muteNotifications: false,
+    socials: {
+      github: "janedoe",
+      twitter: "janedoe",
+      linkedin: "jane-doe",
+      website: "https://janedoe.dev"
+    },
+    createdAt: new Date("2022-03-10").getTime(),
+    
+    // UI compatibility fields
+    id: "2",
+    username: "janedoe",
+    fullName: "Jane Doe",
+    joinedDate: "2022-03-10",
+    problemsSolved: 203,
+    dayStreak: 42,
+    ranking: 218,
+    profileImage: "https://i.pravatar.cc/300?img=5",
+    is2FAEnabled: true,
+    followers: 93,
+    following: 67,
+    countryCode: "US",
+    bio: "Frontend developer with a passion for UI/UX design.",
+    
+    // Stats and achievements
+    stats: {
+      easy: { solved: 85, total: 100 },
+      medium: { solved: 86, total: 150 },
+      hard: { solved: 32, total: 80 }
+    },
+    achievements: {
+      weeklyContests: 18,
+      monthlyContests: 7,
+      specialEvents: 3
+    },
+    badges: mockBadges,
+    activityHeatmap: generateHeatmapData(),
+    currentStreak: 42,
+    longestStreak: 60,
+    currentRating: 218,
+    globalRank: 218
+  }
+];
+
+// Mock friends
+export const mockFriends: Friend[] = [
+  {
+    id: "3",
+    username: "mchen",
+    fullName: "Michael Chen",
+    profileImage: "https://i.pravatar.cc/300?img=3",
+    status: "online"
+  },
+  {
+    id: "4",
+    username: "sophie",
+    fullName: "Sophia Lee",
+    profileImage: "https://i.pravatar.cc/300?img=9",
+    status: "in-match",
+    lastActive: "2023-04-02T14:30:00Z"
+  },
+  {
+    id: "5",
+    username: "alex_dev",
+    fullName: "Alex Johnson",
+    profileImage: "https://i.pravatar.cc/300?img=13",
+    status: "coding",
+    lastActive: "2023-04-02T15:10:00Z"
+  },
+  {
+    id: "6",
+    username: "maria_g",
+    fullName: "Maria Garcia",
+    profileImage: "https://i.pravatar.cc/300?img=16",
+    status: "offline",
+    lastActive: "2023-04-01T22:45:00Z"
+  }
+];
+
+// Add other mock data like challenges, problems, submissions, etc. as needed

@@ -66,16 +66,13 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
     if (name.includes('.')) {
       // Handle nested properties (e.g., socials.github)
       const [parent, child] = name.split('.');
-      
-      if (parent === 'socials') {
-        setFormData(prev => ({
-          ...prev,
-          socials: {
-            ...prev.socials,
-            [child]: value
-          }
-        }));
-      }
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent as keyof ProfileFormData],
+          [child]: value
+        }
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -83,7 +80,7 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
   
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(updateProfile(formData as any));
+    dispatch(updateProfile(formData));
   };
 
   const getAvatarInitials = () => {

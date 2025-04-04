@@ -1,22 +1,49 @@
 
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { LeaderboardState, UserProfile } from '@/api/types';
-import { getLeaderboard } from '@/api/leaderboardApi';
-import { AppThunk } from '@/store';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { LeaderboardEntry } from '@/api/types';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+interface LeaderboardState {
+  entries: LeaderboardEntry[];
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
+  totalEntries: number;
+  currentPage: number;
+  period: "weekly" | "monthly" | "all";
+}
 
 const initialState: LeaderboardState = {
-  globalLeaderboard: [],
-  friendsLeaderboard: [],
+  entries: [],
   status: 'idle',
-  error: null
+  error: null,
+  totalEntries: 0,
+  currentPage: 1,
+  period: "weekly"
 };
 
-// Thunk for fetching leaderboard data
+interface FetchLeaderboardParams {
+  page?: number;
+  limit?: number;
+  period?: "weekly" | "monthly" | "all";
+}
+
+// Fetch leaderboard data
 export const fetchLeaderboard = createAsyncThunk(
   'leaderboard/fetchLeaderboard',
-  async (params: { period: "weekly" | "monthly" | "all" }) => {
-    const data = await getLeaderboard(params);
-    return data;
+  async ({ page = 1, limit = 10, period = "weekly" }: FetchLeaderboardParams, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`/api/leaderboard?page=${page}&limit=${limit}&period=${period}`);
+      return {
+        entries: response.data.leaderboard || [],
+        totalEntries: response.data.totalEntries || 0,
+        period,
+        page
+      };
+    } catch (error: any) {
+      toast.error('Failed to load leaderboard data');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch leaderboard');
+    }
   }
 );
 
@@ -24,48 +51,32 @@ const leaderboardSlice = createSlice({
   name: 'leaderboard',
   initialState,
   reducers: {
-    setLeaderboardLoading: (state) => {
-      state.status = 'loading';
+    setCurrentPage: (state, action) => {
+      state.currentPage = action.payload;
     },
-    setLeaderboardSuccess: (state, action: PayloadAction<UserProfile[]>) => {
-      state.status = 'succeeded';
-      state.globalLeaderboard = action.payload;
-    },
-    setLeaderboardError: (state, action: PayloadAction<string>) => {
-      state.status = 'failed';
-      state.error = action.payload;
-    },
-    setFriendsLeaderboard: (state, action: PayloadAction<UserProfile[]>) => {
-      state.friendsLeaderboard = action.payload;
+    setPeriod: (state, action) => {
+      state.period = action.payload;
     }
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLeaderboard.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchLeaderboard.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Fix: Handle both array response and object with leaderboard property
-        if (Array.isArray(action.payload)) {
-          state.globalLeaderboard = action.payload;
-        } else if (action.payload && 'leaderboard' in action.payload) {
-          // @ts-ignore - We're handling type conversion safely here
-          state.globalLeaderboard = action.payload.leaderboard;
-        }
+        state.entries = action.payload.entries;
+        state.totalEntries = action.payload.totalEntries;
+        state.period = action.payload.period;
+        state.currentPage = action.payload.page;
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message || 'Failed to fetch leaderboard';
+        state.error = action.payload as string;
       });
   }
 });
 
-export const { 
-  setLeaderboardLoading, 
-  setLeaderboardSuccess, 
-  setLeaderboardError,
-  setFriendsLeaderboard
-} = leaderboardSlice.actions;
-
+export const { setCurrentPage, setPeriod } = leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

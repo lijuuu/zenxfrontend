@@ -1,5 +1,6 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { fetchUserProfile } from '@/store/slices/userSlice';
 import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
@@ -12,7 +13,7 @@ import MonthlyActivityHeatmap from '@/components/MonthlyActivityHeatmap';
 import ClearInactivityCard from '@/components/ClearInactivityCard';
 import { getUserProfile } from '@/api/userApi';
 import { getProblems } from '@/api/problemApi';
-import { fetchChallenges } from '@/api/challengeApi';
+import { getChallenges } from '@/api/challengeApi';
 import { getLeaderboard } from '@/api/leaderboardApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MainNavbar from '@/components/MainNavbar';
@@ -33,33 +34,29 @@ const Index = () => {
     dispatch(fetchUserProfile('1'));
   }, [dispatch]);
 
-  // Fetch user profile, without React Query per user request
-  const [problemStats, setProblemStats] = useState(null);
-  const [recentChallenges, setRecentChallenges] = useState(null);
-  const [topPerformers, setTopPerformers] = useState(null);
-  const [userProfileData, setUserProfileData] = useState(null);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const problems = await getProblems();
-        setProblemStats(problems);
-        
-        const challenges = await fetchChallenges();
-        setRecentChallenges(challenges);
-        
-        const leaderboard = await getLeaderboard({ period: 'weekly' });
-        setTopPerformers(leaderboard);
-        
-        const profile = await getUserProfile('1');
-        setUserProfileData(profile);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    
-    fetchData();
-  }, []);
+  // Fetch problem stats with React Query
+  const { data: problemStats } = useQuery({
+    queryKey: ['problemStats'],
+    queryFn: () => getProblems(),
+  });
+
+  // Fetch recent challenges with React Query
+  const { data: recentChallenges } = useQuery({
+    queryKey: ['recentChallenges'],
+    queryFn: () => getChallenges(),
+  });
+
+  // Fetch top performers with React Query
+  const { data: topPerformers } = useQuery({
+    queryKey: ['topPerformers'],
+    queryFn: () => getLeaderboard({ period: 'weekly' }),
+  });
+
+  // Fetch user profile with React Query (separate from Redux for demonstration)
+  const { data: userProfileData } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: () => getUserProfile('1'),
+  });
 
   // Navigate to other pages
   const navigate = useNavigate();
@@ -74,7 +71,7 @@ const Index = () => {
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
               <div>
                 <h1 className="text-3xl font-bold">
-                  Welcome back, {userProfile?.userName || 'Coder'}
+                  Welcome back, {userProfile?.username || 'Coder'}
                 </h1>
                 <p className="text-zinc-400 mt-1">
                   Continue improving your coding skills and climb the ranks

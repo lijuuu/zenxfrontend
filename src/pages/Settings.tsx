@@ -1,58 +1,51 @@
 
-import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/hooks';
+import React, { useEffect } from 'react';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchUserProfile } from '@/store/slices/userSlice';
 import MainNavbar from '@/components/MainNavbar';
 import SettingsTabs from '@/components/settings/SettingsTabs';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List } from 'lucide-react'; // Using List instead of ListBullet
+import { Skeleton } from '@/components/ui/skeleton';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Settings = () => {
   const dispatch = useAppDispatch();
-  const { profile, status } = useAppSelector(state => state.user);
-  const [activeTab, setActiveTab] = useState('profile');
+  const { profile, status } = useAppSelector((state) => state.user);
 
   useEffect(() => {
-    // Only fetch if we don't already have the profile
-    if (!profile) {
-      // Pass an empty string or userId if needed
-      dispatch(fetchUserProfile(''));
-    }
-  }, [dispatch, profile]);
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
+
+  const isLoading = status === 'loading' || !profile;
+
+  if (isLoading) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen bg-background">
+          <MainNavbar />
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-2xl font-bold mb-8 text-foreground">Settings</h1>
+              <Skeleton className="h-[600px] w-full" />
+            </div>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <MainNavbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center mb-6">
-          <List className="mr-2 h-6 w-6" />
-          <h1 className="text-3xl font-bold">Settings</h1>
-        </div>
-        
-        <Tabs defaultValue="profile" className="space-y-6" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full md:w-fit grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="2fa">Security</TabsTrigger>
-          </TabsList>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-            {status === 'loading' ? (
-              <div className="flex items-center justify-center h-48">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              </div>
-            ) : profile ? (
-              <SettingsTabs activeTab={activeTab} profile={profile} />
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-zinc-500">Failed to load profile data.</p>
-              </div>
-            )}
+    <SidebarProvider>
+      <div className="min-h-screen bg-background">
+        <MainNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold mb-8 text-foreground">Settings</h1>
+            <SettingsTabs user={profile} />
           </div>
-        </Tabs>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

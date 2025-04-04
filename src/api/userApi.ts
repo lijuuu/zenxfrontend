@@ -1,183 +1,148 @@
-import { UserProfile, UsersResponse } from './types';
-import { GenericResponse } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { UserProfile, AuthResponse, LoginCredentials, RegisterData } from './types';
+import { mockUserProfiles, mockFriends, mockBadges, generateHeatmapData } from './mockData';
 
-// Function to get the current user's profile
-export const getCurrentUser = async (userId?: string): Promise<UserProfile> => {
-  const token = localStorage.getItem('accessToken');
-  let url = `${API_BASE_URL}/users/me`;
-  if (userId) {
-    url = `${API_BASE_URL}/users/${userId}`;
-  }
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+// API functions
+export const getCurrentUser = async (): Promise<UserProfile> => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(mockUserProfiles[0]), 500);
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch user profile: ${response.status}`);
-  }
-
-  return await response.json();
 };
 
-// Function to update the current user's profile
-export const updateCurrentUser = async (userData: Partial<UserProfile>): Promise<UserProfile> => {
-  const token = localStorage.getItem('accessToken');
-
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify(userData),
+export const getUserProfile = async (userId: string): Promise<UserProfile> => {
+  return new Promise(resolve => {
+    const userProfile = mockUserProfiles.find(u => u.id === userId) || mockUserProfiles[0];
+    setTimeout(() => resolve(userProfile), 600);
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to update user profile: ${response.status}`);
-  }
-
-  return await response.json();
 };
 
-// Function to search users by username
-export const searchUsers = async (query: string): Promise<UsersResponse> => {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/users/search?q=${query}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
-    });
+export const updateUserProfile = async (profileData: Partial<UserProfile>): Promise<UserProfile> => {
+  return new Promise(resolve => {
+    const updatedUser = { ...mockUserProfiles[0], ...profileData };
+    setTimeout(() => resolve(updatedUser), 600);
+  });
+};
 
-    if (!response.ok) {
-        throw new Error(`Failed to search users: ${response.status}`);
+export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  return new Promise((resolve, reject) => {
+    if (credentials.email === "john.doe@example.com" && credentials.password === "password") {
+      setTimeout(() => resolve({
+        token: "mock-jwt-token",
+        refreshToken: "mock-refresh-token",
+        user: mockUserProfiles[0]
+      }), 800);
+    } else {
+      setTimeout(() => reject(new Error("Invalid credentials")), 800);
     }
-
-    return await response.json();
-};
-
-// Function to follow a user
-export const followUser = async (userIdToFollow: string): Promise<GenericResponse> => {
-  const token = localStorage.getItem('accessToken');
-
-  const response = await fetch(`${API_BASE_URL}/users/${userIdToFollow}/follow`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to follow user: ${response.status}`);
-  }
-
-  return await response.json();
 };
 
-// Function to unfollow a user
-export const unfollowUser = async (userIdToUnfollow: string): Promise<GenericResponse> => {
-  const token = localStorage.getItem('accessToken');
-
-  const response = await fetch(`${API_BASE_URL}/users/${userIdToUnfollow}/unfollow`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to unfollow user: ${response.status}`);
-  }
-
-  return await response.json();
-};
-
-// Add missing getUserFollowers and getUserFollowing functions
-export const getUserFollowers = async (userId: string): Promise<UserProfile[]> => {
-  const token = localStorage.getItem('accessToken');
-  
-  const response = await fetch(`${API_BASE_URL}/users/${userId}/followers`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch followers: ${response.status}`);
-  }
-
-  return await response.json();
-};
-
-export const getUserFollowing = async (userId: string): Promise<UserProfile[]> => {
-  const token = localStorage.getItem('accessToken');
-  
-  const response = await fetch(`${API_BASE_URL}/users/${userId}/following`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch following: ${response.status}`);
-  }
-
-  return await response.json();
-};
-
-// Add missing setUpTwoFactorAuth function
-export const setUpTwoFactorAuth = async (): Promise<any> => {
-  try {
-    // Mock implementation - in a real app this would call a backend endpoint
-    return {
-      success: true,
-      qrCodeUrl: 'https://mock-qr-code-url.com',
-      secret: 'MOCK2FASECRET',
+export const register = async (data: RegisterData): Promise<AuthResponse> => {
+  return new Promise(resolve => {
+    // Create a basic UserProfile
+    const newUser: UserProfile = {
+      userID: "new-user-id",
+      userName: data.username,
+      firstName: data.fullName.split(' ')[0],
+      lastName: data.fullName.split(' ')[1] || '',
+      avatarURL: '',
+      email: data.email,
+      role: 'user',
+      country: '',
+      isBanned: false,
+      isVerified: false,
+      primaryLanguageID: '',
+      muteNotifications: false,
+      socials: {
+        github: '',
+        twitter: '',
+        linkedin: '',
+        website: ''
+      },
+      createdAt: Date.now(),
+      
+      // UI compatibility fields
+      id: "new-user-id",
+      username: data.username,
+      fullName: data.fullName,
+      joinedDate: new Date().toISOString().split('T')[0],
+      problemsSolved: 0,
+      dayStreak: 0,
+      ranking: 9999,
+      
+      // Additional required fields
+      stats: {
+        easy: { solved: 0, total: 100 },
+        medium: { solved: 0, total: 150 },
+        hard: { solved: 0, total: 80 }
+      },
+      achievements: {
+        weeklyContests: 0,
+        monthlyContests: 0,
+        specialEvents: 0
+      },
+      badges: [],
+      activityHeatmap: generateHeatmapData()
     };
-  } catch (error) {
-    console.error('Error setting up 2FA:', error);
-    throw error;
-  }
+    
+    setTimeout(() => resolve({
+      token: "mock-jwt-token",
+      refreshToken: "mock-refresh-token",
+      user: newUser
+    }), 1000);
+  });
 };
 
-// Fix includes check on followers/following
-export const isFollowing = (user: UserProfile, targetUserId: string): boolean => {
-  if (!user.following) return false;
-  
-  if (Array.isArray(user.following)) {
-    return user.following.includes(targetUserId);
-  }
-  
-  // If it's a number, we can't check specific follows
-  return false;
+export const logout = async (): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(resolve, 300);
+  });
 };
 
-export const isFollower = (user: UserProfile, targetUserId: string): boolean => {
-  if (!user.followers) return false;
-  
-  if (Array.isArray(user.followers)) {
-    return user.followers.includes(targetUserId);
-  }
-  
-  // If it's a number, we can't check specific followers
-  return false;
+export const setUpTwoFactorAuth = async (): Promise<{ qrCodeUrl: string; secret: string }> => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve({
+      qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=otpauth://totp/ZenX:johndoe@example.com?secret=JBSWY3DPEHPK3PXP&issuer=ZenX",
+      secret: "JBSWY3DPEHPK3PXP"
+    }), 800);
+  });
 };
 
-// Replace getUserProfile with a compatibility function if needed
-export const getUserProfile = async (userId?: string): Promise<UserProfile> => {
-  return getCurrentUser(userId);
+export const verifyTwoFactorAuth = async (code: string): Promise<boolean> => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(code.length === 6), 500);
+  });
+};
+
+export const disableTwoFactorAuth = async (code: string): Promise<boolean> => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(true), 500);
+  });
+};
+
+export const getFriends = async () => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(mockFriends), 600);
+  });
+};
+
+export const followUser = async (userId: string): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(resolve, 300);
+  });
+};
+
+export const unfollowUser = async (userId: string): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(resolve, 300);
+  });
+};
+
+export const searchUsers = async (query: string): Promise<UserProfile[]> => {
+  return new Promise(resolve => {
+    const filteredUsers = mockUserProfiles.filter(user => 
+      user.userName.includes(query) || user.fullName?.includes(query)
+    );
+    setTimeout(() => resolve(filteredUsers), 500);
+  });
 };

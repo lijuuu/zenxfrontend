@@ -1,12 +1,4 @@
 
-export interface ActivityDay {
-  date: string;
-  count: number;
-  present: boolean;
-  isActive: boolean;
-  level?: 0 | 1 | 2 | 3 | 4; // Add level for HeatmapDataPoint compatibility
-}
-
 export interface File {
   id: string;
   name: string;
@@ -78,7 +70,13 @@ export type GenericResponse = {
   error?: { errorType: string; message: string };
 };
 
-// Change export type to export const
+export interface ActivityDay {
+  date: string;
+  count: number;
+  present: boolean;
+  isActive: boolean;
+}
+
 export const twoSumProblem: ProblemMetadata = {
   problem_id: "67d96452d3fe6af39801337b",
   title: "Two Sum",

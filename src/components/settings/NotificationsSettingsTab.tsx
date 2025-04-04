@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { UserProfile } from "@/api/types";
+import { UserProfile } from "@/store/slices/authSlice";
 
 interface NotificationsSettingsTabProps {
   userProfile: UserProfile;

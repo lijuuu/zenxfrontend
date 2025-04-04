@@ -1,118 +1,148 @@
 
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { compileCode } from '@/api/compilerApi';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { toast } from 'sonner';
+import { File, CompilerResponse } from '@/api/types';
+import { executeCode } from '@/api/compilerApi';
 
-export interface File {
-  id: string;
-  name: string;
-  language: string;
-  content: string;
-  createdAt: string;
-  lastModified: string;
-}
-
-export interface CompilerResponse {
-  output?: string;
-  status_message?: string;
-  error?: string;
-  success?: boolean;
-  execution_time?: number;
-}
-
-export interface CompilerState {
-  files: File[];
-  currentFileId: string | null;
-  output: string;
-  loading: boolean;
-  error: string | null;
+// Define state type
+interface CompilerState {
   code: string;
   language: string;
+  loading: boolean;
   file: string;
+  result: CompilerResponse;
+  files: File[];
   currentFile: string | null;
-  result: CompilerResponse | null;
+  isRenaming: boolean;
+  newFileName: string;
+  fileToRename: string | null;
 }
 
+// Initial state
 const initialState: CompilerState = {
-  files: [],
-  currentFileId: null,
-  output: '',
-  loading: false,
-  error: null,
   code: '',
   language: 'javascript',
+  loading: false,
   file: 'js',
+  result: { output: '', status_message: '', success: false },
+  files: [],
   currentFile: null,
-  result: null
+  isRenaming: false,
+  newFileName: '',
+  fileToRename: null,
 };
 
-// Create async thunk for running code
 export const runCode = createAsyncThunk(
-  'compiler/runCode',
+  'xCodeCompiler/runCode',
   async ({ code, reqLang }: { code: string; reqLang: string }, { rejectWithValue }) => {
     try {
-      const response = await compileCode({ code, language: reqLang });
-      return response;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to compile code');
+      const result = await executeCode(code, reqLang);
+      return result;
+    } catch (error: any) {
+      toast.error('Failed to execute code');
+      return rejectWithValue({
+        output: '',
+        status_message: 'An error occurred during execution.',
+        success: false,
+      });
     }
   }
 );
 
 const compilerSlice = createSlice({
-  name: 'compiler',
+  name: 'xCodeCompiler',
   initialState,
   reducers: {
-    addFile: (state, action: PayloadAction<File>) => {
-      state.files.push(action.payload);
-      state.currentFileId = action.payload.id;
-      state.currentFile = action.payload.id;
-    },
-    updateFile: (state, action: PayloadAction<Partial<File> & { id: string }>) => {
-      state.files = state.files.map(file =>
-        file.id === action.payload.id ? { ...file, ...action.payload } : file
-      );
-    },
-    deleteFile: (state, action: PayloadAction<string>) => {
-      state.files = state.files.filter(file => file.id !== action.payload);
-      if (state.currentFileId === action.payload) {
-        state.currentFileId = state.files.length > 0 ? state.files[0].id : null;
-        state.currentFile = state.files.length > 0 ? state.files[0].id : null;
+    setCode: (state, action: PayloadAction<string>) => {
+      state.code = action.payload;
+      if (state.currentFile) {
+        state.files = state.files.map((file) =>
+          file.id === state.currentFile
+            ? { ...file, content: action.payload, lastModified: new Date().toISOString() }
+            : file
+        );
+        localStorage.setItem('xcode-files', JSON.stringify(state.files));
       }
     },
-    setCurrentFile: (state, action: PayloadAction<string>) => {
-      state.currentFileId = action.payload;
-      state.currentFile = action.payload;
-    },
-    setOutput: (state, action: PayloadAction<string>) => {
-      state.output = action.payload;
+
+    setLanguage: (state, action: PayloadAction<string>) => {
+      state.language = action.payload;
+      if (state.currentFile) {
+        state.files = state.files.map((file) =>
+          file.id === state.currentFile
+            ? { ...file, language: action.payload, lastModified: new Date().toISOString() }
+            : file
+        );
+        localStorage.setItem('xcode-files', JSON.stringify(state.files));
+      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
-    setCode: (state, action: PayloadAction<string>) => {
-      state.code = action.payload;
-    },
-    setLanguage: (state, action: PayloadAction<string>) => {
-      state.language = action.payload;
-    },
-    setFile: (state, action: PayloadAction<string>) => {
-      state.file = action.payload;
-    },
-    setFiles: (state, action: PayloadAction<File[]>) => {
-      state.files = action.payload;
-    },
+    
     setResult: (state, action: PayloadAction<CompilerResponse>) => {
       state.result = action.payload;
-    }
+    },    
+
+    setFiles: (state, action: PayloadAction<File[]>) => {
+      state.files = action.payload;
+      localStorage.setItem('xcode-files', JSON.stringify(state.files));
+    },
+
+    setCurrentFile: (state, action: PayloadAction<string | null>) => {
+      state.currentFile = action.payload;
+      if (action.payload) {
+        const file = state.files.find((f) => f.id === action.payload);
+        if (file) {
+          state.code = file.content;
+          state.language = file.language;
+        }
+      }
+    },
+
+    setFile: (state, action: PayloadAction<string>) => {
+      state.file = action.payload;
+      if (state.currentFile) {
+        state.files = state.files.map((file) =>
+          file.id === state.currentFile
+            ? { ...file, name: file.name.replace(/\.[^.]+$/, `.${action.payload}`), lastModified: new Date().toISOString() }
+            : file
+        );
+        localStorage.setItem('xcode-files', JSON.stringify(state.files));
+      }
+    },
+
+    setRenaming: (state, action: PayloadAction<boolean>) => {
+      state.isRenaming = action.payload;
+    },
+
+    setNewFileName: (state, action: PayloadAction<string>) => {
+      state.newFileName = action.payload;
+    },
+
+    setFileToRename: (state, action: PayloadAction<string | null>) => {
+      state.fileToRename = action.payload;
+    },
+
+    saveCurrentFile: (
+      state,
+      action: PayloadAction<{ currentFile: string; code: string }>
+    ) => {
+      const { currentFile, code } = action.payload;
+      if (!currentFile) return;
+      state.files = state.files.map((file) =>
+        file.id === currentFile
+          ? { ...file, content: code, lastModified: new Date().toISOString() }
+          : file
+      );
+      localStorage.setItem('xcode-files', JSON.stringify(state.files));
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(runCode.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        state.result = { output: '', status_message: '', success: false };
       })
       .addCase(runCode.fulfilled, (state, action) => {
         state.loading = false;
@@ -120,24 +150,23 @@ const compilerSlice = createSlice({
       })
       .addCase(runCode.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.result = action.payload as CompilerResponse;
       });
   },
 });
 
 export const {
-  addFile,
-  updateFile,
-  deleteFile,
-  setCurrentFile,
-  setOutput,
-  setLoading,
-  setError,
   setCode,
   setLanguage,
-  setFile,
+  setLoading,
+  setResult,
   setFiles,
-  setResult
+  setFile,
+  setCurrentFile,
+  setRenaming,
+  setNewFileName,
+  setFileToRename,
+  saveCurrentFile,
 } = compilerSlice.actions;
 
 export default compilerSlice.reducer;

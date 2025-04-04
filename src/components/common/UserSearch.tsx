@@ -4,11 +4,11 @@ import { Link } from "react-router-dom";
 import { Search, User, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { searchUsers } from "@/api/userApi";
-import { UserProfile, UsersResponse } from "@/api/types";
+import { searchUsers } from "@/api/challengeApi";
+import { User as UserType } from "@/api/types";
 
 interface UserSearchProps {
-  onSelect?: (user: UserProfile) => void;
+  onSelect?: (user: UserType) => void;
   className?: string;
   withLink?: boolean;
 }
@@ -19,7 +19,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
   withLink = true
 }) => {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<UserProfile[]>([]);
+  const [results, setResults] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -35,16 +35,9 @@ const UserSearch: React.FC<UserSearchProps> = ({
       setLoading(true);
       try {
         const data = await searchUsers(query);
-        // Fix: Extract users array from the response
-        if (data && 'users' in data) {
-          setResults((data as UsersResponse).users);
-        } else {
-          // Handle if the API returns an array directly
-          setResults(Array.isArray(data) ? data : []);
-        }
+        setResults(data);
       } catch (error) {
         console.error("Search error:", error);
-        setResults([]);
       } finally {
         setLoading(false);
       }
@@ -65,7 +58,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   
-  const handleUserSelect = (user: UserProfile) => {
+  const handleUserSelect = (user: UserType) => {
     if (onSelect) {
       onSelect(user);
     }
@@ -115,25 +108,25 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <div className="max-h-72 overflow-y-auto">
               {results.map((user) => (
                 <div
-                  key={user.userID}
+                  key={user.id}
                   className="p-2 flex items-center gap-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                   onClick={() => handleUserSelect(user)}
                 >
                   <div className="relative">
                     <img
-                      src={user.avatarURL || user.profileImage || "https://i.pravatar.cc/300?img=1"}
-                      alt={user.userName}
+                      src={user.profileImage || "https://i.pravatar.cc/300?img=1"}
+                      alt={user.username}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{`${user.firstName} ${user.lastName}`}</div>
-                    <div className="text-sm text-zinc-500 truncate">@{user.userName}</div>
+                    <div className="font-medium truncate">{user.fullName}</div>
+                    <div className="text-sm text-zinc-500 truncate">@{user.username}</div>
                   </div>
                   {withLink && (
                     <Link
-                      to={`/profile/${user.userName}`}
+                      to={`/profile/${user.username}`}
                       className="text-xs text-blue-600 hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >

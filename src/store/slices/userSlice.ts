@@ -1,9 +1,9 @@
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import axios from 'axios';
 import { UserProfile } from '@/api/types';
+import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
-import { getCurrentUser } from '@/api/userApi';
-import { AppThunk } from '@/store';
 
 export interface UserState {
   profile: UserProfile | null;
@@ -17,16 +17,39 @@ const initialState: UserState = {
   error: null,
 };
 
-// Thunk action creator for fetching user profile
-export const fetchUserProfile = (userId: string): AppThunk => async (dispatch) => {
-  try {
-    dispatch(setUserLoading());
-    const userData = await getCurrentUser();
-    dispatch(setUserSuccess(userData));
-  } catch (error) {
-    dispatch(setUserError(error instanceof Error ? error.message : 'Failed to fetch user profile'));
+export const fetchUserProfile = createAsyncThunk(
+  'user/fetchUserProfile',
+  async (userId: string = 'current', { rejectWithValue }) => {
+    try {
+      // Using the API directly with axios
+      const response = await axiosInstance.get(`/users/${userId}`);
+      return response.data.payload as UserProfile;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error('Failed to fetch user profile');
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch user profile');
+      }
+      throw error;
+    }
   }
-};
+);
+
+export const updateProfile = createAsyncThunk(
+  'user/updateProfile',
+  async (profileData: Partial<UserProfile>, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put('/users/profile/update', profileData);
+      toast.success('Profile updated successfully');
+      return response.data.payload as UserProfile;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error('Failed to update profile');
+        return rejectWithValue(error.response?.data?.message || 'Failed to update profile');
+      }
+      throw error;
+    }
+  }
+);
 
 const userSlice = createSlice({
   name: 'user',
@@ -38,54 +61,33 @@ const userSlice = createSlice({
     clearUser: (state) => {
       state.profile = null;
     },
-    setUserLoading: (state) => {
-      state.status = 'loading';
-    },
-    setUserSuccess: (state, action: PayloadAction<UserProfile>) => {
-      state.status = 'succeeded';
-      state.profile = action.payload;
-    },
-    setUserError: (state, action: PayloadAction<string>) => {
-      state.status = 'failed';
-      state.error = action.payload;
-    },
-    followUser: (state, action: PayloadAction<string>) => {
-      if (state.profile) {
-        if (typeof state.profile.following === 'number') {
-          // If following is a number, convert to array with the new userId
-          state.profile.following = [action.payload];
-        } else {
-          // If following is an array, add the new userId if not already included
-          state.profile.following = [...(state.profile.following || []), action.payload];
-        }
-        toast.success(`You are now following this user`);
-      }
-    },
-    unfollowUser: (state, action: PayloadAction<string>) => {
-      if (state.profile) {
-        if (Array.isArray(state.profile.following)) {
-          state.profile.following = state.profile.following.filter(id => id !== action.payload);
-        } else if (typeof state.profile.following === 'number' && state.profile.following > 0) {
-          state.profile.following -= 1;
-        }
-        toast.success(`You have unfollowed this user`);
-      }
-    },
-    updateProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
-      if (state.profile) {
-        state.profile = { 
-          ...state.profile, 
-          ...action.payload,
-          socials: {
-            ...state.profile.socials,
-            ...(action.payload.socials || {})
-          }
-        };
-        toast.success('Profile updated successfully');
-      }
-    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserProfile.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.profile = action.payload;
+      })
+      .addCase(fetchUserProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || 'Failed to fetch user profile';
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.profile = action.payload;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || 'Failed to update profile';
+      });
   },
 });
 
-export const { setUser, clearUser, setUserLoading, setUserSuccess, setUserError, followUser, unfollowUser, updateProfile } = userSlice.actions;
+export const { setUser, clearUser } = userSlice.actions;
 export default userSlice.reducer;

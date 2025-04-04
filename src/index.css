@@ -3,7 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 @layer base {
   :root {
@@ -82,12 +81,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-zinc-950 text-white font-inter;
-  }
-  
-  /* Auth pages use Inter font */
-  .auth-page {
-    font-family: 'Inter', sans-serif;
+    @apply bg-zinc-950 text-white;
   }
 }
 
@@ -312,25 +306,3 @@
   @apply border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-400 hover:text-white;
 }
 
-/* Responsive sidebar styles */
-.sidebar-open {
-  @apply md:ml-64;
-}
-
-.sidebar-closed {
-  @apply md:ml-0;
-}
-
-/* Mobile menu styles */
-.mobile-menu-container {
-  @apply fixed top-0 left-0 w-full h-full z-50 bg-zinc-950/90 backdrop-blur-sm flex justify-end transform transition-transform duration-300;
-}
-
-.mobile-menu {
-  @apply w-4/5 max-w-sm h-full bg-zinc-900 p-6 overflow-y-auto shadow-xl;
-}
-
-/* Font styles */
-.font-inter {
-  font-family: 'Inter', system-ui, sans-serif;
-}
