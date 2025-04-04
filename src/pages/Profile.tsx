@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/hooks';
@@ -44,12 +45,13 @@ const Profile = () => {
           <div className="text-center">Loading profile...</div>
         ) : (
           <>
-            <ProfileHeader user={profileData} />
+            {/* Update prop names to match component expectations */}
+            <ProfileHeader profile={profileData} />
 
             {profileData && (
               <>
                 <ProfileAchievements 
-                  user={profileData} // Changed from profile to user
+                  profile={profileData}
                 />
               </>
             )}

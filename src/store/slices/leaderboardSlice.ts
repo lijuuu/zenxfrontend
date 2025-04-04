@@ -46,7 +46,13 @@ const leaderboardSlice = createSlice({
       })
       .addCase(fetchLeaderboard.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.globalLeaderboard = action.payload;
+        // Fix: Handle both array response and object with leaderboard property
+        if (Array.isArray(action.payload)) {
+          state.globalLeaderboard = action.payload;
+        } else if (action.payload && 'leaderboard' in action.payload) {
+          // @ts-ignore - We're handling type conversion safely here
+          state.globalLeaderboard = action.payload.leaderboard;
+        }
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.status = 'failed';

@@ -1,7 +1,10 @@
-
 // Import correctly from problem-execution
-import type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload, twoSumProblem } from './types/problem-execution';
-export type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload, twoSumProblem };
+import type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload } from './types/problem-execution';
+// Import twoSumProblem as a value import, not a type
+import { twoSumProblem } from './types/problem-execution';
+
+export { twoSumProblem };
+export type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload };
 
 // Define common response types
 export interface LoginResponse {
@@ -110,6 +113,7 @@ export interface HeatmapDataPoint {
   date: string;
   count: number;
   present: boolean;
+  level: 0 | 1 | 2 | 3 | 4;
 }
 
 export type ActivityLevel = 0 | 1 | 2 | 3 | 4;

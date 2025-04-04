@@ -5,7 +5,7 @@ import { fetchUserProfile } from '@/store/slices/userSlice';
 import MainNavbar from '@/components/MainNavbar';
 import SettingsTabs from '@/components/settings/SettingsTabs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List } from 'lucide-react'; // Changed from ListBullet to List
+import { List } from 'lucide-react'; // Using List instead of ListBullet
 
 const Settings = () => {
   const dispatch = useAppDispatch();
@@ -15,7 +15,8 @@ const Settings = () => {
   useEffect(() => {
     // Only fetch if we don't already have the profile
     if (!profile) {
-      dispatch(fetchUserProfile());
+      // Pass an empty string or userId if needed
+      dispatch(fetchUserProfile(''));
     }
   }, [dispatch, profile]);
 
@@ -42,7 +43,7 @@ const Settings = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
             ) : profile ? (
-              <SettingsTabs tab={activeTab} profile={profile} />
+              <SettingsTabs activeTab={activeTab} profile={profile} />
             ) : (
               <div className="text-center py-10">
                 <p className="text-zinc-500">Failed to load profile data.</p>

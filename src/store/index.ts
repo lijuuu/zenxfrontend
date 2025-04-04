@@ -26,6 +26,9 @@ const store = configureStore({
     }),
 });
 
+export { store }; // Export as named export
+export default store; // Also provide default export for backward compatibility
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 export type AppThunk<ReturnType = void> = ThunkAction<
@@ -34,5 +37,3 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   unknown,
   Action<string>
 >;
-
-export default store;

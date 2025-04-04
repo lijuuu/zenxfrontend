@@ -5,7 +5,7 @@ import { Search, User, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { searchUsers } from "@/api/userApi";
-import { UserProfile } from "@/api/types";
+import { UserProfile, UsersResponse } from "@/api/types";
 
 interface UserSearchProps {
   onSelect?: (user: UserProfile) => void;
@@ -35,9 +35,16 @@ const UserSearch: React.FC<UserSearchProps> = ({
       setLoading(true);
       try {
         const data = await searchUsers(query);
-        setResults(data);
+        // Fix: Extract users array from the response
+        if (data && 'users' in data) {
+          setResults((data as UsersResponse).users);
+        } else {
+          // Handle if the API returns an array directly
+          setResults(Array.isArray(data) ? data : []);
+        }
       } catch (error) {
         console.error("Search error:", error);
+        setResults([]);
       } finally {
         setLoading(false);
       }
