@@ -1,137 +1,111 @@
 
-import React, { useState, useEffect } from 'react';
-import MainNavbar from '@/components/common/MainNavbar';
-import { useAppSelector } from '@/hooks';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ProfileEditTab from '@/components/settings/ProfileEditTab';
-import TwoFactorAuthTab from '@/components/settings/TwoFactorAuthTab';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
-import { UserProfile } from '@/api/types'; // Import the UserProfile type
+import React, { useEffect, useState } from 'react';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { fetchUserProfile } from '@/store/slices/userSlice';
+import MainNavbar from '@/components/MainNavbar';
+import SettingsTabs from '@/components/settings/SettingsTabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { UserProfile, User } from '@/api/types';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Settings = () => {
-  const { userProfile, loading } = useAppSelector((state) => state.auth);
-  const [activeTab, setActiveTab] = useState('profile');
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <MainNavbar />
-        <div className="pt-16 container mx-auto px-4">
-          <div className="py-16 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-500"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const dispatch = useAppDispatch();
+  const { profile, loading } = useAppSelector((state) => state.user);
+  const [fullProfile, setFullProfile] = useState<UserProfile | null>(null);
 
-  if (!userProfile) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <MainNavbar />
-        <div className="pt-16 container mx-auto px-4">
-          <div className="py-16 text-center">
-            <h1 className="text-2xl font-bold">User profile not available</h1>
-            <p className="mt-2 text-zinc-400">Please try logging in again</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
 
-  // Create a compatible user object for the components that expect a UserProfile with more fields
-  const enhancedUserProfile: UserProfile = {
-    ...userProfile,
-    stats: {
-      easy: { solved: 0, total: 0 },
-      medium: { solved: 0, total: 0 },
-      hard: { solved: 0, total: 0 }
-    },
-    achievements: {
-      weeklyContests: 0,
-      monthlyContests: 0,
-      specialEvents: 0
-    },
-    badges: [],
-    activityHeatmap: {
-      startDate: new Date().toISOString(),
-      data: []
+  // Convert the basic profile to a full UserProfile with all required fields
+  useEffect(() => {
+    if (profile) {
+      const enhancedProfile: UserProfile = {
+        // Core UserProfile properties
+        userID: profile.userID || '',
+        userName: profile.userName || '',
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        avatarURL: profile.avatarURL || '',
+        email: profile.email || '',
+        role: profile.role || 'user',
+        country: profile.country || '',
+        isBanned: profile.isBanned || false,
+        isVerified: profile.isVerified || false,
+        primaryLanguageID: profile.primaryLanguageID || '',
+        muteNotifications: profile.muteNotifications || false,
+        socials: profile.socials || {
+          github: '',
+          twitter: '',
+          linkedin: ''
+        },
+        createdAt: profile.createdAt || 0,
+        
+        // Additional UI properties
+        id: profile.userID,
+        username: profile.userName,
+        fullName: `${profile.firstName} ${profile.lastName}`,
+        joinedDate: new Date(profile.createdAt).toISOString(),
+        problemsSolved: 0,
+        dayStreak: 0,
+        ranking: 0,
+        profileImage: profile.avatarURL,
+        
+        // Additional required fields for UserProfile
+        stats: {
+          easy: { solved: 0, total: 0 },
+          medium: { solved: 0, total: 0 },
+          hard: { solved: 0, total: 0 }
+        },
+        achievements: {
+          weeklyContests: 0,
+          monthlyContests: 0,
+          specialEvents: 0
+        },
+        badges: [],
+        activityHeatmap: {
+          startDate: new Date().toISOString(),
+          data: []
+        },
+        currentStreak: 0,
+        longestStreak: 0,
+        currentRating: 0,
+        globalRank: 0
+      };
+
+      setFullProfile(enhancedProfile);
     }
-  };
+  }, [profile]);
+
+  if (loading || !fullProfile) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen bg-background">
+          <MainNavbar />
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-2xl font-bold mb-8 text-foreground">Settings</h1>
+              <Skeleton className="h-[600px] w-full" />
+            </div>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <MainNavbar />
-      
-      <div className="pt-16 pb-16 container mx-auto px-4">
-        <div className="flex flex-col md:flex-row gap-8 mt-8">
-          {/* Sidebar */}
-          <div className="w-full md:w-64 space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Settings</h1>
-              <p className="text-zinc-400 text-sm">
-                Manage your <span className="text-green-500">zenx</span> account preferences
-              </p>
-            </div>
-            
-            <Tabs 
-              defaultValue="profile" 
-              className="w-full" 
-              value={activeTab}
-              onValueChange={setActiveTab}
-            >
-              <TabsList className="grid w-full grid-cols-1 h-auto gap-2">
-                <TabsTrigger value="profile" className="justify-start">
-                  Profile Settings
-                </TabsTrigger>
-                <TabsTrigger value="security" className="justify-start">
-                  Security & 2FA
-                </TabsTrigger>
-                <TabsTrigger value="notifications" className="justify-start">
-                  Notifications
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            
-            <Card className="bg-zinc-900/40 border-zinc-800">
-              <CardHeader className="p-4">
-                <CardTitle className="text-sm flex items-center">
-                  <span className="text-green-500 text-xs mr-1">zenx</span> Account
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  {userProfile.email || userProfile.userName}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-          
-          {/* Main Content */}
-          <div className="flex-1">
-            <Tabs 
-              defaultValue="profile" 
-              className="w-full" 
-              value={activeTab}
-              onValueChange={setActiveTab}
-            >
-              <div className="space-y-6">
-                <TabsContent value="profile" className="space-y-6">
-                  <ProfileEditTab user={enhancedUserProfile} />
-                </TabsContent>
-                
-                <TabsContent value="security" className="space-y-6">
-                  <TwoFactorAuthTab userProfile={enhancedUserProfile} />
-                </TabsContent>
-                
-                <TabsContent value="notifications" className="space-y-6">
-                  <NotificationsSettingsTab userProfile={enhancedUserProfile} />
-                </TabsContent>
-              </div>
-            </Tabs>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background">
+        <MainNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold mb-8 text-foreground">Settings</h1>
+            <SettingsTabs profile={fullProfile} />
           </div>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

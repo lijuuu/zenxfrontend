@@ -1,61 +1,63 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance from '@/utils/axiosInstance';
+import { LeaderboardEntry } from '@/api/types';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 interface LeaderboardState {
-  leaderboard: any[];
-  period: 'daily' | 'weekly' | 'monthly' | 'all-time';
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  entries: LeaderboardEntry[];
+  loading: boolean;
   error: string | null;
-  currentPage: number;
-  entries: any[];
   totalEntries: number;
-  friendsLeaderboard: any[];
+  currentPage: number;
+  period: "weekly" | "monthly" | "all";
 }
 
 const initialState: LeaderboardState = {
-  leaderboard: [],
-  period: 'weekly',
-  status: 'idle',
-  error: null,
-  currentPage: 1,
   entries: [],
+  loading: false,
+  error: null,
   totalEntries: 0,
-  friendsLeaderboard: []
+  currentPage: 1,
+  period: "weekly"
 };
 
+// Fetch leaderboard data
 export const fetchLeaderboard = createAsyncThunk(
   'leaderboard/fetchLeaderboard',
-  async (options: { page?: number; limit?: number; period?: 'daily' | 'weekly' | 'monthly' | 'all-time' } = {}) => {
-    const { page = 1, limit = 10, period = 'weekly' } = options;
+  async ({ page = 1, limit = 10, period = "weekly" }: { page?: number; limit?: number; period?: "weekly" | "monthly" | "all" }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/leaderboard?period=${period}&page=${page}&limit=${limit}`);
-      return { 
-        data: response.data.payload,
-        period,
-        page 
+      const response = await axios.get(`/api/leaderboard?page=${page}&limit=${limit}&period=${period}`);
+      return {
+        entries: response.data.leaderboard || [],
+        totalEntries: response.data.totalEntries || 0,
+        period
       };
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch leaderboard');
-      }
-      throw error;
+    } catch (error: any) {
+      toast.error('Failed to load leaderboard data');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch leaderboard');
     }
   }
 );
 
+// Fetch friends leaderboard
 export const fetchFriendsLeaderboard = createAsyncThunk(
   'leaderboard/fetchFriendsLeaderboard',
-  async () => {
+  async (period: "weekly" | "monthly" | "all" | "daily" | "all-time", { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get('/leaderboard/friends');
-      return response.data.payload;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch friends leaderboard');
-      }
-      throw error;
+      // Map the API period to our internal period format
+      const apiPeriod = period === "daily" ? "weekly" : 
+                        period === "all-time" ? "all" : period;
+                        
+      const response = await axios.get(`/api/leaderboard/friends?period=${apiPeriod}`);
+      return {
+        entries: response.data.leaderboard || [],
+        totalEntries: response.data.totalEntries || 0,
+        period: apiPeriod
+      };
+    } catch (error: any) {
+      toast.error('Failed to load friends leaderboard data');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch friends leaderboard');
     }
   }
 );
@@ -64,40 +66,45 @@ const leaderboardSlice = createSlice({
   name: 'leaderboard',
   initialState,
   reducers: {
-    setPeriod: (state, action) => {
-      state.period = action.payload;
-    },
     setCurrentPage: (state, action) => {
       state.currentPage = action.payload;
+    },
+    setPeriod: (state, action) => {
+      state.period = action.payload;
     }
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLeaderboard.pending, (state) => {
-        state.status = 'loading';
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchLeaderboard.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.leaderboard = action.payload.data;
+        state.loading = false;
+        state.entries = action.payload.entries;
+        state.totalEntries = action.payload.totalEntries;
         state.period = action.payload.period;
-        state.entries = action.payload.data;
-        state.currentPage = action.payload.page;
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.error.message || 'Failed to fetch leaderboard';
+        state.loading = false;
+        state.error = action.payload as string;
       })
       .addCase(fetchFriendsLeaderboard.pending, (state) => {
-        state.status = 'loading';
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchFriendsLeaderboard.fulfilled, (state, action) => {
-        state.friendsLeaderboard = action.payload;
+        state.loading = false;
+        state.entries = action.payload.entries;
+        state.totalEntries = action.payload.totalEntries;
+        state.period = action.payload.period;
       })
       .addCase(fetchFriendsLeaderboard.rejected, (state, action) => {
-        state.error = action.error.message || 'Failed to fetch friends leaderboard';
+        state.loading = false;
+        state.error = action.payload as string;
       });
-  },
+  }
 });
 
-export const { setPeriod, setCurrentPage } = leaderboardSlice.actions;
+export const { setCurrentPage, setPeriod } = leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

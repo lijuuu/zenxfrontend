@@ -23,6 +23,7 @@ export interface User {
   country?: string;
   countryCode?: string;
 }
+
 // Types based on Go backend models
 export interface UserProfile {
   userID: string;
@@ -43,9 +44,15 @@ export interface UserProfile {
     linkedin: string;
   };
   createdAt: number;
-}
-
-export interface UserProfile extends User {
+  // Additional fields that are used in the UI
+  id?: string;
+  username?: string;
+  fullName?: string;
+  joinedDate?: string;
+  problemsSolved?: number;
+  dayStreak?: number;
+  ranking?: number;
+  profileImage?: string;
   stats: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };
@@ -287,27 +294,6 @@ export interface CompileResponse {
 
 
 // Types based on Go backend models
-export interface UserProfile {
-  userID: string;
-  userName: string;
-  firstName: string;
-  lastName: string;
-  avatarURL: string;
-  email: string;
-  role: string;
-  country: string;
-  isBanned: boolean;
-  isVerified: boolean;
-  primaryLanguageID: string;
-  muteNotifications: boolean;
-  socials: {
-    github: string;
-    twitter: string;
-    linkedin: string;
-  };
-  createdAt: number;
-}
-
 export interface BanHistory {
   id: string;
   userID: string;
@@ -344,26 +330,11 @@ export interface AdminState {
   expiresIn: number | null;
 }
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  adminID: string;
-  message: string;
-}
-
 export interface UsersResponse {
   users: UserProfile[];
   totalCount: number;
   nextPageToken: string;
 }
-
-
 
 export interface File {
   id: string;
@@ -374,6 +345,7 @@ export interface File {
   lastModified: string;
 }
 
+// Exporting these again to avoid circular dependencies
 export interface CompilerResponse {
   output?: string;
   status_message?: string;
@@ -428,7 +400,6 @@ export type ApiResponsePayload = {
   is_run_testcase: boolean;
   rawoutput: ExecutionResult;
 };
-
 
 export const twoSumProblem: ProblemMetadata = {
   problem_id: "67d96452d3fe6af39801337b",

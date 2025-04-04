@@ -1,235 +1,141 @@
 
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/hooks';
+import React, { useEffect } from 'react';
+import { useAppSelector } from '@/hooks/useAppSelector';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchUserProfile } from '@/store/slices/userSlice';
-import { fetchLeaderboard } from '@/store/slices/leaderboardSlice';
 import { fetchProblems } from '@/store/slices/problemsSlice';
-import { fetchChallenges } from '@/store/slices/challengesSlice';
-import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Link, useNavigate } from 'react-router-dom';
-import StatsCard from '@/components/common/StatsCard';
-import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
-import ClearInactivityCard from '@/components/common/ClearInactivityCard';
-import { useIsMobile } from '@/hooks/use-mobile';
-import MainNavbar from '@/components/common/MainNavbar';
+import { fetchUserChallenges } from '@/store/slices/challengesSlice';
+import { fetchLeaderboard } from '@/store/slices/leaderboardSlice';
+import StatsCard from '@/components/StatsCard';
+import MainNavbar from '@/components/MainNavbar';
+import { Code, Award, Target, User as UserIcon, Activity, Users, Calendar } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import ProfileStats from '@/components/profile/ProfileStats';
+import RecentSubmissions from '@/components/profile/RecentSubmissions';
+import ProfileAchievements from '@/components/profile/ProfileAchievements';
+import ProblemsSolvedChart from '@/components/profile/ProblemsSolvedChart';
+import ChallengesList from '@/components/profile/ChallengesList';
+import { MonthlyActivityHeatmap } from '@/components/activity/MonthlyActivityHeatmap';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Dashboard = () => {
-  const { toast } = useToast();
   const dispatch = useAppDispatch();
-  const isMobile = useIsMobile();
-  
-  // Get state from Redux
-  const userProfile = useAppSelector((state) => state.user.profile);
-  const userStatus = useAppSelector((state) => state.user.status);
-  const leaderboard = useAppSelector((state) => state.leaderboard.leaderboard);
-  const leaderboardStatus = useAppSelector((state) => state.leaderboard.status);
-  const problems = useAppSelector((state) => state.problems.problems);
-  const problemsStatus = useAppSelector((state) => state.problems.status);
-  const challenges = useAppSelector((state) => state.challenges.challenges);
-  const challengesStatus = useAppSelector((state) => state.challenges.status);
+  const { profile, loading: userLoading } = useAppSelector((state) => state.user);
+  const { problems, loading: problemsLoading } = useAppSelector((state) => state.problems);
+  const { challenges, loading: challengesLoading } = useAppSelector((state) => state.challenges);
+  const { entries: leaderboardEntries } = useAppSelector((state) => state.leaderboard);
 
   useEffect(() => {
-    // Scroll to top on component mount
-    window.scrollTo(0, 0);
-
-    // Dispatch actions to load data
-    dispatch(fetchUserProfile('1'));
-    dispatch(fetchLeaderboard('weekly'));
+    dispatch(fetchUserProfile());
     dispatch(fetchProblems());
-    dispatch(fetchChallenges());
+    dispatch(fetchUserChallenges());
+    dispatch(fetchLeaderboard({ period: "weekly" }));
   }, [dispatch]);
 
-  // Navigate to other pages
-  const navigate = useNavigate();
+  const isLoading = userLoading || problemsLoading || challengesLoading;
 
-  const isLoading = 
-    userStatus === 'loading' || 
-    leaderboardStatus === 'loading' || 
-    problemsStatus === 'loading' || 
-    challengesStatus === 'loading';
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MainNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-32 w-full mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-96 col-span-2" />
+            <Skeleton className="h-96" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  // Get the top 5 performers from the leaderboard
-  const topPerformers = leaderboard?.slice(0, 5) || [];
+  const userRank = leaderboardEntries.findIndex(entry => entry.user.id === profile?.userID) + 1;
 
   return (
-    <div className="min-h-screen">
-      <MainNavbar />
-      <main className="pt-16 pb-16">
-        <div className="page-container">
-          {/* Welcome Section */}
-          <section className="pt-6 pb-10">
-            <div className="flex flex-col md:flex-row items-start justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-bold">
-                  Welcome back, {userProfile?.username || 'Coder'}
-                </h1>
-                <p className="text-zinc-400 mt-1">
-                  Continue improving your coding skills and climb the ranks
-                </p>
-              </div>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background">
+        <MainNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <ProfileHeader
+            username={profile?.userName || ''}
+            fullName={`${profile?.firstName || ''} ${profile?.lastName || ''}`}
+            profileImage={profile?.avatarURL || ''}
+            location={profile?.country || ''}
+            joinDate={new Date(profile?.createdAt || 0).toLocaleDateString()}
+            github={profile?.socials?.github || ''}
+            twitter={profile?.socials?.twitter || ''}
+            linkedin={profile?.socials?.linkedin || ''}
+          />
 
-              <div className="flex flex-wrap gap-3">
-                <Button className="bg-green-500 hover:bg-green-600 gap-2" onClick={() => navigate("/challenges")}>
-                  <Plus className="h-4 w-4" />
-                  Create Challenge
-                </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+            <StatsCard
+              title="Problems Solved"
+              value={profile?.stats?.easy.solved + profile?.stats?.medium.solved + profile?.stats?.hard.solved || 0}
+              icon={<Code className="h-4 w-4 text-blue-400" />}
+              change="+5 this week"
+            />
+            <StatsCard
+              title="Current Streak"
+              value={profile?.currentStreak || 0}
+              icon={<Activity className="h-4 w-4 text-green-400" />}
+              change="Personal best: 14"
+            />
+            <StatsCard
+              title="Global Rank"
+              value={userRank > 0 ? `#${userRank}` : 'Unranked'}
+              icon={<Award className="h-4 w-4 text-yellow-400" />}
+            />
+            <StatsCard
+              title="Rating"
+              value={profile?.currentRating || 0}
+              icon={<Target className="h-4 w-4 text-red-400" />}
+              change="+15 points"
+            />
+          </div>
 
-                <Link to="/problems">
-                  <Button variant="outline" className="border-zinc-700 hover:bg-zinc-800 gap-2">
-                    <Code className="h-4 w-4" />
-                    Practice Problems
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Stats & Activity */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 ">
-                <StatsCard
-                  className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Problems Solved"
-                  value={userProfile?.problemsSolved || 0}
-                  change="+3 this week"
-                  icon={<Code className="h-4 w-4 text-green-400" />}
-                />
-                <StatsCard
-                  className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Current Streak"
-                  value={`${userProfile?.dayStreak || 0} days`}
-                  icon={<Zap className="h-4 w-4 text-amber-400" />}
-                />
-                <StatsCard
-                  className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Global Rank"
-                  value={`#${userProfile?.ranking || 0}`}
-                  change="+12"
-                  icon={<Trophy className="h-4 w-4 text-amber-500" />}
-                />
-                <StatsCard
-                  className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Current Rating"
-                  value={userProfile?.ranking || 0}
-                  change="+15"
-                  icon={<Award className="h-4 w-4 text-blue-400" />}
-                />
-              </div>
-
-              {/* 1v1 Challenges */}
-              <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-green-400" />
-                    1v1 Challenges
-                  </CardTitle>
-                  <CardDescription>
-                    Challenge friends or random opponents
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-zinc-800/70 backdrop-blur-sm border border-zinc-700/50 rounded-lg p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-green-500/10 p-2 rounded-lg">
-                          <Play className="h-5 w-5 text-green-400" />
-                        </div>
-                        <div>
-                          <div className="font-medium">Quick Match</div>
-                          <div className="text-sm text-zinc-400">Find an opponent with similar skill</div>
-                        </div>
-                      </div>
-                      <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={() => navigate("/challenges")}>
-                        Start
-                      </Button>
-                    </div>
-
-                    <div className="bg-zinc-800/70 backdrop-blur-sm border border-zinc-700/50 rounded-lg p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-blue-500/10 p-2 rounded-lg">
-                          <User className="h-5 w-5 text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="font-medium">Challenge a Friend</div>
-                          <div className="text-sm text-zinc-400">Send a challenge to a specific user</div>
-                        </div>
-                      </div>
-                      <Button size="sm" variant="outline" className="border-zinc-700 hover:bg-zinc-700" onClick={() => navigate("/challenges")}>
-                        Select
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Clear Recent Inactivity */}
-              <ClearInactivityCard />
+              <ProblemsSolvedChart
+                easySolved={profile?.stats?.easy.solved || 0}
+                easyTotal={profile?.stats?.easy.total || 0}
+                mediumSolved={profile?.stats?.medium.solved || 0}
+                mediumTotal={profile?.stats?.medium.total || 0}
+                hardSolved={profile?.stats?.hard.solved || 0}
+                hardTotal={profile?.stats?.hard.total || 0}
+              />
+              <MonthlyActivityHeatmap
+                data={profile?.activityHeatmap?.data || []}
+                startDate={profile?.activityHeatmap?.startDate || ''}
+              />
+              <RecentSubmissions
+                submissions={[]}
+                isLoading={false}
+              />
             </div>
-
-            {/* Right Column - Activity & Leaderboard */}
             <div className="space-y-6">
-              {/* Monthly Activity Heatmap */}
-              <MonthlyActivityHeatmap />
-
-              {/* Leaderboard Preview */}
-              <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-amber-500" />
-                    Top Performers
-                  </CardTitle>
-                  <CardDescription>
-                    This week's leading coders
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {topPerformers.map((entry, index) => (
-                      <div key={entry.user.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-zinc-900 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium">
-                            {index === 0 ? (
-                              <Trophy className="h-3.5 w-3.5 text-amber-500" />
-                            ) : (
-                              <span className="text-zinc-400">{index + 1}</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full overflow-hidden">
-                              <img
-                                src={entry.user.profileImage}
-                                alt={entry.user.username}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div>
-                              <div className="font-medium text-sm">{entry.user.fullName}</div>
-                              <div className="text-xs text-zinc-500">@{entry.user.username}</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="font-semibold text-sm">{entry.score.toLocaleString()}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Link to="/leaderboard" className="mt-4 flex items-center text-sm text-green-400 hover:text-green-300 transition-colors group">
-                    View full leaderboard
-                    <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
-                </CardContent>
-              </Card>
+              <ProfileStats
+                problemsSolved={profile?.stats?.easy.solved + profile?.stats?.medium.solved + profile?.stats?.hard.solved || 0}
+                contestsParticipated={profile?.achievements?.weeklyContests + profile?.achievements?.monthlyContests || 0}
+                currentStreak={profile?.currentStreak || 0}
+                longestStreak={profile?.longestStreak || 0}
+                contribution={profile?.activityHeatmap?.data?.reduce((sum, day) => sum + day.count, 0) || 0}
+              />
+              <ProfileAchievements
+                achievements={profile?.achievements || { weeklyContests: 0, monthlyContests: 0, specialEvents: 0 }}
+                badges={profile?.badges || []}
+              />
+              <ChallengesList challenges={challenges} />
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 };
 
