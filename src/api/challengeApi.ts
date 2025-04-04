@@ -1,3 +1,4 @@
+
 import { Challenge, ChallengeJoinResponse, UserProfile, joinChallengeWithCode as importedJoinChallengeWithCode } from './types';
 
 // Re-export from types to avoid duplication

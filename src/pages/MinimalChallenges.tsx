@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -38,6 +39,17 @@ import { Challenge } from "@/api/types";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import ChallengeInterface from "@/components/challenges/ChallengeInterface";
+
+interface UserEntry {
+  userID: string;
+  userName: string;
+  firstName: string;
+  lastName: string;
+  avatarURL: string;
+  rank?: number;
+  score?: number;
+  isFriend?: boolean;
+}
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -81,6 +93,37 @@ const MinimalChallenges = () => {
     setActiveChallenge(challenge);
     setActiveChallengeId(challenge.id);
   };
+
+  // Mock top performers data
+  const topPerformers: UserEntry[] = [
+    {
+      userID: "1",
+      userName: "alex_johnson",
+      firstName: "Alex",
+      lastName: "Johnson",
+      avatarURL: "https://randomuser.me/api/portraits/men/32.jpg",
+      rank: 1,
+      score: 428
+    },
+    {
+      userID: "2",
+      userName: "taylor_smith",
+      firstName: "Taylor",
+      lastName: "Smith",
+      avatarURL: "https://randomuser.me/api/portraits/women/44.jpg",
+      rank: 2,
+      score: 412
+    },
+    {
+      userID: "3",
+      userName: "jamie_parker",
+      firstName: "Jamie",
+      lastName: "Parker",
+      avatarURL: "https://randomuser.me/api/portraits/men/86.jpg",
+      rank: 3,
+      score: 387
+    }
+  ];
 
   return (
     <div className="min-h-screen rounded-lg shadow-lg text-foreground pt-16 pb-8">
@@ -427,45 +470,31 @@ const MinimalChallenges = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" className="w-8 h-8 rounded-full" />
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
+                  {topPerformers.map((performer) => (
+                    <div key={performer.userID} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <img src={performer.avatarURL} alt={`${performer.firstName} ${performer.lastName}`} className="w-8 h-8 rounded-full" />
+                          {performer.rank === 1 && (
+                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">{performer.firstName} {performer.lastName}</span>
+                          <p className="text-xs text-zinc-500">Solved: {performer.score} problems</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-medium">Alex Johnson</span>
-                        <p className="text-xs text-zinc-500">Solved: 428 problems</p>
-                      </div>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        performer.rank === 1 
+                          ? "bg-green-500/10 text-green-500" 
+                          : performer.rank === 2 
+                          ? "bg-blue-500/10 text-blue-500" 
+                          : "bg-purple-500/10 text-purple-500"
+                      }`}>
+                        #{performer.rank}
+                      </span>
                     </div>
-                    <span className="text-xs font-bold bg-green-500/10 text-green-500 px-2 py-1 rounded">#1</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" className="w-8 h-8 rounded-full" />
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium">Taylor Smith</span>
-                        <p className="text-xs text-zinc-500">Solved: 412 problems</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold bg-blue-500/10 text-blue-500 px-2 py-1 rounded">#2</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <img src="https://randomuser.me/api/portraits/men/86.jpg" alt="User" className="w-8 h-8 rounded-full" />
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium">Jamie Parker</span>
-                        <p className="text-xs text-zinc-500">Solved: 387 problems</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold bg-purple-500/10 text-purple-500 px-2 py-1 rounded">#3</span>
-                  </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
@@ -476,17 +505,13 @@ const MinimalChallenges = () => {
       <CreateChallengeForm
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={(newChallenge: Challenge) => {
-          handleChallengeCreated(newChallenge);
-        }}
+        onSuccess={handleChallengeCreated}
       />
 
       <JoinPrivateChallenge
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
-        onSuccess={(challenge: Challenge) => {
-          handleJoinSuccess(challenge);
-        }}
+        onSuccess={handleJoinSuccess}
       />
     </div>
   );

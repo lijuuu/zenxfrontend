@@ -16,6 +16,8 @@ interface ChallengeCardProps {
   participants: number;
   problemCount: number;
   createdAt: string;
+  description?: string;
+  status?: "upcoming" | "active" | "completed";
 }
 
 const ChallengeCard = ({
@@ -25,7 +27,9 @@ const ChallengeCard = ({
   createdBy,
   participants,
   problemCount,
-  createdAt
+  createdAt,
+  description,
+  status
 }: ChallengeCardProps) => {
   // Define difficulty class mappings
   const difficultyClasses = {
@@ -74,6 +78,10 @@ const ChallengeCard = ({
             {difficulty}
           </div>
         </div>
+        
+        {description && (
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 line-clamp-2">{description}</p>
+        )}
         
         <div className="grid grid-cols-2 mb-4 gap-4">
           <div className="flex items-center gap-2 text-sm">

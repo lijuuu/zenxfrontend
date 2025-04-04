@@ -20,11 +20,12 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { createChallenge } from "@/api/challengeApi";
 import { useNavigate } from "react-router-dom";
+import { Challenge } from "@/api/types";
 
 interface CreateChallengeFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (challenge: Challenge) => void;
 }
 
 const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
@@ -63,8 +64,8 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
           description: `Successfully created challenge: ${title}`,
         });
         
-        if (onSuccess) {
-          onSuccess();
+        if (onSuccess && result.challenge) {
+          onSuccess(result.challenge);
         }
         
         onClose();
