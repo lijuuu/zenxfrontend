@@ -1,20 +1,22 @@
 
 import { configureStore } from '@reduxjs/toolkit';
-import userReducer from './slices/userSlice';
-import leaderboardReducer from './slices/leaderboardSlice';
-import compilerReducer from './slices/compilerSlice';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './slices/authSlice';
+import userReducer from './slices/userSlice';
 import problemsReducer from './slices/problemsSlice';
 import challengesReducer from './slices/challengesSlice';
+import compilerReducer from './slices/compilerSlice';
+import leaderboardReducer from './slices/leaderboardSlice';
+import { ThunkAction, Action } from '@reduxjs/toolkit';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
+    auth: authReducer,
     user: userReducer,
-    leaderboard: leaderboardReducer,
     problems: problemsReducer,
     challenges: challengesReducer,
-    xCodeCompiler: compilerReducer,
-    auth: authReducer,
+    compiler: compilerReducer,
+    leaderboard: leaderboardReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -24,3 +26,11 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>;
+
+export default store;

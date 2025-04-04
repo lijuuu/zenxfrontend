@@ -1,12 +1,11 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
-import { LeaderboardState, UserProfile } from '@/api/types';
+import { LeaderboardState, UserProfile, LeaderboardEntry } from '@/api/types';
 
 // Async thunk for fetching leaderboard data
 export const fetchLeaderboard = createAsyncThunk(
   'leaderboard/fetchLeaderboard',
-  async (_, { rejectWithValue }) => {
+  async ({ page, limit, period }: { page?: number, limit?: number, period?: 'weekly' | 'monthly' | 'all' } = {}, { rejectWithValue }) => {
     try {
       // In a real app, we would make an API call here
       // const response = await axios.get('/api/leaderboard');
@@ -105,7 +104,12 @@ export const fetchLeaderboard = createAsyncThunk(
             }
           },
           // Add more friends here
-        ]
+        ],
+        // For backward compatibility
+        entries: [],
+        totalEntries: 0,
+        currentPage: page || 1,
+        period: period || 'weekly'
       };
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
@@ -113,35 +117,71 @@ export const fetchLeaderboard = createAsyncThunk(
   }
 );
 
+// For backward compatibility
+export const fetchFriendsLeaderboard = fetchLeaderboard;
+
 const initialState: LeaderboardState = {
   globalLeaderboard: [],
   friendsLeaderboard: [],
   status: 'idle',
   error: null,
+  // For backward compatibility
+  entries: [],
+  totalEntries: 0,
+  currentPage: 1,
+  period: 'weekly',
+  loading: false
 };
 
 const leaderboardSlice = createSlice({
   name: 'leaderboard',
   initialState,
-  reducers: {},
+  reducers: {
+    setCurrentPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLeaderboard.pending, (state) => {
         state.status = 'loading';
+        state.loading = true; // For backward compatibility
       })
       .addCase(fetchLeaderboard.fulfilled, (state, action: PayloadAction<{
         globalLeaderboard: UserProfile[],
-        friendsLeaderboard: UserProfile[]
+        friendsLeaderboard: UserProfile[],
+        entries?: LeaderboardEntry[],
+        totalEntries?: number,
+        currentPage?: number,
+        period?: 'weekly' | 'monthly' | 'all'
       }>) => {
         state.status = 'succeeded';
+        state.loading = false; // For backward compatibility
+        
         state.globalLeaderboard = action.payload.globalLeaderboard;
         state.friendsLeaderboard = action.payload.friendsLeaderboard;
+        
+        // For backward compatibility
+        if (action.payload.entries) {
+          state.entries = action.payload.entries;
+        }
+        if (action.payload.totalEntries !== undefined) {
+          state.totalEntries = action.payload.totalEntries;
+        }
+        if (action.payload.currentPage !== undefined) {
+          state.currentPage = action.payload.currentPage;
+        }
+        if (action.payload.period) {
+          state.period = action.payload.period;
+        }
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.status = 'failed';
+        state.loading = false; // For backward compatibility
         state.error = action.payload as string;
       });
   },
 });
 
+export const { setCurrentPage } = leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

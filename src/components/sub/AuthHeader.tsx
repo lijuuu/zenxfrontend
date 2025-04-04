@@ -6,11 +6,15 @@ import { useNavigate } from 'react-router-dom';
 export interface SimpleHeaderProps {
   showBackButton?: boolean;
   showLogo?: boolean;
+  page?: string;
+  name?: string;
 }
 
 const AuthHeader: React.FC<SimpleHeaderProps> = ({ 
   showBackButton = false,
-  showLogo = true 
+  showLogo = true,
+  page,
+  name
 }) => {
   const navigate = useNavigate();
 

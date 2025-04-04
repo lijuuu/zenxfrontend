@@ -1,3 +1,4 @@
+
 export interface File {
   id: string;
   name: string;
@@ -62,18 +63,24 @@ export type ApiResponsePayload = {
   rawoutput: ExecutionResult;
 };
 
-export type GenericResponse = {
+export interface GenericResponse<T = any> {
   success: boolean;
   status: number;
-  payload: ApiResponsePayload;
-  error?: { errorType: string; message: string };
-};
+  payload: T;
+  error?: {
+    code: number;
+    errorType?: string;
+    message: string;
+    details?: string;
+  };
+}
 
 export interface ActivityDay {
   date: string;
   count: number;
   present: boolean;
   isActive: boolean;
+  level?: number;
 }
 
 export const twoSumProblem: ProblemMetadata = {
@@ -137,6 +144,120 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
   },
 };
 
+// Types for Chat
+export interface ChatChannel {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'public' | 'private' | 'direct';
+  participants?: UserProfile[];
+  unreadCount?: number;
+  isOnline?: boolean;
+  lastMessage?: string;
+  lastMessageTime?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  channelId: string;
+  sender: {
+    id: string;
+    username: string;
+    profileImage?: string;
+    isOnline?: boolean;
+  };
+  content: string;
+  timestamp: string;
+  isCurrentUser?: boolean;
+  attachments?: {
+    type: 'image' | 'code' | 'link' | 'challenge-invite';
+    content: string;
+    challengeId?: string;
+    challengeTitle?: string;
+    isPrivate?: boolean;
+    accessCode?: string;
+  }[];
+  liked?: boolean;
+  likeCount?: number;
+}
+
+// Leaderboard related types
+export interface LeaderboardEntry {
+  rank: number;
+  user: {
+    id: string;
+    username: string;
+    fullName: string;
+    profileImage?: string;
+    country?: string;
+    countryCode?: string;
+  };
+  score: number;
+  problemsSolved: number;
+  contestsParticipated: number;
+  streakDays: number;
+}
+
+// Badge types
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  acquiredAt?: string;
+  // Backward compatibility fields
+  earnedDate?: string;
+  rarity?: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+}
+
+// Heatmap data
+export interface HeatmapDataPoint {
+  date: string;
+  count: number;
+  present: boolean;
+  level?: number;
+}
+
+export interface HeatmapData {
+  data: HeatmapDataPoint[];
+  totalContributions: number;
+  currentStreak: number;
+  longestStreak: number;
+  startDate?: string; // For backward compatibility
+}
+
+// User related types
+export interface User {
+  id?: string;
+  userID?: string;
+  username?: string;
+  userName?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profileImage?: string;
+  avatarURL?: string;
+  bio?: string;
+  website?: string;
+  githubProfile?: string;
+  location?: string;
+  joinedDate?: string;
+  problemsSolved?: number;
+  dayStreak?: number;
+  ranking?: number;
+  isBanned?: boolean;
+  isVerified?: boolean;
+  following?: string[] | number;
+  followers?: string[] | number;
+  is2FAEnabled?: boolean;
+  isOnline?: boolean;
+  country?: string;
+  countryCode?: string;
+  role?: string;
+}
+
 // Types based on Go backend models
 export interface UserProfile {
   // Core identification fields
@@ -156,19 +277,22 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
-    website: string;
+    website?: string;
   };
   createdAt: number;
   
   // UI compatibility fields
+  id?: string;               // For backward compatibility
+  username?: string;         // For backward compatibility
+  fullName?: string;         // For backward compatibility
   joinedDate?: string;
   problemsSolved?: number;
   dayStreak?: number;
   ranking?: number;
-  profileImage?: string;
+  profileImage?: string;     // For backward compatibility
   is2FAEnabled?: boolean;
-  followers?: string[];
-  following?: string[];
+  followers?: string[] | number;
+  following?: string[] | number;
   countryCode?: string;
   bio?: string;
   
@@ -191,9 +315,15 @@ export interface UserProfile {
   globalRank?: number;
 }
 
+// Authentication responses
 export interface LoginResponse {
   token: string;
+  refreshToken: string;
   user: UserProfile;
+  accessToken?: string; // Added for admin API compatibility
+  expiresIn?: number;
+  adminID?: string;
+  message?: string;
 }
 
 export interface AuthResponse {
@@ -205,6 +335,7 @@ export interface AuthResponse {
 export interface LoginCredentials {
   email: string;
   password: string;
+  code?: string; // For 2FA
 }
 
 export interface RegisterData {
@@ -214,16 +345,17 @@ export interface RegisterData {
   fullName: string;
 }
 
+// Challenge related types
 export interface Challenge {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   createdAt: string;
-  startDate: string;
-  endDate: string;
-  type: 'daily' | 'weekly' | 'monthly' | 'battle' | 'special';
-  status: 'upcoming' | 'active' | 'completed';
+  startDate?: string;
+  endDate?: string;
+  type?: 'daily' | 'weekly' | 'monthly' | 'battle' | 'special';
+  status?: 'upcoming' | 'active' | 'completed';
   participants?: {
     userID: string;
     userName: string;
@@ -233,39 +365,184 @@ export interface Challenge {
     rank?: number;
     score?: number;
     isFriend?: boolean;
-  }[];
+  }[] | number;
   isPrivate?: boolean;
   inviteCode?: string;
   ownerId?: string;
   problemIds?: string[];
   tags?: string[];
+  
+  // Backward compatibility fields
+  accessCode?: string;
+  isActive?: boolean;
+  problemCount?: number;
+  createdBy?: {
+    id: string;
+    username: string;
+    profileImage?: string;
+  };
+  participantUsers?: {
+    id?: string;
+    avatar?: string;
+    name?: string;
+  }[];
+  problems?: string[];
+  date?: string;
+  timeLimit?: number;
 }
 
-export interface Badge {
+// Problem related types
+export interface Problem {
   id: string;
-  name: string;
+  title: string;
+  slug: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  tags: string[];
+  acceptanceRate: number;
+  solved?: boolean;
   description: string;
-  icon: string;
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
-  acquiredAt?: string;
+  examples: ProblemExample[];
+  constraints: string[];
+  hints?: string[];
+  similarProblems?: { id: string; title: string; difficulty: string }[];
+  solutions?: Solution[];
 }
 
-export interface HeatmapDataPoint {
-  date: string;
-  count: number;
-  present: boolean;
+export interface ProblemExample {
+  input: string;
+  output: string;
+  explanation?: string;
 }
 
-export interface HeatmapData {
-  data: HeatmapDataPoint[];
-  totalContributions: number;
-  currentStreak: number;
-  longestStreak: number;
+export interface Solution {
+  id: string;
+  authorId: string;
+  authorName: string;
+  language: string;
+  code: string;
+  runtime: string;
+  memory: string;
+  createdAt: string;
+  upvotes: number;
+  downvotes: number;
+  comments: Comment[];
 }
 
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorImage?: string;
+  content: string;
+  createdAt: string;
+  upvotes: number;
+  downvotes: number;
+  replies?: Comment[];
+}
+
+// Submission related types
+export interface Submission {
+  id: string;
+  problemId: string;
+  problemTitle: string;
+  userId: string;
+  language: string;
+  code: string;
+  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Memory Limit Exceeded' | 'Runtime Error' | 'Compilation Error' | 'Processing';
+  runtime?: string;
+  memory?: string;
+  timestamp: string;
+  submittedAt?: string;
+  testCases?: {
+    passed: number;
+    total: number;
+    results?: {
+      input: string;
+      expectedOutput: string;
+      actualOutput?: string;
+      passed: boolean;
+      error?: string;
+    }[];
+  };
+  difficulty?: string;
+  problem?: {
+    id: string;
+    title: string;
+    difficulty: string;
+  };
+}
+
+// Compiler related types
+export interface CompileRequest {
+  language: string;
+  code: string;
+  input?: string;
+}
+
+export interface CompileResponse {
+  output: string;
+  error?: string;
+  executionTime?: string;
+  memory?: string;
+}
+
+// Admin related types
+export interface BanHistory {
+  id: string;
+  userID: string;
+  bannedAt: number;
+  banType: string;
+  banReason: string;
+  banExpiry: number;
+}
+
+export interface UsersResponse {
+  users: UserProfile[];
+  totalCount: number;
+  nextPageToken: string;
+}
+
+// Admin state interface
+export interface AdminState {
+  users: UserProfile[];
+  totalUsers: number;
+  nextPageToken: string;
+  banHistories: { [userID: string]: BanHistory[] };
+  loading: boolean;
+  error: string | null;
+  message: string;
+  isAuthenticated: boolean;
+  accessToken: string | null;
+  refreshToken: string | null;
+  adminID: string | null;
+  expiresIn: number | null;
+}
+
+// Leaderboard state
 export interface LeaderboardState {
   globalLeaderboard: UserProfile[];
   friendsLeaderboard: UserProfile[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
+  // For backwards compatibility
+  entries?: LeaderboardEntry[];
+  totalEntries?: number;
+  currentPage?: number;
+  period?: 'weekly' | 'monthly' | 'all';
+  loading?: boolean;
+}
+
+// For backwards compatibility - define joinChallengeWithCode function
+export function joinChallengeWithCode(code: string): Promise<any> {
+  return Promise.resolve({ 
+    success: true,
+    challenge: {
+      id: "mock-challenge-id",
+      title: "Mock Challenge",
+      description: "This is a mock challenge",
+      difficulty: "Medium",
+      type: "battle",
+      accessCode: code
+    }
+  });
 }

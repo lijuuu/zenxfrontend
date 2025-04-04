@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import ActivityHeatmap from '@/components/activity/ActivityHeatmap';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { getCurrentUser } from '@/api/userApi';
-import { setUserSuccess, setUserLoading, setUserError } from '@/store/slices/userSlice';
+import { setUserSuccess, setUserLoading, setUserError, fetchUserProfile } from '@/store/slices/userSlice';
 import { Loader2 } from 'lucide-react';
 import { ActivityDay } from '@/api/types';
 
@@ -17,20 +17,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchUserProfileData = async () => {
       if (!profile) {
-        try {
-          dispatch(setUserLoading());
-          const userData = await getCurrentUser();
-          dispatch(setUserSuccess(userData));
-        } catch (error) {
-          dispatch(setUserError(error instanceof Error ? error.message : 'Failed to fetch user profile'));
-        }
+        dispatch(fetchUserProfile('1'));
       }
       setLoading(false);
     };
 
-    fetchUserProfile();
+    fetchUserProfileData();
   }, [dispatch, profile]);
 
   if (loading || status === 'loading') {
@@ -63,7 +57,8 @@ const Dashboard = () => {
     date: item.date,
     count: item.count,
     present: item.present,
-    isActive: item.count > 0
+    isActive: item.count > 0,
+    level: item.count > 3 ? 4 : item.count > 2 ? 3 : item.count > 1 ? 2 : item.count > 0 ? 1 : 0
   }));
 
   return (
