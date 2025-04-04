@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import ChatBattleNotification from './chat/ChatBattleNotification';
+import ChatBattleNotification from '../chat/ChatBattleNotification';
 
 type NotificationType = 'message' | 'challenge' | 'follow' | 'contest' | 'achievement' | 'system' | 'battle';
 

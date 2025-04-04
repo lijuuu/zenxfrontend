@@ -87,16 +87,15 @@ export const sendChallengeInvite = async (channelId: string, challenge: { id: st
 
 export const createDirectChannel = async (userId: string): Promise<ChatChannel> => {
   return new Promise((resolve, reject) => {
-    // In a real app, this would create or retrieve an existing DM channel
     setTimeout(() => resolve({
       id: `dm-${userId}`,
       name: "Direct Message",
       type: "direct" as "public" | "private" | "direct",
       participants: [
         {
-          id: "1",
-          username: "johndoe",
-          fullName: "John Doe",
+          userID: "1",
+          userName: "johndoe",
+          firstName: "John Doe",
           email: "john.doe@example.com",
           profileImage: "https://i.pravatar.cc/300?img=1",
           joinedDate: "2022-01-15",
@@ -104,12 +103,12 @@ export const createDirectChannel = async (userId: string): Promise<ChatChannel> 
           dayStreak: 26,
           ranking: 354,
           isBanned: false,
-          isVerified: true
+          isVerified: true,
         },
         {
-          id: userId,
-          username: userId === "4" ? "Alice" : "Bob",
-          fullName: userId === "4" ? "Alice Johnson" : "Bob Smith",
+          userID: userId,
+          userName: userId === "4" ? "Alice" : "Bob",
+          firstName: userId === "4" ? "Alice Johnson" : "Bob Smith",
           email: userId === "4" ? "alice@example.com" : "bob@example.com",
           profileImage: `https://i.pravatar.cc/300?img=${userId === "4" ? "5" : "8"}`,
           joinedDate: "2022-02-20",

@@ -69,7 +69,7 @@ const Dashboard = () => {
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
               <div>
                 <h1 className="text-3xl font-bold">
-                  Welcome back, {userProfile?.username || 'Coder'}
+                  Welcome back, {userProfile?.userName || 'Coder'}
                 </h1>
                 <p className="text-zinc-400 mt-1">
                   Continue improving your coding skills and climb the ranks

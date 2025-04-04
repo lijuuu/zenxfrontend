@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -34,7 +33,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "@/store/slices/authSlice";
 import { isAuthenticated } from "@/utils/authUtils";
-import { mockUsers } from "@/api/mockData";
 
 interface NavItem {
   name: string;
@@ -49,19 +47,20 @@ interface MainNavbarProps {
 }
 
 const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   // Determine authentication from cookies or props
   const authFromCookie = isAuthenticated();
-  const effectiveIsAuthenticated = true;
-  
+  const effectiveIsAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : authFromCookie;
+
   // Get user profile from Redux store
-  const { userProfile } = useSelector((state: any) => state.auth) || mockUsers[0];
+  const { userProfile } = useSelector((state: any) => state.auth) || {};
+
+  console.log(userProfile)
 
   useEffect(() => {
     // Fetch user profile if authenticated and not already loaded
@@ -71,13 +70,12 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   }, [effectiveIsAuthenticated, userProfile, dispatch]);
 
   const navItems: NavItem[] = [
-    { name: "Home", path: "/", icon: <Home className="h-4 w-4" /> },
+    { name: "Home", path: "/", icon: <Home className="h-4 w-4" />,requiresAuth:false },
     { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, requiresAuth: true },
     { name: "Profile", path: "/profile", icon: <User className="h-4 w-4" />, requiresAuth: true },
     { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" /> },
     { name: "Compiler", path: "/compiler", icon: <Terminal className="h-4 w-4" /> },
     { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true },
-    // { name: "Minimal Challenges", path: "/challenges2", icon: <Zap className="h-4 w-4" /> },
     { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" /> },
     { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
     { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: true },
@@ -87,18 +85,6 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     (item) => !item.requiresAuth || (item.requiresAuth && effectiveIsAuthenticated)
   );
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -121,10 +107,11 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   // Generate avatar fallback from user profile
   const getAvatarFallback = () => {
     if (userProfile) {
-      return `${userProfile.firstName?.charAt(0) || ''}${userProfile.lastName?.charAt(0) || ''}`;
+      return `${userProfile.firstName?.charAt(0) || ''}${userProfile.lastName?.charAt(0) || ''}` || 'U';
     }
     return 'U';
   };
+
 
   return (
     <header
@@ -176,7 +163,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
             <Search className="h-5 w-5" />
           </Button>
 
-          {effectiveIsAuthenticated ? (
+          {effectiveIsAuthenticated && userProfile ? (
             <>
               <Button variant="ghost" size="icon" aria-label="Notifications" className="text-zinc-400 hover:text-white relative">
                 <Bell className="h-5 w-5" />
@@ -187,9 +174,9 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage 
-                        src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"} 
-                        alt={userProfile?.firstName || "User"} 
+                      <AvatarImage
+                        src={userProfile.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                        alt={userProfile.firstName || "User"}
                       />
                       <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                     </Avatar>
@@ -199,12 +186,12 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {"John Doe"}
+                        {`${userProfile.firstName || ""} ${userProfile.lastName || ""}`.trim().toLowerCase() || "User"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {userProfile?.email || ""}
+                        {userProfile.email || ""}
                       </p>
-                      {userProfile?.country && (
+                      {userProfile.country && (
                         <div className="flex items-center text-xs text-muted-foreground mt-1">
                           <Flag className="h-3 w-3 mr-1" />
                           <span>{userProfile.country}</span>
@@ -266,21 +253,21 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
         )}
       >
         <nav className="py-6 px-4 space-y-1 min-h-screen overflow-y-auto">
-          {effectiveIsAuthenticated && (
+          {effectiveIsAuthenticated && userProfile && (
             <div className="p-4 mb-4 border-b border-zinc-800">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage 
-                    src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"} 
-                    alt={userProfile?.firstName || "User"} 
+                  <AvatarImage
+                    src={userProfile.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                    alt={userProfile.firstName || "User"}
                   />
                   <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium">
-                    {userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : "Loading..."}
+                    {`${userProfile.firstName || ""} ${userProfile.lastName || ""}`.trim() || "User"}
                   </p>
-                  <p className="text-xs text-zinc-400">{userProfile?.email || ""}</p>
+                  <p className="text-xs text-zinc-400">{userProfile.email || ""}</p>
                 </div>
               </div>
             </div>

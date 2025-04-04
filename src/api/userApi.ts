@@ -1,6 +1,7 @@
 
+import { UserProfile } from '@/store/slices/authSlice';
 import { mockUsers, mockFriends } from './mockData';
-import { User, Friend } from './types';
+import {  Friend } from './types';
 
 export const getFriends = async (): Promise<Friend[]> => {
   return new Promise(resolve => {
@@ -41,9 +42,9 @@ export const getRecentlyActiveFriends = async (): Promise<Friend[]> => {
 };
 
 // Add missing functions
-export const getUserProfile = async (userId: string): Promise<User> => {
+export const getUserProfile = async (userId: string): Promise<UserProfile> => {
   return new Promise(resolve => {
-    const user = mockUsers.find(u => u.id === userId) || mockUsers[0];
+    const user = mockUsers.find(u => u.userID === userId) || mockUsers[0];
     setTimeout(() => resolve(user), 500);
   });
 };

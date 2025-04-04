@@ -3,22 +3,8 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
 import { File, CompilerResponse } from '@/api/types';
 import { executeCode } from '@/api/compilerApi';
+import {CompilerState} from "@/api/types"
 
-// Define state type
-interface CompilerState {
-  code: string;
-  language: string;
-  loading: boolean;
-  file: string;
-  result: CompilerResponse;
-  files: File[];
-  currentFile: string | null;
-  isRenaming: boolean;
-  newFileName: string;
-  fileToRename: string | null;
-}
-
-// Initial state
 const initialState: CompilerState = {
   code: '',
   language: 'javascript',
@@ -49,7 +35,7 @@ export const runCode = createAsyncThunk(
   }
 );
 
-const compilerSlice = createSlice({
+export const compilerSlice = createSlice({
   name: 'xCodeCompiler',
   initialState,
   reducers: {

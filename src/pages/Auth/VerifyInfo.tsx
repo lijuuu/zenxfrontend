@@ -47,9 +47,17 @@ const VerifyInfo = () => {
     if (successMessage && !loading) {
       toast.success(successMessage);
     }
+    console.log("success in verifiy info, ",successMessage)
+    console.log("error in verifiy info, ",error)
+    
+    if (error?.type == "ERR_ALREADY_VERIFIED"){
+      navigate("/login")
+      toast.success("User Already Verfied, Please Login once again")
+    }
     if (error && !loading) {
       toast.error(error.message || "Failed to send email");
     }
+    
   }, [successMessage, error, loading]);
 
   const handleResendEmail = () => {

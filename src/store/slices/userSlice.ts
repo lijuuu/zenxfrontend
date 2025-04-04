@@ -20,42 +20,42 @@ export const fetchUserProfile = createAsyncThunk(
   async (userId: string) => {
     const response = await getUserProfile(userId);
     return {
-      userID: response.userID || response.id,
-      userName: response.userName || response.username,
-      firstName: response.firstName || (response.fullName ? response.fullName.split(' ')[0] : ''),
-      lastName: response.lastName || (response.fullName ? response.fullName.split(' ')[1] : ''),
-      avatarURL: response.avatarURL || response.profileImage || '',
-      email: response.email,
-      role: response.role || 'user',
-      country: response.country || response.location || '',
-      countryCode: response.countryCode || '',
-      bio: response.bio || '',
-      joinedDate: response.joinedDate || response.createdAt?.toString(),
-      problemsSolved: response.problemsSolved || 0,
-      dayStreak: response.dayStreak || 0,
-      currentStreak: response.currentStreak || response.dayStreak || 0,
-      longestStreak: response.longestStreak || response.dayStreak || 0,
-      currentRating: response.currentRating || response.ranking || 0,
-      globalRank: response.globalRank || response.ranking || 0,
-      isBanned: response.isBanned || false,
-      isVerified: response.isVerified || false,
-      primaryLanguageID: response.primaryLanguageID || '',
-      muteNotifications: response.muteNotifications || false,
-      profileImage: response.profileImage || response.avatarURL || '',
-      socials: response.socials || { github: '', twitter: '', linkedin: '', website: '' },
-      createdAt: response.createdAt || Date.now(),
-      stats: response.stats || {
+      userID: response?.userID || '',
+      userName: response?.userName || '',
+      firstName: response?.firstName || '',
+      lastName: response?.lastName || '',
+      avatarURL: response?.avatarURL || response?.profileImage || '',
+      email: response?.email || '',
+      role: response?.role || 'user',
+      country: response?.country || response?.location || '',
+      countryCode: response?.countryCode || '',
+      bio: response?.bio || '',
+      joinedDate: response?.joinedDate || response?.createdAt?.toString() || '',
+      problemsSolved: response?.problemsSolved || 0,
+      dayStreak: response?.dayStreak || 0,
+      currentStreak: response?.currentStreak || response?.dayStreak || 0,
+      longestStreak: response?.longestStreak || response?.dayStreak || 0,
+      currentRating: response?.currentRating || response?.ranking || 0,
+      globalRank: response?.globalRank || response?.ranking || 0,
+      isBanned: response?.isBanned || false,
+      isVerified: response?.isVerified || false,
+      primaryLanguageID: response?.primaryLanguageID || '',
+      muteNotifications: response?.muteNotifications || false,
+      profileImage: response?.profileImage || response?.avatarURL || '',
+      socials: response?.socials || { github: '', twitter: '', linkedin: '', website: '' },
+      createdAt: response?.createdAt || Date.now(),
+      stats: response?.stats || {
         easy: { solved: 0, total: 0 },
         medium: { solved: 0, total: 0 },
-        hard: { solved: 0, total: 0 }
+        hard: { solved: 0, total: 0 },
       },
-      achievements: response.achievements || {
+      achievements: response?.achievements || {
         weeklyContests: 0,
         monthlyContests: 0,
-        specialEvents: 0
+        specialEvents: 0,
       },
-      badges: response.badges || [],
-      activityHeatmap: response.activityHeatmap || { startDate: '', data: [] }
+      badges: response?.badges || [],
+      activityHeatmap: response?.activityHeatmap || { startDate: '', data: [] },
     };
   }
 );

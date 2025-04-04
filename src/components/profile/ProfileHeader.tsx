@@ -25,17 +25,17 @@ import { useSelector } from "react-redux";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
-  userId?: string;
+  userID?: string;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const authState = useSelector((state: any) => state.auth);
   
-  const isOwnProfile = !userId || userId === profile.userID || 
-    (authState.userProfile && (userId === authState.userProfile.userID || userId === authState.userId));
+  const isOwnProfile = !userID || userID === profile.userID || 
+    (authState.userProfile && (userID === authState.userProfile.userID || userID === authState.userID));
   
   const handleCopyUsername = () => {
     navigator.clipboard.writeText(profile.userName);
@@ -71,6 +71,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
   };
 
   const navigate = useNavigate();
+
+  console.log()
 
   // Get initials for avatar fallback
   const getInitials = () => {

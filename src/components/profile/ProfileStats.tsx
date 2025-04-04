@@ -1,7 +1,6 @@
-
 import React from "react";
 import { UserProfile } from "@/api/types";
-import { Trophy, Puzzle, Star, Code, BarChart3, User, CheckCircle } from "lucide-react";
+import { Trophy, Puzzle, BarChart3, CheckCircle } from "lucide-react";
 
 interface ProfileStatsProps {
   profile: UserProfile;
@@ -9,16 +8,26 @@ interface ProfileStatsProps {
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
   // Calculate total problems
-  const totalSolved = profile.stats.easy.solved + profile.stats.medium.solved + profile.stats.hard.solved;
-  const totalAvailable = profile.stats.easy.total + profile.stats.medium.total + profile.stats.hard.total;
-  
+  const totalSolved = (profile.stats?.easy?.solved || 0) +
+    (profile.stats?.medium?.solved || 0) +
+    (profile.stats?.hard?.solved || 0);
+
+  const totalAvailable = (profile.stats?.easy?.total || 0) +
+    (profile.stats?.medium?.total || 0) +
+    (profile.stats?.hard?.total || 0);
+
   // Calculate problem percentages
-  const easyPercentage = profile.stats.easy.total ? 
-    Math.round((profile.stats.easy.solved / profile.stats.easy.total) * 100) : 0;
-  const mediumPercentage = profile.stats.medium.total ? 
-    Math.round((profile.stats.medium.solved / profile.stats.medium.total) * 100) : 0;
-  const hardPercentage = profile.stats.hard.total ? 
-    Math.round((profile.stats.hard.solved / profile.stats.hard.total) * 100) : 0;
+  const easyPercentage = profile.stats?.easy?.total
+    ? Math.round(((profile.stats?.easy?.solved || 0) / profile.stats?.easy?.total) * 100)
+    : 0;
+
+  const mediumPercentage = profile.stats?.medium?.total
+    ? Math.round(((profile.stats?.medium?.solved || 0) / profile.stats?.medium?.total) * 100)
+    : 0;
+
+  const hardPercentage = profile.stats?.hard?.total
+    ? Math.round(((profile.stats?.hard?.solved || 0) / profile.stats?.hard?.total) * 100)
+    : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -39,7 +48,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-blue-100/50 dark:bg-blue-900/20 flex items-center justify-center">
           <Trophy className="h-6 w-6 text-blue-500" />
@@ -58,7 +67,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-purple-100/50 dark:bg-purple-900/20 flex items-center justify-center">
           <BarChart3 className="h-6 w-6 text-purple-500" />
@@ -74,7 +83,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 flex items-center justify-center">
           <Puzzle className="h-6 w-6 text-amber-500" />

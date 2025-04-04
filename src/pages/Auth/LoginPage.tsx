@@ -69,13 +69,13 @@ function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
+  const { error, loading, userProfile,successMessage,isAuthenticated } = useSelector((state: any) => state.auth);
 
   // Watch the email field from the form
   const formEmail = watch("email");
 
   const onSubmit = (data: LoginFormData) => {
-    // Ensure we pass all required fields with proper types
+    
     dispatch(loginUser({
       email: data.email,
       password: data.password,
@@ -83,24 +83,35 @@ function LoginForm() {
     }) as any);
   };
 
-  // Single useEffect for auth state and navigation
-  useEffect(() => {
-    const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
-    
-    if (isAuthenticated && userProfile?.isVerified && !loading && !error) {
-      navigate(from);
-      toast.success(successMessage || "Login successful!");
-    } else if (error && !loading) {
-      if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
-        Cookies.set("emailtobeverified", formEmail);
-        navigate("/verify-info");
-        handleInfo(error);
-      } else {
-        toast.error(error.message || "An error occurred");
-      }
-      dispatch(clearAuthState());
+// Single useEffect for auth state and navigation
+useEffect(() => {
+  console.log("useEffect triggered");
+  console.log("isAuthenticated:", isAuthenticated);
+  console.log("userProfile:", userProfile);
+  console.log("loading:", loading);
+  console.log("error:", error);
+
+  if (userProfile?.isVerified) {
+    console.log("User is authenticated and verified. Navigating to /dashboard...");
+    navigate("/dashboard");
+    toast.success(successMessage || "Login successful!");
+  } else if (error) {
+    console.log("Error detected:", error);
+
+    if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
+      console.log("User is not verified. Navigating to /verify-info...");
+      Cookies.set("emailtobeverified", formEmail);
+      navigate("/verify-info");
+      handleInfo(error);
+    } else {
+      console.log("An unknown error occurred:", error.message);
+      toast.error(error.message || "An error occurred");
     }
-  }, [error, loading, userProfile, isAuthenticated, successMessage, formEmail, dispatch, navigate, location]);
+
+    console.log("Clearing auth state...");
+    dispatch(clearAuthState());
+  }
+}, [isAuthenticated, userProfile, loading, error, navigate, successMessage, dispatch, formEmail]);
 
   // Check for existing session on mount
   useEffect(() => {

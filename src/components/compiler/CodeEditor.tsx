@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, CheckCheck, PlayIcon } from 'lucide-react';
@@ -9,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { RootState } from '@/store';
 import { toast } from 'sonner';
 import { runCode } from '@/store/slices/compilerSlice';
-import { File } from '@/api/compiler';
+import { File } from '@/api/types';
 import * as monaco from 'monaco-editor';
 import { languages } from './CompilerLayout';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
@@ -53,16 +52,13 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
     const currentLang = languages.find(l => l.value === language);
     const extension = currentLang?.file || 'txt';
     const filename = `code.${extension}`;
-
     const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -79,13 +75,23 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
   };
 
   return (
-    <div className={cn("w-full h-full flex flex-col p-4 bg-background", className)}>
-      <div className="flex justify-between items-center mb-2">
-        <div className="text-sm font-medium text-foreground">
+    <div className={cn("w-full h-full flex flex-col p-2 sm:p-4 bg-background", className)}>
+      <div
+        className={cn(
+          "flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2",
+          isMobile && "flex-col items-stretch"
+        )}
+      >
+        <div className="text-sm font-medium text-foreground w-full sm:w-auto">
           {currentFile ? files.find((f: File) => f.id === currentFile)?.name || 'Editor' : 'Editor'}
         </div>
-        <div className="flex space-x-2">
-          {!isMobile && (
+        <div
+          className={cn(
+            "flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto",
+            isMobile && "flex-col items-stretch"
+          )}
+        >
+          {!isMobile ? (
             <div className="flex items-center gap-2 opacity-60 hover:opacity-85">
               <label htmlFor="font-size-slider" className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                 font size:
@@ -101,12 +107,21 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">{fontSize}px</span>
             </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFontSize(fontSize === 14 ? 12 : 14)}
+              className="border-border/50 hover:bg-muted w-full"
+            >
+              Toggle Font {fontSize}px
+            </Button>
           )}
           <Button
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="border-border/50 hover:bg-muted"
+            className="border-border/50 hover:bg-muted w-full sm:w-auto"
           >
             {copied ? (
               <CheckCheck className="h-3.5 w-3.5 mr-1" />
@@ -119,7 +134,7 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
             variant="outline"
             size="sm"
             onClick={handleDownload}
-            className="border-border/50 hover:bg-muted"
+            className="border-border/50 hover:bg-muted w-full sm:w-auto"
           >
             <Download className="h-3.5 w-3.5 mr-1" />
             download
@@ -128,7 +143,7 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
             onClick={handleRun}
             disabled={!code.trim()}
             size="sm"
-            className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+            className="gap-1 bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
           >
             <PlayIcon className="h-3.5 w-3.5" />
             <span>run</span>
@@ -147,9 +162,9 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
           value={code}
           onChange={handleCodeChange}
           onMount={handleEditorDidMount}
-          theme= {"vs-dark"}
+          theme="vs-dark"
           options={{
-            minimap: { enabled: true },
+            minimap: { enabled: !isMobile }, 
             scrollBeyondLastLine: false,
             fontSize: fontSize,
             lineHeight: 22,

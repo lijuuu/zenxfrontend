@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Puzzle, Trophy, UserPlus, Github, Globe, MapPin, Clock, BarChart3, Activity } from "lucide-react";
+import {  Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,8 +11,6 @@ import {  getUserChallenges } from "@/api/challengeApi";
 import { getUserProfile } from "@/api/userApi";
 import {  Challenge } from "@/api/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-// Import our components
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
 import ChallengesList from "@/components/profile/ChallengesList";
@@ -42,7 +40,7 @@ const Profile = () => {
     const loadChallenges = async () => {
       if (profile) {
         try {
-          const userChallenges = await getUserChallenges(profile.id);
+          const userChallenges = await getUserChallenges(profile.userID);
           setChallenges(userChallenges);
         } catch (error) {
           console.error("Failed to load user challenges:", error);
@@ -119,7 +117,7 @@ const Profile = () => {
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardContent className="p-6">
                 {/* Profile Header Section */}
-                <ProfileHeader profile={profile!} userId={userId} />
+                <ProfileHeader profile={profile!} userID={userId} />
               </CardContent>
             </Card>
             
@@ -239,7 +237,7 @@ const Profile = () => {
                   <TabsContent value="submissions" className="mt-4">
                     <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                       <CardContent className="p-4">
-                        <RecentSubmissions userId={profile?.id} />
+                        <RecentSubmissions userId={profile?.userID} />
                       </CardContent>
                     </Card>
                   </TabsContent>

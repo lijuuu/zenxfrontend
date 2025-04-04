@@ -1,6 +1,6 @@
 
 import { mockChallenges, mockUsers, mockChallengeInvites, generateAccessCode } from './mockData';
-import { Challenge, User } from './types';
+import { Challenge,UserProfile } from './types';
 
 // API functions
 export const getChallenges = async (filters?: { active?: boolean; participated?: boolean; private?: boolean }): Promise<Challenge[]> => {
@@ -157,11 +157,11 @@ export const respondToInvite = async (challengeId: string, accept: boolean): Pro
   });
 };
 
-export const searchUsers = async (query: string): Promise<User[]> => {
+export const searchUsers = async (query: string): Promise<UserProfile[]> => {
   return new Promise(resolve => {
     const results = mockUsers.filter(user => 
-      user.username.toLowerCase().includes(query.toLowerCase()) ||
-      user.fullName.toLowerCase().includes(query.toLowerCase())
+      user.userName.toLowerCase().includes(query.toLowerCase()) ||
+      (user.firstName+user.lastName).toLowerCase().includes(query.toLowerCase())
     );
     setTimeout(() => resolve(results), 400);
   });

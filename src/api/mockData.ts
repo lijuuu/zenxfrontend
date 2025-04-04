@@ -1,93 +1,252 @@
-
 // Mock data consolidated from multiple API files
 
 // User related mock data
 export const mockUsers = [
   {
-    id: "1",
-    username: "johndoe",
-    fullName: "John Doe",
+    userID: "1",
+    userName: "johndoe",
+    firstName: "John",
+    lastName: "Doe",
+    avatarURL: "https://i.pravatar.cc/300?img=1",
     email: "john.doe@example.com",
-    profileImage: "https://i.pravatar.cc/300?img=1",
-    bio: "Software developer passionate about algorithms and data structures. Solving programming challenges in my free time.",
-    website: "https://johndoe.dev",
-    githubProfile: "johndoe",
-    location: "San Francisco, USA",
+    role: "developer",
+    country: "United States",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "johndoe",
+      twitter: "",
+      linkedin: "",
+      website: "https://johndoe.dev",
+    },
+    createdAt: 1642243200000, // Timestamp for "2022-01-15"
     joinedDate: "2022-01-15",
     problemsSolved: 147,
     dayStreak: 26,
     ranking: 354,
-    isBanned: false,
-    isVerified: true,
-    following: 45,
+    profileImage: "https://i.pravatar.cc/300?img=1",
+    is2FAEnabled: false,
     followers: 78,
-    is2FAEnabled: false
+    following: 45,
+    countryCode: "US",
+    bio: "Software developer passionate about algorithms and data structures. Solving programming challenges in my free time.",
+    stats: {
+      easy: { solved: 50, total: 100 },
+      medium: { solved: 70, total: 150 },
+      hard: { solved: 27, total: 50 },
+    },
+    achievements: {
+      weeklyContests: 5,
+      monthlyContests: 2,
+      specialEvents: 1,
+    },
+    badges: [],
+    activityHeatmap: undefined,
+    currentStreak: 26,
+    longestStreak: 50,
+    currentRating: 1200,
+    globalRank: 354,
+    location: "San Francisco, USA",
+    isOnline: false,
   },
   {
-    id: "2",
-    username: "janedoe",
-    fullName: "Jane Doe",
+    userID: "2",
+    userName: "janedoe",
+    firstName: "Jane",
+    lastName: "Doe",
+    avatarURL: "https://i.pravatar.cc/300?img=5",
     email: "jane.doe@example.com",
-    profileImage: "https://i.pravatar.cc/300?img=5",
-    bio: "Frontend developer with a passion for UI/UX design.",
-    website: "https://janedoe.dev",
-    githubProfile: "janedoe",
-    location: "New York, USA",
+    role: "frontend-developer",
+    country: "United States",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "janedoe",
+      twitter: "",
+      linkedin: "",
+      website: "https://janedoe.dev",
+    },
+    createdAt: 1646870400000, // Timestamp for "2022-03-10"
     joinedDate: "2022-03-10",
     problemsSolved: 203,
     dayStreak: 42,
     ranking: 218,
-    isBanned: false,
-    isVerified: true,
-    following: 67,
+    profileImage: "https://i.pravatar.cc/300?img=5",
+    is2FAEnabled: true,
     followers: 93,
-    is2FAEnabled: true
+    following: 67,
+    countryCode: "US",
+    bio: "Frontend developer with a passion for UI/UX design.",
+    stats: {
+      easy: { solved: 80, total: 100 },
+      medium: { solved: 100, total: 150 },
+      hard: { solved: 23, total: 50 },
+    },
+    achievements: {
+      weeklyContests: 8,
+      monthlyContests: 3,
+      specialEvents: 2,
+    },
+    badges: [],
+    activityHeatmap: undefined,
+    currentStreak: 42,
+    longestStreak: 60,
+    currentRating: 1300,
+    globalRank: 218,
+    location: "New York, USA",
+    isOnline: false,
   },
   {
-    id: "3",
-    username: "mchen",
-    fullName: "Mike Chen",
+    userID: "3",
+    userName: "mchen",
+    firstName: "Mike",
+    lastName: "Chen",
+    avatarURL: "https://i.pravatar.cc/300?img=3",
     email: "mike@example.com",
-    profileImage: "https://i.pravatar.cc/300?img=3",
-    bio: "Full-stack developer with a passion for problem-solving",
+    role: "fullstack-developer",
+    country: "United States",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "",
+      twitter: "",
+      linkedin: "",
+      website: "",
+    },
+    createdAt: 1644019200000, // Timestamp for "2022-02-05"
     joinedDate: "2022-02-05",
     problemsSolved: 203,
     dayStreak: 45,
     ranking: 178,
-    isBanned: false,
-    isVerified: true,
-    isOnline: true
+    profileImage: "https://i.pravatar.cc/300?img=3",
+    is2FAEnabled: false,
+    followers: 0,
+    following: 0,
+    countryCode: "US",
+    bio: "Full-stack developer with a passion for problem-solving",
+    stats: {
+      easy: { solved: 90, total: 100 },
+      medium: { solved: 90, total: 150 },
+      hard: { solved: 23, total: 50 },
+    },
+    achievements: {
+      weeklyContests: 10,
+      monthlyContests: 5,
+      specialEvents: 3,
+    },
+    badges: [],
+    activityHeatmap: undefined,
+    currentStreak: 45,
+    longestStreak: 70,
+    currentRating: 1400,
+    globalRank: 178,
+    location: "Los Angeles, USA",
+    isOnline: true,
   },
   {
-    id: "4",
-    username: "sophie",
-    fullName: "Sophie Williams",
+    userID: "4",
+    userName: "sophie",
+    firstName: "Sophie",
+    lastName: "Williams",
+    avatarURL: "https://i.pravatar.cc/300?img=9",
     email: "sophie@example.com",
-    profileImage: "https://i.pravatar.cc/300?img=9",
-    bio: "Software architect | Competitive programmer",
+    role: "software-architect",
+    country: "United States",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "",
+      twitter: "",
+      linkedin: "",
+      website: "",
+    },
+    createdAt: 1637366400000, // Timestamp for "2021-11-20"
     joinedDate: "2021-11-20",
     problemsSolved: 312,
     dayStreak: 86,
     ranking: 42,
-    isBanned: false,
-    isVerified: true,
-    isOnline: true
+    profileImage: "https://i.pravatar.cc/300?img=9",
+    is2FAEnabled: false,
+    followers: 0,
+    following: 0,
+    countryCode: "US",
+    bio: "Software architect | Competitive programmer",
+    stats: {
+      easy: { solved: 100, total: 100 },
+      medium: { solved: 150, total: 150 },
+      hard: { solved: 62, total: 62 },
+    },
+    achievements: {
+      weeklyContests: 15,
+      monthlyContests: 8,
+      specialEvents: 5,
+    },
+    badges: [],
+    activityHeatmap: undefined,
+    currentStreak: 86,
+    longestStreak: 100,
+    currentRating: 1600,
+    globalRank: 42,
+    location: "Seattle, USA",
+    isOnline: true,
   },
   {
-    id: "5",
-    username: "taylor",
-    fullName: "Taylor Smith",
+    userID: "5",
+    userName: "taylor",
+    firstName: "Taylor",
+    lastName: "Smith",
+    avatarURL: "https://i.pravatar.cc/300?img=5",
     email: "taylor@example.com",
-    profileImage: "https://i.pravatar.cc/300?img=5",
-    bio: "Frontend developer learning algorithms",
+    role: "frontend-developer",
+    country: "United States",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "",
+      twitter: "",
+      linkedin: "",
+      website: "",
+    },
+    createdAt: 1652832000000, // Timestamp for "2022-05-18"
     joinedDate: "2022-05-18",
     problemsSolved: 68,
     dayStreak: 7,
     ranking: 1254,
-    isBanned: false,
-    isVerified: true,
-    isOnline: false
-  }
+    profileImage: "https://i.pravatar.cc/300?img=5",
+    is2FAEnabled: false,
+    followers: 0,
+    following: 0,
+    countryCode: "US",
+    bio: "Frontend developer learning algorithms",
+    stats: {
+      easy: { solved: 30, total: 100 },
+      medium: { solved: 30, total: 150 },
+      hard: { solved: 8, total: 50 },
+    },
+    achievements: {
+      weeklyContests: 2,
+      monthlyContests: 1,
+      specialEvents: 0,
+    },
+    badges: [],
+    activityHeatmap: undefined,
+    currentStreak: 7,
+    longestStreak: 20,
+    currentRating: 1000,
+    globalRank: 1254,
+    location: "Austin, USA",
+    isOnline: false,
+  },
 ];
 
 export const mockFriends = [
@@ -980,7 +1139,7 @@ export const mockChallengeInvites = [
 export const generateAccessCode = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
-  for(let i = 0; i < 6; i++) {
+  for (let i = 0; i < 6; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
@@ -992,23 +1151,23 @@ export const generateHeatmapData = () => {
   const data = [];
   const startDate = new Date(today);
   startDate.setDate(today.getDate() - 364);
-  
+
   for (let i = 0; i < 365; i++) {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + i);
     const dateStr = date.toISOString().split('T')[0];
-    
+
     // Randomly determine if present or absent
     const present = Math.random() > 0.4;
     const count = present ? Math.floor(Math.random() * 5) + 1 : 0;
-    
+
     data.push({
       date: dateStr,
       count,
       present
     });
   }
-  
+
   return {
     startDate: startDate.toISOString().split('T')[0],
     data

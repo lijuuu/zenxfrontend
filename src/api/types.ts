@@ -4,29 +4,29 @@ export interface UserProfile {
   userID: string;
   userName: string;
   firstName: string;
-  lastName: string;
-  avatarURL: string;
+  lastName?: string;
+  avatarURL?: string;
   email: string;
-  role: string;
-  country: string;
+  role?: string;
+  country?: string;
   isBanned: boolean;
   isVerified: boolean;
-  primaryLanguageID: string;
-  muteNotifications: boolean;
-  socials: {
+  primaryLanguageID?: string;
+  muteNotifications?: boolean;
+  socials?: {
     github: string;
     twitter: string;
     linkedin: string;
-    website?: string; // Added website to socials
+    website?: string; 
   };
-  createdAt: number;
+  createdAt?: number;
   
   // Additional UI fields
   joinedDate?: string;
   problemsSolved?: number;
   dayStreak?: number;
   ranking?: number;
-  profileImage?: string; // For compatibility with components expecting 'profileImage'
+  profileImage?: string; 
   is2FAEnabled?: boolean;
   followers?: number;
   following?: number;
@@ -56,6 +56,38 @@ export interface UserProfile {
   isOnline?: boolean;
 }
 
+export interface LoginUserResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  userID: string;
+  userProfile: UserProfile;
+  message: string;
+}
+
+export interface ApiResponse {
+  success: boolean;
+  status: number;
+  payload: LoginUserResponse | UserProfile | { message: string; expiryAt?: number } | { message: string };
+}
+
+export interface AuthState {
+  userId: string | null;
+  isVerified?:boolean,
+  isAuthenticated?: boolean;
+  email: string | null;
+  loading: boolean;
+  error: { message: string; code?: number; type?: string } | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  successMessage: string | null;
+  userProfile: UserProfile | null;
+  lastResendTimestamp: number | null;
+  resendCooldown: boolean;
+  expiryAt: number | null;
+}
+
+
 export interface Friend {
   id: string;
   username: string;
@@ -78,6 +110,19 @@ export interface Badge {
 export interface HeatmapData {
   startDate: string;
   data: { date: string; count: number; present: boolean }[];
+}
+
+export interface CompilerState {
+  code: string;
+  language: string;
+  loading: boolean;
+  file: string;
+  result: CompilerResponse;
+  files: File[];
+  currentFile: string | null;
+  isRenaming: boolean;
+  newFileName: string;
+  fileToRename: string | null;
 }
 
 // Problem related types

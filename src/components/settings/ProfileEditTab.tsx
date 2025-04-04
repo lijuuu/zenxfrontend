@@ -23,7 +23,6 @@ interface ProfileEditTabProps {
 
 const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   const dispatch = useAppDispatch();
-  const authState = useAppSelector((state) => state.auth);
   
   // Form state
   const [userName, setUserName] = useState("");
