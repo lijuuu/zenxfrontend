@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { RootState } from '@/store';
 import { toast } from 'sonner';
 import { runCode } from '@/store/slices/compilerSlice';
-import { File } from '@/api/types/compiler';
+import { File } from '@/api/compiler';
 import * as monaco from 'monaco-editor';
 import { languages } from './CompilerLayout';
 import { useAppDispatch } from '@/hooks/useAppDispatch';

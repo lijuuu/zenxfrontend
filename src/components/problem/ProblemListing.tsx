@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Filter, Search, Loader2, FileCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "@/components/common/MainNavbar";
-import { mockProblems } from "@/api/problemApi";
+import { mockProblems } from "@/api/mockData";
 
 // Define the Problem interface based on ProblemMetadata
 interface Problem {

@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import FileSystem from '@/components/compiler/FileSystem';
