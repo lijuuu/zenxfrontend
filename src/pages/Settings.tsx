@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import MainNavbar from '@/components/common/MainNavbar';
-import {  useAppSelector } from '@/hooks';
+import { useAppSelector } from '@/hooks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfileEditTab from '@/components/settings/ProfileEditTab';
 import TwoFactorAuthTab from '@/components/settings/TwoFactorAuthTab';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
+import { UserProfile } from '@/api/types'; // Import the UserProfile type
 
 const Settings = () => {
   const { userProfile, loading } = useAppSelector((state) => state.auth);
@@ -38,6 +39,26 @@ const Settings = () => {
       </div>
     );
   }
+
+  // Create a compatible user object for the components that expect a UserProfile with more fields
+  const enhancedUserProfile: UserProfile = {
+    ...userProfile,
+    stats: {
+      easy: { solved: 0, total: 0 },
+      medium: { solved: 0, total: 0 },
+      hard: { solved: 0, total: 0 }
+    },
+    achievements: {
+      weeklyContests: 0,
+      monthlyContests: 0,
+      specialEvents: 0
+    },
+    badges: [],
+    activityHeatmap: {
+      startDate: new Date().toISOString(),
+      data: []
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -95,15 +116,15 @@ const Settings = () => {
             >
               <div className="space-y-6">
                 <TabsContent value="profile" className="space-y-6">
-                  <ProfileEditTab user={userProfile} />
+                  <ProfileEditTab user={enhancedUserProfile} />
                 </TabsContent>
                 
                 <TabsContent value="security" className="space-y-6">
-                  <TwoFactorAuthTab userProfile={userProfile} />
+                  <TwoFactorAuthTab userProfile={enhancedUserProfile} />
                 </TabsContent>
                 
                 <TabsContent value="notifications" className="space-y-6">
-                  <NotificationsSettingsTab userProfile={userProfile} />
+                  <NotificationsSettingsTab userProfile={enhancedUserProfile} />
                 </TabsContent>
               </div>
             </Tabs>
