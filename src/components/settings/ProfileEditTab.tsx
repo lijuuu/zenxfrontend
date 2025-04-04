@@ -16,9 +16,10 @@ import { getUser } from "@/store/slices/authSlice";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { UserProfile } from "@/api/types";
 
 interface ProfileEditTabProps {
-  user: any;
+  user: UserProfile;
 }
 
 const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
@@ -40,7 +41,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   // Populate form with user profile data on mount
   useEffect(() => {
     if (user) {
-      setUserName(user.userName || user.username || "");
+      setUserName(user.userName || "");
       setFirstName(user.firstName || "");
       setLastName(user.lastName || "");
       setCountry(user.country || "");

@@ -34,14 +34,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const authState = useSelector((state: any) => state.auth);
   
-  const isOwnProfile = !userId || userId === profile.id || 
+  const isOwnProfile = !userId || userId === profile.userID || 
     (authState.userProfile && (userId === authState.userProfile.userID || userId === authState.userId));
   
   const handleCopyUsername = () => {
-    navigator.clipboard.writeText(profile.username);
+    navigator.clipboard.writeText(profile.userName);
     toast({
       title: "Username copied",
-      description: `@${profile.username} copied to clipboard`,
+      description: `@${profile.userName} copied to clipboard`,
     });
   };
   
@@ -56,8 +56,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
       toast({
         title: isFollowing ? "Unfollowed" : "Followed",
         description: isFollowing 
-          ? `You unfollowed @${profile.username}` 
-          : `You are now following @${profile.username}`,
+          ? `You unfollowed @${profile.userName}` 
+          : `You are now following @${profile.userName}`,
       });
     } catch (error) {
       toast({
@@ -74,9 +74,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
 
   // Get initials for avatar fallback
   const getInitials = () => {
-    const fullNameChars = profile.fullName?.split(' ').map(n => n[0]).join('');
+    const fullNameChars = `${profile.firstName} ${profile.lastName}`.split(' ').map(n => n[0]).join('');
     if (fullNameChars) return fullNameChars;
-    if (profile.username) return profile.username.charAt(0).toUpperCase();
+    if (profile.userName) return profile.userName.charAt(0).toUpperCase();
     return "U";
   };
   
@@ -85,7 +85,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
       <div className="flex flex-col items-center md:items-start">
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-            <AvatarImage src={profile.profileImage} alt={profile.fullName} />
+            <AvatarImage src={profile.avatarURL || profile.profileImage} alt={`${profile.firstName} ${profile.lastName}`} />
             <AvatarFallback className="text-xl font-bold">
               {getInitials()}
             </AvatarFallback>
@@ -109,7 +109,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
       
       <div className="flex-1 flex flex-col md:items-start items-center text-center md:text-left">
         <div className="flex flex-wrap gap-2 items-center">
-          <h1 className="text-2xl font-bold">{profile.fullName}</h1>
+          <h1 className="text-2xl font-bold">{`${profile.firstName} ${profile.lastName}`}</h1>
           
           {profile.ranking && profile.ranking <= 100 && (
             <Badge className="bg-gradient-to-r from-amber-500 to-yellow-300 text-zinc-900">
@@ -119,7 +119,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
         </div>
         
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-lg text-muted-foreground font-medium">@{profile.username}</span>
+          <span className="text-lg text-muted-foreground font-medium">@{profile.userName}</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -146,7 +146,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
         <div className="flex flex-wrap items-center gap-4 mt-3">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <CalendarDays className="h-4 w-4" />
-            <span>Joined {new Date(profile.joinedDate).toLocaleDateString()}</span>
+            <span>Joined {new Date(profile.joinedDate || profile.createdAt).toLocaleDateString()}</span>
           </div>
           
           {profile.followers !== undefined && (
