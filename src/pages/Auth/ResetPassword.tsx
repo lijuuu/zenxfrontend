@@ -63,7 +63,7 @@ const ResetPassword = () => {
           confirmPassword,
         }
       );
-      console.log("Reset password response:", response.data);
+     //console.log("Reset password response:", response.data);
       setSuccess("Password reset successful. Redirecting to login...");
       toast.success("Password reset successful");
       setTimeout(() => navigate("/login"), 2000); // Navigate to login after 2 seconds
@@ -72,7 +72,7 @@ const ResetPassword = () => {
         err.response?.data?.error?.message || "Failed to reset password. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Reset password error:", err);
+     //console.error("Reset password error:", err);
     } finally {
       setLoading(false);
     }

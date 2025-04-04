@@ -150,7 +150,7 @@ const SetUpTwoFactor: React.FC<{ user: { userProfile: UserProfile } }> = ({ user
 
   //return 1
   if (!userProfile?.email) {
-    console.log(userProfile);
+   //console.log(userProfile);
     return <p className="text-red-500">Failed to load user data</p>;
   }
 

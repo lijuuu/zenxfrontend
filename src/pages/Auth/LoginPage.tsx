@@ -15,19 +15,20 @@ import Loader1 from "@/components/ui/loader1";
 import { handleError, handleInfo } from "@/components/sub/ErrorToast";
 import MainNavbar from "@/components/common/MainNavbar";
 import axios from "axios";
+import SimpleSpinLoader from "@/components/ui/simplespinloader"
 
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
-    <Loader1 className="w-12 h-12 mr-10 text-green-500" />
-    <div className="text-white text-xl opacity-80 mt-24">
+    <SimpleSpinLoader className="w-12 h-12 text-green-500" />
+    {/* <div className="text-white text-md opacity-80 ">
       Logging in...
-    </div>
-    <button
+    </div> */}
+    {/* <button
       onClick={onCancel}
       className="text-gray-400 text-sm mt-4 underline hover:text-green-500 transition-colors duration-200"
     >
       Cancel
-    </button>
+    </button> */}
   </div>
 );
 
@@ -69,13 +70,13 @@ function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  const { error, loading, userProfile,successMessage,isAuthenticated } = useSelector((state: any) => state.auth);
+  const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
 
   // Watch the email field from the form
   const formEmail = watch("email");
 
   const onSubmit = (data: LoginFormData) => {
-    
+
     dispatch(loginUser({
       email: data.email,
       password: data.password,
@@ -83,35 +84,35 @@ function LoginForm() {
     }) as any);
   };
 
-// Single useEffect for auth state and navigation
-useEffect(() => {
-  console.log("useEffect triggered");
-  console.log("isAuthenticated:", isAuthenticated);
-  console.log("userProfile:", userProfile);
-  console.log("loading:", loading);
-  console.log("error:", error);
+  // Single useEffect for auth state and navigation
+  useEffect(() => {
+    // //console.log("useEffect triggered");
+    // //console.log("isAuthenticated:", isAuthenticated);
+    // //console.log("userProfile:", userProfile);
+    // //console.log("loading:", loading);
+    // //console.log("error:", error);
 
-  if (userProfile?.isVerified) {
-    console.log("User is authenticated and verified. Navigating to /dashboard...");
-    navigate("/dashboard");
-    toast.success(successMessage || "Login successful!");
-  } else if (error) {
-    console.log("Error detected:", error);
+    if (userProfile?.isVerified) {
+      // //console.log("User is authenticated and verified. Navigating to /dashboard...");
+      navigate("/dashboard");
+      toast.success(successMessage || "Login successful!");
+    } else if (error) {
+      //console.log("Error detected:", error);
 
-    if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
-      console.log("User is not verified. Navigating to /verify-info...");
-      Cookies.set("emailtobeverified", formEmail);
-      navigate("/verify-info");
-      handleInfo(error);
-    } else {
-      console.log("An unknown error occurred:", error.message);
-      toast.error(error.message || "An error occurred");
+      if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
+        //console.log("User is not verified. Navigating to /verify-info...");
+        Cookies.set("emailtobeverified", formEmail);
+        navigate("/verify-info");
+        handleInfo(error);
+      } else {
+        //console.log("An unknown error occurred:", error.message);
+        toast.error(error.message || "An error occurred");
+      }
+
+      //console.log("Clearing auth state...");
+      dispatch(clearAuthState());
     }
-
-    console.log("Clearing auth state...");
-    dispatch(clearAuthState());
-  }
-}, [isAuthenticated, userProfile, loading, error, navigate, successMessage, dispatch, formEmail]);
+  }, [isAuthenticated, userProfile, loading, error, navigate, successMessage, dispatch, formEmail]);
 
   // Check for existing session on mount
   useEffect(() => {

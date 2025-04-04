@@ -70,7 +70,7 @@ const Home = () => {
                 </Badge>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500 z-10">
+              <h1 className="text-4xl p-2 md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500 z-10">
                 Become a Better Developer Through Challenges
               </h1>
               <p className="text-xl text-zinc-700 dark:text-zinc-300 mb-8 max-w-2xl mx-auto">

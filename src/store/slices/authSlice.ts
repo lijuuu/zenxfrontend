@@ -161,7 +161,7 @@ export const loginUser = (credentials: { email?: string; password?: string; code
 
     // Set cookies for accessToken and refreshToken
     Cookies.set("accessToken", data.accessToken, {
-      expires: data.expiresIn / (24 * 60 * 60), // Convert seconds to days
+      expires: data.expiresIn / (24 * 60 * 60), 
       secure: true,
       sameSite: "Strict",
     });
@@ -171,7 +171,7 @@ export const loginUser = (credentials: { email?: string; password?: string; code
     setTimeout(() => {
       dispatch(loginSuccess(data));
       dispatch(setAuthLoading(false));
-    }, 100);
+    }, 1000);
   } catch (error: any) {
     const errorResponse = error.response?.data;
     const type = error.type || errorResponse?.error?.type || "ERR_LOGIN_CRED_WRONG";

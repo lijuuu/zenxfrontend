@@ -51,7 +51,7 @@ const ForgotPassword = () => {
         `http://localhost:7000/api/v1/auth/password/forgot`,
         { email }
       );
-      console.log("Forgot password response:", response.data);
+      //console.log("Forgot password response:", response.data);
       setSuccess("Password reset link sent to your email. Please check your inbox.");
       toast.success("Password reset link sent successfully", {
         style: { background: "#1D1D1D", color: "#3CE7B2" },
@@ -63,7 +63,7 @@ const ForgotPassword = () => {
       toast.error(errorMessage, {
         style: { background: "#1D1D1D", color: "#FFFFFF" },
       });
-      console.error("Forgot password error:", err);
+      //console.error("Forgot password error:", err);
     } finally {
       setLoading(false);
     }

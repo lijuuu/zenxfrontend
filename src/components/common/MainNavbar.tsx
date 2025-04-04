@@ -60,7 +60,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   // Get user profile from Redux store
   const { userProfile } = useSelector((state: any) => state.auth) || {};
 
-  console.log(userProfile)
+  //console.log(userProfile)
 
   useEffect(() => {
     // Fetch user profile if authenticated and not already loaded

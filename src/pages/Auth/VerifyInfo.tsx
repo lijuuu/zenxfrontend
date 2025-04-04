@@ -47,8 +47,8 @@ const VerifyInfo = () => {
     if (successMessage && !loading) {
       toast.success(successMessage);
     }
-    console.log("success in verifiy info, ",successMessage)
-    console.log("error in verifiy info, ",error)
+   //console.log("success in verifiy info, ",successMessage)
+   //console.log("error in verifiy info, ",error)
     
     if (error?.type == "ERR_ALREADY_VERIFIED"){
       navigate("/login")

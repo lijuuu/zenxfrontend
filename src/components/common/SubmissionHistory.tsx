@@ -16,14 +16,14 @@ const SubmissionHistory = ({ submissions, isLoading = false, limit }: Submission
   if (isLoading) {
     return (
       <div className="bg-zinc-800/40 border border-zinc-700/40 rounded-lg p-6">
-        <h2 className="text-lg font-medium mb-4">Recent Submissions</h2>
+        <h2 className="text-lg font-medium mb-4z">Recent Submissions</h2>
         <div className="space-y-4">
           {Array(3).fill(0).map((_, i) => (
             <div key={i} className="bg-zinc-700/30 h-16 rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
-    );
+    );    
   }
   
   if (!displaySubmissions || displaySubmissions.length === 0) {
