@@ -7,19 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserProfile } from "@/api/types";
+import { User } from "@/api/types";
 import { useMutation } from "@tanstack/react-query";
 import { updateUserProfile } from "@/api/userApi";
 import { toast } from "sonner";
 
 interface ProfileSettingsTabProps {
-  user: UserProfile;
+  user: User;
 }
 
 interface ProfileFormData {
-  firstName: string;
-  lastName: string;
-  userName: string;
+  fullName: string;
+  username: string;
   email: string;
   bio: string;
   website: string;
@@ -29,14 +28,13 @@ interface ProfileFormData {
 
 const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
   const [formData, setFormData] = useState<ProfileFormData>({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    userName: user?.userName || "",
+    fullName: user?.fullName || "",
+    username: user?.username || "",
     email: user?.email || "",
     bio: user?.bio || "",
-    website: user?.socials?.website || "",
-    githubProfile: user?.socials?.github || "",
-    location: user?.country || "",
+    website: user?.website || "",
+    githubProfile: user?.githubProfile || "",
+    location: user?.location || "",
   });
 
   // Update profile mutation
@@ -60,14 +58,6 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
     updateProfileMutation.mutate(formData);
   };
 
-  // Get initials for avatar fallback
-  const getInitials = () => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
-    }
-    return user.userName.charAt(0).toUpperCase();
-  };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
       <Card className="h-fit">
@@ -80,8 +70,8 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
         <CardContent className="flex flex-col items-center">
           <div className="relative mb-6">
             <Avatar className="w-32 h-32">
-              <AvatarImage src={user?.avatarURL || user?.profileImage || "https://i.pravatar.cc/300?img=1"} />
-              <AvatarFallback>{getInitials() || "U"}</AvatarFallback>
+              <AvatarImage src={user?.profileImage || "https://i.pravatar.cc/300?img=1"} />
+              <AvatarFallback>{user?.fullName.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <Button 
               className="absolute bottom-0 right-0 rounded-full bg-zinc-100 dark:bg-zinc-800 text-foreground hover:bg-zinc-200 dark:hover:bg-zinc-700 h-8 w-8 p-0"
@@ -92,8 +82,8 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
           </div>
           
           <div className="text-center">
-            <h3 className="font-semibold text-lg">{`${user?.firstName} ${user?.lastName}`}</h3>
-            <p className="text-muted-foreground">@{user?.userName}</p>
+            <h3 className="font-semibold text-lg">{user?.fullName}</h3>
+            <p className="text-muted-foreground">@{user?.username}</p>
           </div>
         </CardContent>
       </Card>
@@ -109,37 +99,26 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
           <form onSubmit={handleProfileUpdate} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
                   onChange={handleInputChange}
-                  placeholder="John"
+                  placeholder="John Doe"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
+                  id="username"
+                  name="username"
+                  value={formData.username}
                   onChange={handleInputChange}
-                  placeholder="Doe"
+                  placeholder="johndoe"
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="userName">Username</Label>
-              <Input
-                id="userName"
-                name="userName"
-                value={formData.userName}
-                onChange={handleInputChange}
-                placeholder="johndoe"
-              />
             </div>
             
             <div className="space-y-2">

@@ -1,15 +1,24 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 
 interface AccentColorContextType {
   accentColor: string;
   setAccentColor: (color: string) => void;
 }
 
-const AccentColorContext = createContext<AccentColorContextType | undefined>(undefined);
+const AccentColorContext = createContext<AccentColorContextType>({
+  accentColor: 'green',
+  setAccentColor: () => {},
+});
 
-export const AccentColorProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [accentColor, setAccentColor] = useState('green');
+export const useAccentColor = () => useContext(AccentColorContext);
+
+interface AccentColorProviderProps {
+  children: ReactNode;
+}
+
+export const AccentColorProvider: React.FC<AccentColorProviderProps> = ({ children }) => {
+  const [accentColor, setAccentColor] = useState<string>('green');
 
   return (
     <AccentColorContext.Provider value={{ accentColor, setAccentColor }}>
@@ -17,13 +26,3 @@ export const AccentColorProvider: React.FC<{children: ReactNode}> = ({ children 
     </AccentColorContext.Provider>
   );
 };
-
-export const useAccentColor = () => {
-  const context = useContext(AccentColorContext);
-  if (context === undefined) {
-    throw new Error('useAccentColor must be used within an AccentColorProvider');
-  }
-  return context;
-};
-
-export default AccentColorContext;

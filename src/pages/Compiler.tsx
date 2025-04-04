@@ -5,10 +5,6 @@ import FileSystem from '@/components/compiler/FileSystem';
 import CompilerLayout from '@/components/compiler/CompilerLayout';
 import ZenXPlayground from '@/components/playground/ZenXPlayground';
 
-/**
- * The Compiler page component that renders either the compiler interface
- * or the ZenX playground based on URL parameters.
- */
 const Compiler = () => {
   // Check if we're in playground mode by looking for problem_id in URL
   const isPlaygroundMode = window.location.search.includes('problem_id');

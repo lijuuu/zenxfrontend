@@ -1,3 +1,4 @@
+
 // User related types
 export interface User {
   id: string;
@@ -22,10 +23,8 @@ export interface User {
   country?: string;
   countryCode?: string;
 }
-
 // Types based on Go backend models
 export interface UserProfile {
-  // Core identification fields
   userID: string;
   userName: string;
   firstName: string;
@@ -42,23 +41,11 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
-    website?: string; // Added website to socials
   };
   createdAt: number;
-  
-  // Additional UI fields
-  joinedDate?: string;
-  problemsSolved?: number;
-  dayStreak?: number;
-  ranking?: number;
-  profileImage?: string; // For compatibility with components expecting 'profileImage'
-  is2FAEnabled?: boolean;
-  followers?: number;
-  following?: number;
-  countryCode?: string;
-  bio?: string;
-  
-  // Stats, achievements, and other data
+}
+
+export interface UserProfile extends User {
   stats: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };
@@ -75,7 +62,6 @@ export interface UserProfile {
   longestStreak?: number;
   currentRating?: number;
   globalRank?: number;
-  isOnline?: boolean;
 }
 
 export interface Friend {
@@ -416,7 +402,7 @@ export type ProblemMetadata = {
   supported_languages: string[];
   validated?: boolean;
   placeholder_maps: { [key: string]: string };
-}
+};
 
 export type TestResult = {
   testCaseIndex: number;
