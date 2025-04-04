@@ -19,10 +19,10 @@ const initialState: UserState = {
 
 export const fetchUserProfile = createAsyncThunk(
   'user/fetchUserProfile',
-  async (userId?: string, { rejectWithValue }) => {
+  async (userId: string = 'current', { rejectWithValue }) => {
     try {
       // Using the API directly with axios
-      const response = await axiosInstance.get(`/users/${userId || 'current'}`);
+      const response = await axiosInstance.get(`/users/${userId}`);
       return response.data.payload as UserProfile;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -80,7 +80,7 @@ const userSlice = createSlice({
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.profile = { ...state.profile, ...action.payload } as UserProfile;
+        state.profile = action.payload;
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.status = 'failed';

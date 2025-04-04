@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -7,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import {  getUserChallenges } from "@/api/challengeApi";
+import { getUserChallenges } from "@/api/challengeApi";
 import { getUserProfile } from "@/api/userApi";
-import {  Challenge } from "@/api/types";
+import { Challenge } from "@/api/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import our components
@@ -42,7 +43,7 @@ const Profile = () => {
     const loadChallenges = async () => {
       if (profile) {
         try {
-          const userChallenges = await getUserChallenges(profile.id);
+          const userChallenges = await getUserChallenges(profile.userID);
           setChallenges(userChallenges);
         } catch (error) {
           console.error("Failed to load user challenges:", error);
@@ -110,7 +111,7 @@ const Profile = () => {
   }
   
   return (
-    <div className="min-h-screen  text-white">
+    <div className="min-h-screen text-white">
       <MainNavbar/>
       <main className="pt-20 pb-8">
         <div className="page-container">
@@ -132,74 +133,6 @@ const Profile = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <ProfileStats profile={profile!} />
-                
-                {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="bg-zinc-800 border-zinc-700">
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm font-medium">Challenges</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex justify-between items-center mt-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                          <span className="text-sm">Public</span>
-                        </div>
-                        <span className="font-medium">{publicChallenges}</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                          <span className="text-sm">Private</span>
-                        </div>
-                        <span className="font-medium">{privateChallenges}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-zinc-800 border-zinc-700">
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm font-medium">Streak</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex justify-between items-center mt-1">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Current</span>
-                        </div>
-                        <span className="font-medium">{profile?.currentStreak || 0} days</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex items-center gap-2">
-                          <Trophy className="h-4 w-4 text-amber-500" />
-                          <span className="text-sm">Longest</span>
-                        </div>
-                        <span className="font-medium">{profile?.longestStreak || 0} days</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-zinc-800 border-zinc-700">
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm font-medium">Rating</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <div className="flex justify-between items-center mt-1">
-                        <div className="flex items-center gap-2">
-                          <BarChart3 className="h-4 w-4 text-blue-500" />
-                          <span className="text-sm">Current</span>
-                        </div>
-                        <span className="font-medium">{profile?.currentRating || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex items-center gap-2">
-                          <UserPlus className="h-4 w-4 text-purple-500" />
-                          <span className="text-sm">Global Rank</span>
-                        </div>
-                        <span className="font-medium">#{profile?.globalRank || '-'}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div> */}
               </CardContent>
             </Card>
             
@@ -239,7 +172,7 @@ const Profile = () => {
                   <TabsContent value="submissions" className="mt-4">
                     <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                       <CardContent className="p-4">
-                        <RecentSubmissions userId={profile?.id} />
+                        <RecentSubmissions userId={profile?.userID} />
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -277,40 +210,40 @@ const Profile = () => {
                   </CardContent>
                 </Card>
                 
-                {profile?.website || profile?.githubProfile || profile?.location ? (
+                {profile?.socials?.website || profile?.socials?.github ? (
                   <Card className="mt-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg">Links & Info</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {profile?.website && (
+                      {profile?.socials?.website && (
                         <a 
-                          href={profile.website}
+                          href={profile.socials.website}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
                           <Globe className="h-4 w-4" />
-                          <span className="text-sm truncate">{profile.website}</span>
+                          <span className="text-sm truncate">{profile.socials.website}</span>
                         </a>
                       )}
                       
-                      {profile?.githubProfile && (
+                      {profile?.socials?.github && (
                         <a 
-                          href={`https://github.com/${profile.githubProfile}`}
+                          href={`https://github.com/${profile.socials.github}`}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
                           <Github className="h-4 w-4" />
-                          <span className="text-sm truncate">{profile.githubProfile}</span>
+                          <span className="text-sm truncate">{profile.socials.github}</span>
                         </a>
                       )}
                       
-                      {profile?.location && (
+                      {profile?.country && (
                         <div className="flex items-center gap-2 text-zinc-400">
                           <MapPin className="h-4 w-4" />
-                          <span className="text-sm">{profile.location}</span>
+                          <span className="text-sm">{profile.country}</span>
                         </div>
                       )}
                     </CardContent>

@@ -17,19 +17,15 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
-    website?: string; // Added website to socials
+    website: string;
   };
   createdAt: number;
   
   // Additional UI fields
-  id?: string; // For compatibility with components expecting 'id'
-  username?: string; // For compatibility with components expecting 'username'
-  fullName?: string; // For compatibility with components expecting 'fullName'
   joinedDate?: string;
   problemsSolved?: number;
   dayStreak?: number;
   ranking?: number;
-  profileImage?: string; // For compatibility with components expecting 'profileImage'
   is2FAEnabled?: boolean;
   followers?: number;
   following?: number;
@@ -239,6 +235,14 @@ export interface AuthResponse {
   token: string;
   refreshToken: string;
   user: UserProfile;
+}
+
+// For admin api
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  adminID: string;
 }
 
 export interface LoginCredentials {

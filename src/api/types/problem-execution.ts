@@ -1,4 +1,21 @@
 
+export interface File {
+  id: string;
+  name: string;
+  language: string;
+  content: string;
+  createdAt: string;
+  lastModified: string;
+}
+
+export interface CompilerResponse {
+  output?: string;
+  status_message?: string;
+  error?: string;
+  success?: boolean;
+  execution_time?: number;
+}
+
 export type TestCase = {
   id?: string;
   input: string;
@@ -46,12 +63,19 @@ export type ApiResponsePayload = {
   rawoutput: ExecutionResult;
 };
 
-export type GenericResponse<T = ApiResponsePayload> = {
+export type GenericResponse = {
   success: boolean;
   status: number;
-  payload: T;
+  payload: ApiResponsePayload;
   error?: { errorType: string; message: string };
 };
+
+export interface ActivityDay {
+  date: string;
+  count: number;
+  present: boolean;
+  isActive: boolean;
+}
 
 export const twoSumProblem: ProblemMetadata = {
   problem_id: "67d96452d3fe6af39801337b",

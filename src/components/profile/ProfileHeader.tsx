@@ -33,7 +33,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const authState = useAppSelector((state) => state.auth);
   
-  const isOwnProfile = !userId || userId === profile.id || 
+  const isOwnProfile = !userId || userId === profile.userID || 
     (authState.userProfile && (userId === authState.userProfile.userID || userId === authState.userId));
   
   const handleCopyUsername = () => {
