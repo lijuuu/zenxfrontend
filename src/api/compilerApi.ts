@@ -1,6 +1,14 @@
 
 import axios from 'axios';
-import { CompilerResponse } from './types';
+
+// Define CompilerResponse type directly to avoid dependency on missing file
+export interface CompilerResponse {
+  output: string;
+  status_message: string;
+  success: boolean;
+  execution_time?: number;
+  error?: string;
+}
 
 export const executeCode = async (code: string, language: string): Promise<CompilerResponse> => {
   const environment = import.meta.env.VITE_ENVIRONMENT;
