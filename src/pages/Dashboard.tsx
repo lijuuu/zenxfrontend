@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import MainNavbar from '@/components/MainNavbar';
 import StatsCard from '@/components/StatsCard';
@@ -9,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks';
 import { getCurrentUser } from '@/api/userApi';
 import { setUserSuccess, setUserLoading, setUserError, fetchUserProfile } from '@/store/slices/userSlice';
 import { Loader2 } from 'lucide-react';
-import { ActivityDay } from '@/api/types';
+import { ActivityDay, HeatmapDataPoint } from '@/api/types';
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -53,12 +52,11 @@ const Dashboard = () => {
   }
 
   // Transform heatmap data for the activity heatmap component
-  const activityData: ActivityDay[] = profile.activityHeatmap.data.map(item => ({
+  const activityData: HeatmapDataPoint[] = profile.activityHeatmap.data.map(item => ({
     date: item.date,
     count: item.count,
     present: item.present,
-    isActive: item.count > 0,
-    level: item.count > 3 ? 4 : item.count > 2 ? 3 : item.count > 1 ? 2 : item.count > 0 ? 1 : 0
+    level: item.level || (item.count > 3 ? 4 : item.count > 2 ? 3 : item.count > 1 ? 2 : item.count > 0 ? 1 : 0)
   }));
 
   return (

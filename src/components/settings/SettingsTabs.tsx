@@ -16,8 +16,8 @@ const SettingsTabs: React.FC<SettingsTabsProps> = ({ activeTab, profile }) => {
     <div>
       {activeTab === 'profile' && <ProfileSettingsTab user={profile} />}
       {activeTab === 'account' && <AccountSettingsTab user={profile} />}
-      {activeTab === 'notifications' && <NotificationsSettingsTab user={profile} />}
-      {activeTab === '2fa' && <TwoFactorAuthTab user={profile} />}
+      {activeTab === 'notifications' && <NotificationsSettingsTab userProfile={profile} />}
+      {activeTab === '2fa' && <TwoFactorAuthTab userProfile={profile} />}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -477,13 +476,17 @@ const MinimalChallenges = () => {
       <CreateChallengeForm
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={handleChallengeCreated}
+        onSuccess={(newChallenge: Challenge) => {
+          handleChallengeCreated(newChallenge);
+        }}
       />
 
       <JoinPrivateChallenge
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
-        onSuccess={handleJoinSuccess}
+        onSuccess={(challenge: Challenge) => {
+          handleJoinSuccess(challenge);
+        }}
       />
     </div>
   );

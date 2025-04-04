@@ -1,4 +1,3 @@
-
 import { Challenge, ChallengeJoinResponse, UserProfile, joinChallengeWithCode as importedJoinChallengeWithCode } from './types';
 
 // Re-export from types to avoid duplication
@@ -37,12 +36,50 @@ export const joinChallenge = async (challengeId: string): Promise<Challenge> => 
   });
 };
 
-// Add getChallenges function - renamed from getChallenges to fetchChallenges for consistency
-export const fetchChallenges = async (): Promise<Challenge[]> => {
+// Add getChallenges function for MinimalChallenges.tsx and other components
+export const getChallenges = async (options?: { active?: boolean; private?: boolean }): Promise<Challenge[]> => {
   return new Promise(resolve => {
     setTimeout(() => {
       // Mock implementation
-      resolve([]);
+      const challenges: Challenge[] = [
+        {
+          id: "challenge-1",
+          title: "Weekly Algorithm Challenge",
+          description: "Solve algorithms in a week",
+          difficulty: "Medium",
+          createdAt: new Date().toISOString(),
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          type: "weekly",
+          status: "active",
+          participants: [],
+          isPrivate: false,
+          ownerId: "user-123",
+          problemIds: [],
+          tags: ["algorithm"],
+          
+          // For backward compatibility
+          createdBy: {
+            id: "user-123",
+            username: "user123",
+            profileImage: "/assets/avatars/avatar-1.png"
+          },
+          isActive: true,
+          problemCount: 5
+        }
+      ];
+      
+      let filteredChallenges = challenges;
+      
+      if (options?.active !== undefined) {
+        filteredChallenges = filteredChallenges.filter(c => c.isActive === options.active);
+      }
+      
+      if (options?.private !== undefined) {
+        filteredChallenges = filteredChallenges.filter(c => c.isPrivate === options.private);
+      }
+      
+      resolve(filteredChallenges);
     }, 600);
   });
 };
@@ -199,3 +236,6 @@ export const fetchUserChallenges = async (userId: string): Promise<Challenge[]> 
     }, 600);
   });
 };
+
+// For compatibility with previous fetchChallenges API
+export const fetchChallenges = getChallenges;

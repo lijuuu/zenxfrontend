@@ -102,6 +102,43 @@ export const unfollowUser = async (userIdToUnfollow: string): Promise<GenericRes
   return await response.json();
 };
 
+// Add missing getUserFollowers and getUserFollowing functions
+export const getUserFollowers = async (userId: string): Promise<UserProfile[]> => {
+  const token = localStorage.getItem('accessToken');
+  
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/followers`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch followers: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
+export const getUserFollowing = async (userId: string): Promise<UserProfile[]> => {
+  const token = localStorage.getItem('accessToken');
+  
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/following`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch following: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
 // Add missing setUpTwoFactorAuth function
 export const setUpTwoFactorAuth = async (): Promise<any> => {
   try {

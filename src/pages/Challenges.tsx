@@ -22,7 +22,7 @@ import CreateChallengeForm from '@/components/challenges/CreateChallengeForm';
 import FriendChallengeDialog from '@/components/challenges/FriendChallengeDialog';
 import JoinPrivateChallenge from '@/components/challenges/JoinPrivateChallenge';
 import { Challenge } from '@/api/types';
-import { fetchChallenges } from '@/api/challengeApi';
+import { getChallenges } from '@/api/challengeApi';
 
 const Challenges = () => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -40,7 +40,7 @@ const Challenges = () => {
     const loadChallenges = async () => {
       setLoading(true);
       try {
-        const challengesData = await fetchChallenges();
+        const challengesData = await getChallenges();
         setChallenges(challengesData);
       } catch (error) {
         console.error("Failed to fetch challenges:", error);
@@ -187,7 +187,7 @@ const Challenges = () => {
         <CreateChallengeForm 
           isOpen={createChallengeOpen}
           onClose={() => setCreateChallengeOpen(false)}
-          onSuccess={handleChallengeCreated}
+          onSuccess={(newChallenge: Challenge) => handleChallengeCreated(newChallenge)}
         />
 
         {loading ? (
@@ -206,8 +206,8 @@ const Challenges = () => {
                     participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
-                    isActive={challenge.isActive}
                     description={challenge.description}
+                    status={challenge.status}
                   />
                 ))}
               </div>
@@ -225,8 +225,8 @@ const Challenges = () => {
                     participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
-                    isActive={challenge.isActive}
                     description={challenge.description}
+                    status={challenge.status}
                   />
                 ))}
               </div>
@@ -244,8 +244,8 @@ const Challenges = () => {
                     participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
-                    isActive={challenge.isActive}
                     description={challenge.description}
+                    status={challenge.status}
                   />
                 ))}
               </div>
@@ -263,8 +263,8 @@ const Challenges = () => {
                     participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
-                    isActive={challenge.isActive}
                     description={challenge.description}
+                    status={challenge.status}
                   />
                 ))}
               </div>
