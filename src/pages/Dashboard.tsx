@@ -1,8 +1,10 @@
 
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { fetchUserProfile } from '@/store/slices/userSlice';
+import { fetchLeaderboard } from '@/store/slices/leaderboardSlice';
+import { fetchProblems } from '@/store/slices/problemsSlice';
+import { fetchChallenges } from '@/store/slices/challengesSlice';
 import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,57 +13,50 @@ import { Link, useNavigate } from 'react-router-dom';
 import StatsCard from '@/components/common/StatsCard';
 import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
 import ClearInactivityCard from '@/components/common/ClearInactivityCard';
-import { getUserProfile } from '@/api/userApi';
-import { getProblems } from '@/api/problemApi';
-import { getChallenges } from '@/api/challengeApi';
-import { getLeaderboard } from '@/api/leaderboardApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MainNavbar from '@/components/common/MainNavbar';
 
 const Dashboard = () => {
   const { toast } = useToast();
   const dispatch = useAppDispatch();
-  const userProfile = useAppSelector((state) => state.user.profile);
   const isMobile = useIsMobile();
+  
+  // Get state from Redux
+  const userProfile = useAppSelector((state) => state.user.profile);
+  const userStatus = useAppSelector((state) => state.user.status);
+  const leaderboard = useAppSelector((state) => state.leaderboard.leaderboard);
+  const leaderboardStatus = useAppSelector((state) => state.leaderboard.status);
+  const problems = useAppSelector((state) => state.problems.problems);
+  const problemsStatus = useAppSelector((state) => state.problems.status);
+  const challenges = useAppSelector((state) => state.challenges.challenges);
+  const challengesStatus = useAppSelector((state) => state.challenges.status);
 
   useEffect(() => {
     // Scroll to top on component mount
     window.scrollTo(0, 0);
 
-    // Load user profile on mount
+    // Dispatch actions to load data
     dispatch(fetchUserProfile('1'));
+    dispatch(fetchLeaderboard('weekly'));
+    dispatch(fetchProblems());
+    dispatch(fetchChallenges());
   }, [dispatch]);
-
-  // Fetch problem stats with React Query
-  const { data: problemStats } = useQuery({
-    queryKey: ['problemStats'],
-    queryFn: () => getProblems(),
-  });
-
-  // Fetch recent challenges with React Query
-  const { data: recentChallenges } = useQuery({
-    queryKey: ['recentChallenges'],
-    queryFn: () => getChallenges(),
-  });
-
-  // Fetch top performers with React Query
-  const { data: topPerformers } = useQuery({
-    queryKey: ['topPerformers'],
-    queryFn: () => getLeaderboard({ period: 'weekly' }),
-  });
-
-  // Fetch user profile with React Query (separate from Redux for demonstration)
-  const { data: userProfileData } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: () => getUserProfile('1'),
-  });
 
   // Navigate to other pages
   const navigate = useNavigate();
 
+  const isLoading = 
+    userStatus === 'loading' || 
+    leaderboardStatus === 'loading' || 
+    problemsStatus === 'loading' || 
+    challengesStatus === 'loading';
+
+  // Get the top 5 performers from the leaderboard
+  const topPerformers = leaderboard?.slice(0, 5) || [];
+
   return (
     <div className="min-h-screen">
-      <MainNavbar/>
+      <MainNavbar />
       <main className="pt-16 pb-16">
         <div className="page-container">
           {/* Welcome Section */}
@@ -101,27 +96,27 @@ const Dashboard = () => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Problems Solved"
-                  value={userProfileData?.problemsSolved || 147}
+                  value={userProfile?.problemsSolved || 0}
                   change="+3 this week"
                   icon={<Code className="h-4 w-4 text-green-400" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Streak"
-                  value={`${userProfileData?.dayStreak || 26} days`}
+                  value={`${userProfile?.dayStreak || 0} days`}
                   icon={<Zap className="h-4 w-4 text-amber-400" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Global Rank"
-                  value={`#${userProfileData?.ranking || 354}`}
+                  value={`#${userProfile?.ranking || 0}`}
                   change="+12"
                   icon={<Trophy className="h-4 w-4 text-amber-500" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Rating"
-                  value={userProfileData?.ranking || 354}
+                  value={userProfile?.ranking || 0}
                   change="+15"
                   icon={<Award className="h-4 w-4 text-blue-400" />}
                 />
@@ -195,7 +190,7 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {(topPerformers?.leaderboard || []).slice(0, 5).map((entry, index) => (
+                    {topPerformers.map((entry, index) => (
                       <div key={entry.user.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="bg-zinc-900 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium">

@@ -8,22 +8,18 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMutation } from "@tanstack/react-query";
-import { updateUserProfile } from "@/api/userApi";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useAppSelector } from "@/hooks/useAppSelector";
-import { getUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks";
+import { updateProfile } from "@/store/slices/userSlice";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
-import axios from "axios";
+import { UserProfile } from "@/api/types";
 
 interface ProfileEditTabProps {
-  user: any;
+  user: UserProfile;
 }
 
 const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   const dispatch = useAppDispatch();
-  const authState = useAppSelector((state) => state.auth);
+  const { status, error } = useAppSelector((state) => state.user);
   
   // Form state
   const [userName, setUserName] = useState("");
@@ -57,25 +53,14 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
     }
   }, [user]);
 
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (profileData: any) => {
-      const accessToken = Cookies.get("accessToken");
-      return await axios.put("http://localhost:7000/api/v1/users/profile/update", profileData, {
-        headers: {
-          "Authorization": `Bearer ${accessToken}`
-        }
-      });
-    },
-    onSuccess: () => {
+  // Show success/error messages when profile update status changes
+  useEffect(() => {
+    if (status === 'succeeded') {
       toast.success("Profile updated successfully");
-      dispatch(getUser() as any);
-    },
-    onError: (error) => {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    },
-  });
+    } else if (status === 'failed' && error) {
+      toast.error(`Failed to update profile: ${error}`);
+    }
+  }, [status, error]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +76,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
       socials: { github, twitter, linkedin },
     };
     
-    updateProfileMutation.mutate(profileData);
+    dispatch(updateProfile(profileData));
   };
 
   // Use initials for avatar fallback
@@ -279,8 +264,12 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
             </div>
             
             <div className="flex justify-end mt-6">
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save Changes
+              <Button 
+                type="submit" 
+                className="bg-green-600 hover:bg-green-700"
+                disabled={status === 'loading'}
+              >
+                {status === 'loading' ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </CardContent>

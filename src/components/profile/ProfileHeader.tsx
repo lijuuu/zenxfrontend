@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useAppSelector, useAppDispatch } from "@/hooks";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -8,7 +9,6 @@ import {
   UserPlus,
   UserMinus,
   Loader2,
-  MapPin,
   CalendarDays
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router";
-import { useSelector } from "react-redux";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -32,7 +31,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const authState = useSelector((state: any) => state.auth);
+  const authState = useAppSelector((state) => state.auth);
   
   const isOwnProfile = !userId || userId === profile.id || 
     (authState.userProfile && (userId === authState.userProfile.userID || userId === authState.userId));

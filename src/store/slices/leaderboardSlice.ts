@@ -1,41 +1,34 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getLeaderboard, getFriendsLeaderboard } from '@/api/leaderboardApi';
-import { LeaderboardEntry } from '@/api/types';
+import axiosInstance from '@/utils/axiosInstance';
+import axios from 'axios';
 
 interface LeaderboardState {
-  entries: LeaderboardEntry[];
-  friendsEntries: LeaderboardEntry[];
-  totalEntries: number;
+  leaderboard: any[];
+  period: 'daily' | 'weekly' | 'monthly' | 'all-time';
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
-  currentPage: number;
-  period: 'all' | 'monthly' | 'weekly';
 }
 
 const initialState: LeaderboardState = {
-  entries: [],
-  friendsEntries: [],
-  totalEntries: 0,
+  leaderboard: [],
+  period: 'weekly',
   status: 'idle',
   error: null,
-  currentPage: 1,
-  period: 'weekly',
 };
 
 export const fetchLeaderboard = createAsyncThunk(
   'leaderboard/fetchLeaderboard',
-  async ({ page, limit, period }: { page: number; limit: number; period: 'all' | 'monthly' | 'weekly' }) => {
-    const response = await getLeaderboard({ page, limit, period });
-    return response;
-  }
-);
-
-export const fetchFriendsLeaderboard = createAsyncThunk(
-  'leaderboard/fetchFriendsLeaderboard',
-  async () => {
-    const response = await getFriendsLeaderboard();
-    return response;
+  async (period: 'daily' | 'weekly' | 'monthly' | 'all-time' = 'weekly') => {
+    try {
+      const response = await axiosInstance.get(`/leaderboard?period=${period}`);
+      return { data: response.data.payload, period };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch leaderboard');
+      }
+      throw error;
+    }
   }
 );
 
@@ -43,12 +36,9 @@ const leaderboardSlice = createSlice({
   name: 'leaderboard',
   initialState,
   reducers: {
-    setCurrentPage: (state, action) => {
-      state.currentPage = action.payload;
-    },
     setPeriod: (state, action) => {
       state.period = action.payload;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -57,18 +47,15 @@ const leaderboardSlice = createSlice({
       })
       .addCase(fetchLeaderboard.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.entries = action.payload.leaderboard;
-        state.totalEntries = action.payload.total;
+        state.leaderboard = action.payload.data;
+        state.period = action.payload.period;
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message || 'Failed to fetch leaderboard';
-      })
-      .addCase(fetchFriendsLeaderboard.fulfilled, (state, action) => {
-        state.friendsEntries = action.payload;
       });
   },
 });
 
-export const { setCurrentPage, setPeriod } = leaderboardSlice.actions;
+export const { setPeriod } = leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

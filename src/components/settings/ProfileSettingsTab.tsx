@@ -7,13 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "@/api/types";
-import { useMutation } from "@tanstack/react-query";
-import { updateUserProfile } from "@/api/userApi";
+import { UserProfile } from "@/api/types";
+import { useAppDispatch, useAppSelector } from "@/hooks";
+import { updateProfile } from "@/store/slices/userSlice";
 import { toast } from "sonner";
 
 interface ProfileSettingsTabProps {
-  user: User;
+  user: UserProfile;
 }
 
 interface ProfileFormData {
@@ -27,6 +27,10 @@ interface ProfileFormData {
 }
 
 const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
+  const dispatch = useAppDispatch();
+  const userStatus = useAppSelector(state => state.user.status);
+  const userError = useAppSelector(state => state.user.error);
+  
   const [formData, setFormData] = useState<ProfileFormData>({
     fullName: user?.fullName || "",
     username: user?.username || "",
@@ -37,16 +41,14 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
     location: user?.location || "",
   });
 
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: (data: any) => updateUserProfile(data),
-    onSuccess: () => {
+  // Check for status and error
+  React.useEffect(() => {
+    if (userStatus === 'succeeded') {
       toast.success("Profile updated successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to update profile. Please try again.");
-    },
-  });
+    } else if (userStatus === 'failed' && userError) {
+      toast.error("Failed to update profile: " + userError);
+    }
+  }, [userStatus, userError]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -55,7 +57,7 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
   
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfileMutation.mutate(formData);
+    dispatch(updateProfile(formData));
   };
 
   return (
@@ -184,9 +186,13 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
               <Button type="button" variant="outline">
                 Cancel
               </Button>
-              <Button type="submit" className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 gap-2">
+              <Button 
+                type="submit" 
+                className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 gap-2"
+                disabled={userStatus === 'loading'}
+              >
                 <Save className="h-4 w-4" />
-                Save Changes
+                {userStatus === 'loading' ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>

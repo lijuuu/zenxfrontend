@@ -1,25 +1,11 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { getUserProfile, updateUserProfile } from '@/api/userApi';
-// import { UserProfile } from '@/api/types';
+import axios from 'axios';
+import { UserProfile } from '@/api/types';
+import axiosInstance from '@/utils/axiosInstance';
 
 export interface UserState {
-  profile: {
-    id: string;
-    username: string;
-    fullName: string;
-    email: string;
-    profileImage: string;
-    country?: string;
-    countryCode?: string;
-    bio?: string;
-    joinDate?: string;
-    problemsSolved: number;
-    currentStreak: number;
-    longestStreak: number;
-    currentRating: number;
-    globalRank: number;
-  } | null;
+  profile: UserProfile | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 }
@@ -33,31 +19,31 @@ const initialState: UserState = {
 export const fetchUserProfile = createAsyncThunk(
   'user/fetchUserProfile',
   async (userId: string) => {
-    const response = await getUserProfile(userId);
-    // Transform the UserProfile to match our Redux store shape
-    return {
-      id: response.id,
-      username: response.username,
-      fullName: response.fullName,
-      email: response.email,
-      profileImage: response.profileImage || '',
-      country: response.location,
-      bio: response.bio,
-      joinDate: response.joinedDate,
-      problemsSolved: response.problemsSolved,
-      currentStreak: response.dayStreak,
-      longestStreak: response.dayStreak, // Use dayStreak as a fallback
-      currentRating: response.ranking,
-      globalRank: response.ranking
-    };
+    try {
+      // Using the API directly with axios
+      const response = await axiosInstance.get(`/users/${userId}`);
+      return response.data.payload as UserProfile;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch user profile');
+      }
+      throw error;
+    }
   }
 );
 
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
-  async (profileData: Partial<UserState['profile']>) => {
-    const response = await updateUserProfile(profileData);
-    return response;
+  async (profileData: Partial<UserProfile>) => {
+    try {
+      const response = await axiosInstance.put('/users/profile/update', profileData);
+      return response.data.payload as UserProfile;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to update profile');
+      }
+      throw error;
+    }
   }
 );
 
@@ -65,7 +51,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<UserState['profile']>) => {
+    setUser: (state, action: PayloadAction<UserProfile>) => {
       state.profile = action.payload;
     },
     clearUser: (state) => {
@@ -85,8 +71,16 @@ const userSlice = createSlice({
         state.status = 'failed';
         state.error = action.error.message || 'Failed to fetch user profile';
       })
+      .addCase(updateProfile.pending, (state) => {
+        state.status = 'loading';
+      })
       .addCase(updateProfile.fulfilled, (state, action) => {
-        state.profile = { ...state.profile, ...action.payload };
+        state.status = 'succeeded';
+        state.profile = { ...state.profile, ...action.payload } as UserProfile;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || 'Failed to update profile';
       });
   },
 });
