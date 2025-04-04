@@ -15,7 +15,7 @@ import {
   Unlock,
   Search
 } from "lucide-react";
-import MainNavbar from "@/components/MainNavbar";
+import MainNavbar from "@/components/common/MainNavbar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,9 +36,9 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { getChallenges, getChallenge } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
-import CreateChallengeForm from "@/components/CreateChallengeForm";
-import JoinPrivateChallenge from "@/components/JoinPrivateChallenge";
-import ChallengeInterface from "@/components/ChallengeInterface";
+import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
+import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
+import ChallengeInterface from "@/components/challenges/ChallengeInterface";
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);

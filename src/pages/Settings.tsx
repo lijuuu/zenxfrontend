@@ -1,34 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import MainNavbar from '@/components/MainNavbar';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { getUser } from '@/store/slices/authSlice';
-import { Separator } from '@/components/ui/separator';
+import MainNavbar from '@/components/common/MainNavbar';
+import {  useAppSelector } from '@/hooks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfileEditTab from '@/components/settings/ProfileEditTab';
 import TwoFactorAuthTab from '@/components/settings/TwoFactorAuthTab';
-import { useNavigate } from 'react-router-dom';
-import { isAuthenticated } from '@/utils/authUtils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
 
 const Settings = () => {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { userProfile, loading } = useAppSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState('profile');
   
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
-    
-    if (!userProfile) {
-      dispatch(getUser() as any);
-    }
-  }, [dispatch, navigate, userProfile]);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 text-white">

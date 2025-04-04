@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import * as monaco from 'monaco-editor';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { mockProblems } from '@/api/problemApi';
 import {
   TestCase,
   TestCaseRunOnly,
@@ -20,9 +19,9 @@ import {
   ApiResponsePayload,
   GenericResponse,
   twoSumProblem
-} from '@/api/types/problem-execution';
+} from '@/api/types';
 
-const environment = import.meta.env.VITE_ENVIRONMENT || 'PRODUCTION'; 
+const environment = import.meta.env.VITE_ENVIRONMENT || 'PRODUCTION';
 const ENGINE_BASE_URL =
   environment === 'DEVELOPMENT'
     ? import.meta.env.VITE_XENGINELOCALENGINEURL || 'http://localhost:7000/api/v1'
@@ -133,7 +132,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-2xl font-semibold text-green-500">{problem.title}</h2>
           <div className={`text-xs px-2.5 py-1 rounded-full text-white inline-flex items-center w-fit ${problem.difficulty === "Easy" ? "bg-green-600" :
-              problem.difficulty === "Medium" ? "bg-yellow-600" : "bg-red-600"
+            problem.difficulty === "Medium" ? "bg-yellow-600" : "bg-red-600"
             }`}>
             {problem.difficulty}
           </div>
@@ -620,6 +619,14 @@ const ZenXPlayground: React.FC = () => {
         }),
       });
 
+       type GenericResponse = {
+        success: boolean;
+        status: number;
+        payload: ApiResponsePayload;
+        error?: { errorType: string; message: string };
+      };
+      
+
       const data: GenericResponse = await response.json();
 
       if (!data.success || !data.payload) {
@@ -744,7 +751,7 @@ const ZenXPlayground: React.FC = () => {
           <h1 className="text-sm sm:text-base text-zinc-200 font-medium truncate">
             {problem.title}
             <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full inline-block ${problem.difficulty === "Easy" ? "bg-green-600/20 text-green-400" :
-                problem.difficulty === "Medium" ? "bg-yellow-600/20 text-yellow-400" : "bg-red-600/20 text-red-400"
+              problem.difficulty === "Medium" ? "bg-yellow-600/20 text-yellow-400" : "bg-red-600/20 text-red-400"
               }`}>
               {problem.difficulty}
             </span>

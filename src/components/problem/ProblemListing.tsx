@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Filter, Search, Loader2, FileCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import MainNavbar from "@/components/MainNavbar";
+import MainNavbar from "@/components/common/MainNavbar";
+import { mockProblems } from "@/api/problemApi";
 
 // Define the Problem interface based on ProblemMetadata
 interface Problem {
@@ -77,9 +78,8 @@ const fetchProblems = async () => {
     return mappedProblems;
   } catch (error) {
     console.error("Error fetching problems:", error);
-    // In case of error, fallback to the mock data from problemApi.ts
-    const { getProblems } = await import('@/api/problemApi');
-    const mockProblems = await getProblems();
+    
+    const mockProb = mockProblems;
     
     // Map the mock data to match the Problem interface
     return mockProblems.map(p => ({

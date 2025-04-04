@@ -1,16 +1,12 @@
 
 import React from 'react';
 import { UserProfile } from '@/api/types';
-import { PieChart, Pie, ResponsiveContainer, Cell, Tooltip, Legend } from 'recharts';
-import { useTheme } from '@/contexts/ThemeContext';
 
 interface ProblemsSolvedChartProps {
   profile: UserProfile;
 }
 
 const ProblemsSolvedChart: React.FC<ProblemsSolvedChartProps> = ({ profile }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   
   const easyColor = '#22c55e'; // green-500
   const mediumColor = '#f59e0b'; // amber-500

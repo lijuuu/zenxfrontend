@@ -17,7 +17,7 @@ import {
   Unlock,
   Search
 } from "lucide-react";
-import MainNavbar from "@/components/MainNavbar";
+import MainNavbar from "@/components/common/MainNavbar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,14 +34,10 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
-import ActivityHeatmapRounded from "@/components/ActivityHeatmapRounded";
-import ReferralBanner from "@/components/ReferralBanner";
-import SubmissionHistory from "@/components/SubmissionHistory";
-import ChallengeInterface from "@/components/ChallengeInterface";
-import CreateChallengeForm from "@/components/CreateChallengeForm";
-import JoinPrivateChallenge from "@/components/JoinPrivateChallenge";
+import SubmissionHistory from "@/components/common/SubmissionHistory";
+import ChallengeInterface from "@/components/challenges/ChallengeInterface";
+import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
+import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import FriendChallengeDialog from "@/components/challenges/FriendChallengeDialog";
 // import UserSearch from "@/components/UserSearch";
 import { getChallenges, getChallenge, getChallengeInvites } from "@/api/challengeApi";

@@ -1,14 +1,11 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "@/store";
-import { useEffect } from "react";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { isAuthenticated } from "@/utils/authUtils";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Leaderboard from "./pages/Leaderboard";
@@ -25,110 +22,58 @@ import VerifyEmail from "./pages/Auth/VerifyEmail";
 import Login from "./pages/Auth/LoginPage";
 import SignupForm from "./pages/Auth/Register/RegisterPage";
 import VerifyInfo from "./pages/Auth/VerifyInfo"
-import MainNavbar from "@/components/MainNavbar";
 import QuickMatch from "./components/challenges/QuickMatch";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import MinimalChallenges from "./pages/MinimalChallenges";
+import { useEffect } from "react";
 
-// Create the query client instance
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false, // default: true
+      refetchOnMount: true,
+      refetchOnReconnect: true,
       retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
-});
+})
 
 const AppContent = () => {
-  const location = useLocation();
-  
   useEffect(() => {
-    // Scroll to top when route changes
     window.scrollTo(0, 0);
-    
-    // Add dark class to document by default
     document.documentElement.classList.add('dark');
-  }, [location.pathname]);
-  
-  // Redirect from login/signup if already authenticated
-  const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-    return !isAuthenticated() ? (
-      <>{children}</>
-    ) : (
-      <Navigate to="/dashboard" replace />
-    );
-  };
-  
+  }, []);
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/problems" element={<Problems />} />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile/:userId" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/challenges2" element={<MinimalChallenges />} />
         <Route path="/quick-match" element={<QuickMatch />} />
-        <Route path="/chat" element={
-          <ProtectedRoute>
-            <Chat />
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        } />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/compiler" element={<Compiler />} />
-        
+
         {/* Auth Routes */}
-        <Route path="/login" element={
-          <AuthRoute>
-            <Login />
-          </AuthRoute>
-        } />
-        <Route path="/signup" element={
-          <AuthRoute>
-            <SignupForm />
-          </AuthRoute>
-        } />
-        <Route path="/forgot-password" element={
-          <AuthRoute>
-            <ForgotPassword />
-          </AuthRoute>
-        } />
-        <Route path="/reset-password" element={
-          <AuthRoute>
-            <ResetPassword />
-          </AuthRoute>
-        } />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignupForm />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-info" element={<VerifyInfo />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
         {/*Admin Dashboard*/}
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+        {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
@@ -139,13 +84,14 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
         <TooltipProvider>
           <AppContent />
         </TooltipProvider>
-      </QueryClientProvider>
-    </Provider>
+      </Provider>
+      <ReactQueryDevtools initialIsOpen={false} /> {/* Optional devtools */}
+    </QueryClientProvider>
   );
 };
 

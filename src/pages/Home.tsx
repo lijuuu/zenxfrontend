@@ -1,5 +1,5 @@
 
-import HomeComponent from '@/components/Home'
+import HomeComponent from '@/components/common/Home'
 
 const Home = () => {
   return <HomeComponent />

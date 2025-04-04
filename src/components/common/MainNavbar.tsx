@@ -21,8 +21,8 @@ import {
 import Cookies from "js-cookie";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "./ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +30,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "@/store/slices/authSlice";
 import { isAuthenticated } from "@/utils/authUtils";
@@ -54,11 +54,11 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   // Determine authentication from cookies or props
   const authFromCookie = isAuthenticated();
   const effectiveIsAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : authFromCookie;
-  
+
   // Get user profile from Redux store
   const { userProfile } = useSelector((state: any) => state.auth);
 
@@ -186,9 +186,9 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage 
-                        src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"} 
-                        alt={userProfile?.firstName || "User"} 
+                      <AvatarImage
+                        src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                        alt={userProfile?.firstName || "User"}
                       />
                       <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                     </Avatar>
@@ -269,9 +269,9 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
             <div className="p-4 mb-4 border-b border-zinc-800">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage 
-                    src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"} 
-                    alt={userProfile?.firstName || "User"} 
+                  <AvatarImage
+                    src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                    alt={userProfile?.firstName || "User"}
                   />
                   <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                 </Avatar>
@@ -328,10 +328,9 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                 variant="ghost"
                 size="lg"
                 className="w-full justify-start gap-3 font-medium bg-green-500 text-white hover:bg-green-600"
+                onClick={() => navigate("/login")}
               >
-                <Link to="/login" className="flex items-center gap-3">
                   Login
-                </Link>
               </Button>
             )}
           </div>

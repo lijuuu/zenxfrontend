@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getLeaderboard, getFriendsLeaderboard } from '@/api/leaderboardApi';
 import { useToast } from '@/hooks/use-toast';
-import MainNavbar from '@/components/MainNavbar';
+import MainNavbar from '@/components/common/MainNavbar';
 
 const Leaderboard = () => {
   const dispatch = useAppDispatch();
@@ -96,8 +96,7 @@ const Leaderboard = () => {
     toast({
       title: "Leaderboard refreshed",
       description: "The latest rankings have been loaded.",
-    });
-  };
+    });  };
 
   // Filter and sort leaderboard data
   const filteredData = leaderboardData?.leaderboard || [];

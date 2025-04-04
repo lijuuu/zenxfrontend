@@ -7,21 +7,20 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getAllChallenges, getUserChallenges } from "@/api/challengeApi";
+import {  getUserChallenges } from "@/api/challengeApi";
 import { getUserProfile } from "@/api/userApi";
-import { UserProfile, Challenge } from "@/api/types";
+import {  Challenge } from "@/api/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import our components
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
 import ChallengesList from "@/components/profile/ChallengesList";
-import ContributionActivity from "@/components/ContributionActivity";
-import MonthlyActivityHeatmap from "@/components/MonthlyActivityHeatmap";
+import MonthlyActivityHeatmap from "@/components/activity/MonthlyActivityHeatmap";
 import ProblemsSolvedChart from "@/components/profile/ProblemsSolvedChart";
 import RecentSubmissions from "@/components/profile/RecentSubmissions";
 import ProfileAchievements from "@/components/profile/ProfileAchievements";
-import MainNavbar from "@/components/MainNavbar";
+import MainNavbar from "@/components/common/MainNavbar";
 
 const Profile = () => {
   const { userId } = useParams<{ userId: string }>();

@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star,Sparkles } from 'lucide-react';
 import Footer from './Footer';
-import ChatBattleNotification from './chat/ChatBattleNotification';
+import ChatBattleNotification from '@/components/challenges/ChatBattleNotification';
 import MainNavbar from './MainNavbar';
 
 const Home = () => {

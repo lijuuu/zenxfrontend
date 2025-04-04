@@ -39,7 +39,7 @@ import { cn } from '@/lib/utils';
 import { searchUsers } from '@/api/challengeApi';
 import { User as UserType } from '@/api/types';
 import { useToast } from '@/hooks/use-toast';
-import ChallengeBattleInvite from '../chat/ChallengeBattleInvite';
+import ChallengeBattleInvite from '@/components/challenges/ChallengeBattleInvite';
 
 interface FriendChallengeDialogProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
-import { File, CompilerResponse } from '@/api/types/compiler';
+import { File, CompilerResponse } from '@/api/types';
 import { executeCode } from '@/api/compilerApi';
 
 // Define state type

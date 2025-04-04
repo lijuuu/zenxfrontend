@@ -20,25 +20,21 @@ import {
   UserPlus
 } from "lucide-react";
 
-import MainNavbar from "@/components/MainNavbar";
+import MainNavbar from "@/components/common/MainNavbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useToast } from "@/hooks/use-toast";
-import ChatInput from "@/components/chat/ChatInput";
-import ChatMessage from "@/components/ChatMessage";
-import ChallengeBattleInvite from "@/components/chat/ChallengeBattleInvite";
+import ChatMessage from "@/components/chat/ChatMessage";
 import ChatChallengeDialog from "@/components/chat/ChatChallengeDialog";
 import { 
   getChannels, 
   getMessages, 
   sendMessage,
-  createDirectChannel
 } from "@/api/chatApi";
 import { ChatChannel, ChatMessage as MessageType } from "@/api/types";
 

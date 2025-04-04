@@ -13,10 +13,9 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 import Loader1 from "@/components/ui/loader1";
 import { handleError, handleInfo } from "@/components/sub/ErrorToast";
-import MainNavbar from "@/components/MainNavbar";
+import MainNavbar from "@/components/common/MainNavbar";
 import axios from "axios";
 
-// --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
     <Loader1 className="w-12 h-12 mr-10 text-green-500" />

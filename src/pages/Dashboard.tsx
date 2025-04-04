@@ -8,15 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
-import StatsCard from '@/components/StatsCard';
-import MonthlyActivityHeatmap from '@/components/MonthlyActivityHeatmap';
-import ClearInactivityCard from '@/components/ClearInactivityCard';
+import StatsCard from '@/components/common/StatsCard';
+import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
+import ClearInactivityCard from '@/components/common/ClearInactivityCard';
 import { getUserProfile } from '@/api/userApi';
 import { getProblems } from '@/api/problemApi';
 import { getChallenges } from '@/api/challengeApi';
 import { getLeaderboard } from '@/api/leaderboardApi';
 import { useIsMobile } from '@/hooks/use-mobile';
-import MainNavbar from '@/components/MainNavbar';
+import MainNavbar from '@/components/common/MainNavbar';
 
 const Dashboard = () => {
   const { toast } = useToast();
