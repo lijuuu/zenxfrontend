@@ -1,353 +1,3 @@
-// Types based on Go backend models
-export interface UserProfile {
-  // Core identification fields
-  userID: string;
-  userName: string;
-  firstName: string;
-  lastName: string;
-  avatarURL: string;
-  email: string;
-  role: string;
-  country: string;
-  isBanned: boolean;
-  isVerified: boolean;
-  primaryLanguageID: string;
-  muteNotifications: boolean;
-  socials: {
-    github: string;
-    twitter: string;
-    linkedin: string;
-    website: string;
-  };
-  createdAt: number;
-  
-  // Additional UI fields
-  joinedDate?: string;
-  problemsSolved?: number;
-  dayStreak?: number;
-  ranking?: number;
-  is2FAEnabled?: boolean;
-  followers?: number;
-  following?: number;
-  countryCode?: string;
-  bio?: string;
-  
-  // Stats, achievements, and other data
-  stats: {
-    easy: { solved: number; total: number };
-    medium: { solved: number; total: number };
-    hard: { solved: number; total: number };
-  };
-  achievements: {
-    weeklyContests: number;
-    monthlyContests: number;
-    specialEvents: number;
-  };
-  badges: Badge[];
-  activityHeatmap: HeatmapData;
-  currentStreak?: number;
-  longestStreak?: number;
-  currentRating?: number;
-  globalRank?: number;
-}
-
-// We'll keep the User interface for now for backward compatibility but mark it as deprecated
-/** @deprecated Use UserProfile instead */
-export interface User {
-  id: string;
-  username: string;
-  fullName: string;
-  email: string;
-  profileImage?: string;
-  bio?: string;
-  website?: string;
-  githubProfile?: string;
-  joinedDate: string;
-  problemsSolved: number;
-  dayStreak: number;
-  ranking: number;
-  isBanned: boolean;
-  isVerified: boolean;
-  following?: number;
-  followers?: number;
-  is2FAEnabled?: boolean;
-  country?: string;
-  countryCode?: string;
-}
-
-export interface Friend {
-  id: string;
-  username: string;
-  fullName: string;
-  profileImage?: string;
-  status: 'online' | 'offline' | 'in-match' | 'coding';
-  lastActive?: string;
-  isOnline?: boolean;
-}
-
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  earnedDate: string;
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-}
-
-export interface HeatmapData {
-  startDate: string;
-  data: { date: string; count: number; present: boolean }[];
-}
-
-// Problem related types
-export interface Problem {
-  id: string;
-  title: string;
-  slug: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  tags: string[];
-  acceptanceRate: number;
-  solved?: boolean;
-  description: string;
-  examples: ProblemExample[];
-  constraints: string[];
-  hints?: string[];
-  similarProblems?: { id: string; title: string; difficulty: string }[];
-  solutions?: Solution[];
-}
-
-export interface ProblemExample {
-  input: string;
-  output: string;
-  explanation?: string;
-}
-
-export interface Solution {
-  id: string;
-  authorId: string;
-  authorName: string;
-  language: string;
-  code: string;
-  runtime: string;
-  memory: string;
-  createdAt: string;
-  upvotes: number;
-  downvotes: number;
-  comments: Comment[];
-}
-
-export interface Comment {
-  id: string;
-  authorId: string;
-  authorName: string;
-  authorImage?: string;
-  content: string;
-  createdAt: string;
-  upvotes: number;
-  downvotes: number;
-  replies?: Comment[];
-}
-
-// Challenge related types
-export interface Challenge {
-  id: string;
-  title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  createdBy: {
-    id: string;
-    username: string;
-    profileImage?: string;
-  };
-  participants: number;
-  participantUsers?: {
-    id?: string;
-    avatar?: string;
-    name?: string;
-  }[];
-  problemCount: number;
-  createdAt: string;
-  isActive: boolean;
-  problems?: string[];
-  description?: string;
-  date?: string;
-  type?: string;
-  isPrivate?: boolean;
-  accessCode?: string;
-  timeLimit?: number;
-}
-
-// Chat related types
-export interface ChatChannel {
-  id: string;
-  name: string;
-  description?: string;
-  type: 'public' | 'private' | 'direct';
-  participants?: User[];
-  unreadCount?: number;
-  isOnline?: boolean;
-  lastMessage?: string;
-  lastMessageTime?: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  channelId: string;
-  sender: {
-    id: string;
-    username: string;
-    profileImage?: string;
-    isOnline?: boolean;
-  };
-  content: string;
-  timestamp: string;
-  isCurrentUser?: boolean;
-  attachments?: {
-    type: 'image' | 'code' | 'link' | 'challenge-invite';
-    content: string;
-    challengeId?: string;
-    challengeTitle?: string;
-    isPrivate?: boolean;
-    accessCode?: string;
-  }[];
-  liked?: boolean;
-  likeCount?: number;
-}
-
-// Leaderboard related types
-export interface LeaderboardEntry {
-  rank: number;
-  user: {
-    id: string;
-    username: string;
-    fullName: string;
-    profileImage?: string;
-    country?: string;
-    countryCode?: string;
-  };
-  score: number;
-  problemsSolved: number;
-  contestsParticipated: number;
-  streakDays: number;
-}
-
-// Auth related types
-export interface AuthResponse {
-  token: string;
-  refreshToken: string;
-  user: UserProfile;
-}
-
-// For admin api
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  adminID: string;
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-  code?: string; // For 2FA
-}
-
-export interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-  fullName: string;
-}
-
-// Submission related types
-export interface Submission {
-  id: string;
-  problemId: string;
-  problemTitle: string;
-  userId: string;
-  language: string;
-  code: string;
-  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Memory Limit Exceeded' | 'Runtime Error' | 'Compilation Error' | 'Processing';
-  runtime?: string;
-  memory?: string;
-  timestamp: string;
-  submittedAt?: string;
-  testCases?: {
-    passed: number;
-    total: number;
-    results?: {
-      input: string;
-      expectedOutput: string;
-      actualOutput?: string;
-      passed: boolean;
-      error?: string;
-    }[];
-  };
-  difficulty?: string;
-  problem?: {
-    id: string;
-    title: string;
-    difficulty: string;
-  };
-}
-
-// Compiler related types
-export interface CompileRequest {
-  language: string;
-  code: string;
-  input?: string;
-}
-
-export interface CompileResponse {
-  output: string;
-  error?: string;
-  executionTime?: string;
-  memory?: string;
-}
-
-
-// Types based on Go backend models
-export interface BanHistory {
-  id: string;
-  userID: string;
-  bannedAt: number;
-  banType: string;
-  banReason: string;
-  banExpiry: number;
-}
-
-export interface GenericResponse<T> {
-  success: boolean;
-  status: number;
-  payload: T;
-  error?: {
-    code: number;
-    message: string;
-    details?: string;
-  };
-}
-
-// State interface for the admin slice
-export interface AdminState {
-  users: UserProfile[];
-  totalUsers: number;
-  nextPageToken: string;
-  banHistories: { [userID: string]: BanHistory[] };
-  loading: boolean;
-  error: string | null;
-  message: string;
-  isAuthenticated: boolean;
-  accessToken: string | null;
-  refreshToken: string | null;
-  adminID: string | null;
-  expiresIn: number | null;
-}
-
-export interface UsersResponse {
-  users: UserProfile[];
-  totalCount: number;
-  nextPageToken: string;
-}
-
 export interface File {
   id: string;
   name: string;
@@ -357,7 +7,6 @@ export interface File {
   lastModified: string;
 }
 
-// Exporting these again to avoid circular dependencies
 export interface CompilerResponse {
   output?: string;
   status_message?: string;
@@ -412,6 +61,20 @@ export type ApiResponsePayload = {
   is_run_testcase: boolean;
   rawoutput: ExecutionResult;
 };
+
+export type GenericResponse = {
+  success: boolean;
+  status: number;
+  payload: ApiResponsePayload;
+  error?: { errorType: string; message: string };
+};
+
+export interface ActivityDay {
+  date: string;
+  count: number;
+  present: boolean;
+  isActive: boolean;
+}
 
 export const twoSumProblem: ProblemMetadata = {
   problem_id: "67d96452d3fe6af39801337b",
@@ -473,3 +136,136 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
     return []`,
   },
 };
+
+// Types based on Go backend models
+export interface UserProfile {
+  // Core identification fields
+  userID: string;
+  userName: string;
+  firstName: string;
+  lastName: string;
+  avatarURL: string;
+  email: string;
+  role: string;
+  country: string;
+  isBanned: boolean;
+  isVerified: boolean;
+  primaryLanguageID: string;
+  muteNotifications: boolean;
+  socials: {
+    github: string;
+    twitter: string;
+    linkedin: string;
+    website: string;
+  };
+  createdAt: number;
+  
+  // UI compatibility fields
+  joinedDate?: string;
+  problemsSolved?: number;
+  dayStreak?: number;
+  ranking?: number;
+  profileImage?: string;
+  is2FAEnabled?: boolean;
+  followers?: string[];
+  following?: string[];
+  countryCode?: string;
+  bio?: string;
+  
+  // Stats, achievements, and other data
+  stats: {
+    easy: { solved: number; total: number };
+    medium: { solved: number; total: number };
+    hard: { solved: number; total: number };
+  };
+  achievements: {
+    weeklyContests: number;
+    monthlyContests: number;
+    specialEvents: number;
+  };
+  badges: Badge[];
+  activityHeatmap: HeatmapData;
+  currentStreak?: number;
+  longestStreak?: number;
+  currentRating?: number;
+  globalRank?: number;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: UserProfile;
+}
+
+export interface AuthResponse {
+  token: string;
+  refreshToken: string;
+  user: UserProfile;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  fullName: string;
+}
+
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  createdAt: string;
+  startDate: string;
+  endDate: string;
+  type: 'daily' | 'weekly' | 'monthly' | 'battle' | 'special';
+  status: 'upcoming' | 'active' | 'completed';
+  participants?: {
+    userID: string;
+    userName: string;
+    firstName: string;
+    lastName: string;
+    avatarURL: string;
+    rank?: number;
+    score?: number;
+    isFriend?: boolean;
+  }[];
+  isPrivate?: boolean;
+  inviteCode?: string;
+  ownerId?: string;
+  problemIds?: string[];
+  tags?: string[];
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  acquiredAt?: string;
+}
+
+export interface HeatmapDataPoint {
+  date: string;
+  count: number;
+  present: boolean;
+}
+
+export interface HeatmapData {
+  data: HeatmapDataPoint[];
+  totalContributions: number;
+  currentStreak: number;
+  longestStreak: number;
+}
+
+export interface LeaderboardState {
+  globalLeaderboard: UserProfile[];
+  friendsLeaderboard: UserProfile[];
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
+}

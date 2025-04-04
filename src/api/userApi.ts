@@ -1,6 +1,6 @@
 
 import { UserProfile, AuthResponse, LoginCredentials, RegisterData } from './types';
-import { mockUserProfiles, mockFriends, mockBadges, generateHeatmapData } from './mockData';
+import { mockUserProfiles, mockFriends, mockBadges, generateHeatmapData, generateFollowers } from './mockData';
 
 // API functions
 export const getCurrentUser = async (): Promise<UserProfile> => {
@@ -11,7 +11,7 @@ export const getCurrentUser = async (): Promise<UserProfile> => {
 
 export const getUserProfile = async (userId: string): Promise<UserProfile> => {
   return new Promise(resolve => {
-    const userProfile = mockUserProfiles.find(u => u.id === userId) || mockUserProfiles[0];
+    const userProfile = mockUserProfiles.find(u => u.userID === userId) || mockUserProfiles[0];
     setTimeout(() => resolve(userProfile), 600);
   });
 };
@@ -46,6 +46,7 @@ export const register = async (data: RegisterData): Promise<AuthResponse> => {
       firstName: data.fullName.split(' ')[0],
       lastName: data.fullName.split(' ')[1] || '',
       avatarURL: '',
+      profileImage: '',
       email: data.email,
       role: 'user',
       country: '',
@@ -62,13 +63,12 @@ export const register = async (data: RegisterData): Promise<AuthResponse> => {
       createdAt: Date.now(),
       
       // UI compatibility fields
-      id: "new-user-id",
-      username: data.username,
-      fullName: data.fullName,
       joinedDate: new Date().toISOString().split('T')[0],
       problemsSolved: 0,
       dayStreak: 0,
       ranking: 9999,
+      followers: [],
+      following: [],
       
       // Additional required fields
       stats: {
@@ -141,8 +141,43 @@ export const unfollowUser = async (userId: string): Promise<void> => {
 export const searchUsers = async (query: string): Promise<UserProfile[]> => {
   return new Promise(resolve => {
     const filteredUsers = mockUserProfiles.filter(user => 
-      user.userName.includes(query) || user.fullName?.includes(query)
+      user.userName.toLowerCase().includes(query.toLowerCase()) || 
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(query.toLowerCase())
     );
     setTimeout(() => resolve(filteredUsers), 500);
+  });
+};
+
+// New function for fetching user followers
+export const getUserFollowers = async (userId: string): Promise<UserProfile[]> => {
+  return new Promise(resolve => {
+    // Find the user
+    const user = mockUserProfiles.find(u => u.userID === userId);
+    
+    if (!user || !user.followers) {
+      resolve([]);
+      return;
+    }
+    
+    // Find all users that match the follower IDs
+    const followers = mockUserProfiles.filter(u => user.followers?.includes(u.userID));
+    setTimeout(() => resolve(followers), 500);
+  });
+};
+
+// New function for fetching user following
+export const getUserFollowing = async (userId: string): Promise<UserProfile[]> => {
+  return new Promise(resolve => {
+    // Find the user
+    const user = mockUserProfiles.find(u => u.userID === userId);
+    
+    if (!user || !user.following) {
+      resolve([]);
+      return;
+    }
+    
+    // Find all users that match the following IDs
+    const following = mockUserProfiles.filter(u => user.following?.includes(u.userID));
+    setTimeout(() => resolve(following), 500);
   });
 };
