@@ -1,68 +1,6 @@
 
-import { Submission } from '@/api/types';
-
-// Mock data for submissions
-const mockSubmissions: Submission[] = [
-  {
-    id: 's1',
-    problemId: 'p1',
-    problemTitle: 'Two Sum',
-    userId: 'u1',
-    language: 'JavaScript',
-    code: 'function twoSum(nums, target) {...}',
-    status: 'Accepted',
-    runtime: '76ms',
-    memory: '42MB',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-    difficulty: 'Easy',
-  },
-  {
-    id: 's2',
-    problemId: 'p2',
-    problemTitle: 'Valid Parentheses',
-    userId: 'u1',
-    language: 'TypeScript',
-    code: 'function isValid(s: string) {...}',
-    status: 'Wrong Answer',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-    difficulty: 'Easy',
-  },
-  {
-    id: 's3',
-    problemId: 'p3',
-    problemTitle: 'Merge Sorted Array',
-    userId: 'u1',
-    language: 'Python',
-    code: 'def merge(nums1, m, nums2, n) {...}',
-    status: 'Time Limit Exceeded',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-    difficulty: 'Medium',
-  },
-  {
-    id: 's4',
-    problemId: 'p4',
-    problemTitle: 'Binary Tree Inorder Traversal',
-    userId: 'u1',
-    language: 'Java',
-    code: 'public List<Integer> inorderTraversal(TreeNode root) {...}',
-    status: 'Accepted',
-    runtime: '1ms',
-    memory: '38.7MB',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 days ago
-    difficulty: 'Easy',
-  },
-  {
-    id: 's5',
-    problemId: 'p5',
-    problemTitle: 'LRU Cache',
-    userId: 'u1',
-    language: 'C++',
-    code: 'class LRUCache {...}',
-    status: 'Runtime Error',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), // 3 days ago
-    difficulty: 'Hard',
-  },
-];
+import { mockSubmissions } from './mockData';
+import { Submission } from './types';
 
 export const getUserSubmissions = async (userId: string): Promise<Submission[]> => {
   // In a real app, this would fetch from an API endpoint
@@ -71,7 +9,7 @@ export const getUserSubmissions = async (userId: string): Promise<Submission[]> 
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Filter submissions based on userId
+  // Return all submissions regardless of userId for mock purposes
   return mockSubmissions;
 };
 

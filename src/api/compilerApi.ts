@@ -46,3 +46,37 @@ export const executeCode = async (code: string, language: string): Promise<Compi
     };
   }
 };
+
+// Add missing function to support the compiler slice
+export const compileCode = async (code: string, language: string, input?: string): Promise<CompilerResponse> => {
+  if (!language) {
+    console.log('No language selected');
+    return { output: '', status_message: 'No language selected', success: false };
+  }
+
+  // For mock purposes, we'll simulate a response
+  return new Promise((resolve) => {
+    // Simulate some delay
+    setTimeout(() => {
+      // Randomly succeed or fail
+      const success = Math.random() > 0.2;
+      
+      if (success) {
+        resolve({
+          output: input 
+            ? `Input: ${input}\nOutput: Result for the given input`
+            : "Code compiled and ran successfully!",
+          status_message: 'Compilation successful',
+          success: true,
+          execution_time: Math.floor(Math.random() * 100),
+        });
+      } else {
+        resolve({
+          output: '',
+          status_message: `Compilation error in ${language}:\nSyntax error at line ${Math.floor(Math.random() * 10) + 1}`,
+          success: false,
+        });
+      }
+    }, 1000);
+  });
+};
