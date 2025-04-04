@@ -182,7 +182,6 @@ const Challenges = () => {
         <FriendChallengeDialog 
           isOpen={friendChallengeOpen}
           onClose={() => setFriendChallengeOpen(false)}
-          onSuccess={handleChallengeCreated}
         />
 
         <CreateChallengeForm 
@@ -204,7 +203,7 @@ const Challenges = () => {
                     title={challenge.title}
                     difficulty={challenge.difficulty}
                     createdBy={challenge.createdBy}
-                    participants={challenge.participants}
+                    participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
                     isActive={challenge.isActive}
@@ -223,7 +222,7 @@ const Challenges = () => {
                     title={challenge.title}
                     difficulty={challenge.difficulty}
                     createdBy={challenge.createdBy}
-                    participants={challenge.participants}
+                    participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
                     isActive={challenge.isActive}
@@ -242,7 +241,7 @@ const Challenges = () => {
                     title={challenge.title}
                     difficulty={challenge.difficulty}
                     createdBy={challenge.createdBy}
-                    participants={challenge.participants}
+                    participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
                     isActive={challenge.isActive}
@@ -261,7 +260,7 @@ const Challenges = () => {
                     title={challenge.title}
                     difficulty={challenge.difficulty}
                     createdBy={challenge.createdBy}
-                    participants={challenge.participants}
+                    participants={typeof challenge.participants === 'number' ? challenge.participants : challenge.participants.length}
                     problemCount={challenge.problemCount || 0}
                     createdAt={challenge.createdAt}
                     isActive={challenge.isActive}

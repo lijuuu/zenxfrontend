@@ -1,4 +1,11 @@
 
+export interface ActivityDay {
+  date: string;
+  count: number;
+  present: boolean;
+  isActive: boolean;
+}
+
 export interface File {
   id: string;
   name: string;
@@ -69,13 +76,6 @@ export type GenericResponse = {
   payload: ApiResponsePayload;
   error?: { errorType: string; message: string };
 };
-
-export interface ActivityDay {
-  date: string;
-  count: number;
-  present: boolean;
-  isActive: boolean;
-}
 
 export const twoSumProblem: ProblemMetadata = {
   problem_id: "67d96452d3fe6af39801337b",

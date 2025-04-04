@@ -1,6 +1,7 @@
-// Instead of re-exporting all types, we'll selectively re-export to avoid conflicts
-import { ActivityDay } from './problem-execution';
-export type { ActivityDay } from './problem-execution';
+
+// Import correctly from problem-execution
+import type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload, twoSumProblem } from './types/problem-execution';
+export type { ActivityDay, File, CompilerResponse, TestCase, TestCaseRunOnly, ProblemMetadata, TestResult, ExecutionResult, ApiResponsePayload, twoSumProblem };
 
 // Define common response types
 export interface LoginResponse {
@@ -32,6 +33,19 @@ export interface RegisterData {
   fullName: string;
 }
 
+// Make GenericResponse generic for admin API compatibility
+export interface GenericResponse<T = any> {
+  success: boolean;
+  status: number;
+  payload: T;
+  error?: {
+    code: number;
+    errorType?: string;
+    message: string;
+    details?: string;
+  };
+}
+
 // Challenge related types
 export interface Challenge {
   id: string;
@@ -43,7 +57,7 @@ export interface Challenge {
   endDate: string;
   type: 'daily' | 'weekly' | 'monthly' | 'battle' | 'special';
   status: 'upcoming' | 'active' | 'completed';
-  participants?: {
+  participants: {
     userID: string;
     userName: string;
     firstName: string;
@@ -97,6 +111,8 @@ export interface HeatmapDataPoint {
   count: number;
   present: boolean;
 }
+
+export type ActivityLevel = 0 | 1 | 2 | 3 | 4;
 
 export interface HeatmapData {
   data: HeatmapDataPoint[];
@@ -177,76 +193,10 @@ export interface BanHistory {
   banExpiry: number;
 }
 
-export interface GenericResponse {
-  success: boolean;
-  status: number;
-  payload: any;
-  error?: {
-    code: number;
-    message: string;
-    details?: string;
-  };
-}
-
 export interface UsersResponse {
   users: UserProfile[];
   totalCount: number;
   nextPageToken: string;
-}
-
-// Admin state interface
-export interface AdminState {
-  users: UserProfile[];
-  totalUsers: number;
-  nextPageToken: string;
-  banHistories: { [userID: string]: BanHistory[] };
-  loading: boolean;
-  error: string | null;
-  message: string;
-  isAuthenticated: boolean;
-  accessToken: string | null;
-  refreshToken: string | null;
-  adminID: string | null;
-  expiresIn: number | null;
-}
-
-// Submission related types
-export interface Submission {
-  id: string;
-  problemId: string;
-  problemTitle: string;
-  userId: string;
-  language: string;
-  code: string;
-  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Memory Limit Exceeded' | 'Runtime Error' | 'Compilation Error' | 'Processing';
-  runtime?: string;
-  memory?: string;
-  timestamp: string;
-  submittedAt?: string;
-  testCases?: {
-    passed: number;
-    total: number;
-    results?: {
-      input: string;
-      expectedOutput: string;
-      actualOutput?: string;
-      passed: boolean;
-      error?: string;
-    }[];
-  };
-  difficulty?: string;
-  problem?: {
-    id: string;
-    title: string;
-    difficulty: string;
-  };
-}
-
-// Compiler related types
-export interface CompileRequest {
-  language: string;
-  code: string;
-  input?: string;
 }
 
 // Chat related types
@@ -360,12 +310,59 @@ export interface Comment {
   replies?: Comment[];
 }
 
+// Submission related types
+export interface Submission {
+  id: string;
+  problemId: string;
+  problemTitle: string;
+  userId: string;
+  language: string;
+  code: string;
+  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Memory Limit Exceeded' | 'Runtime Error' | 'Compilation Error' | 'Processing';
+  runtime?: string;
+  memory?: string;
+  timestamp: string;
+  submittedAt?: string;
+  testCases?: {
+    passed: number;
+    total: number;
+    results?: {
+      input: string;
+      expectedOutput: string;
+      actualOutput?: string;
+      passed: boolean;
+      error?: string;
+    }[];
+  };
+  difficulty?: string;
+  problem?: {
+    id: string;
+    title: string;
+    difficulty: string;
+  };
+}
+
+// Compiler related types
+export interface CompileRequest {
+  language: string;
+  code: string;
+  input?: string;
+}
+
+export interface CompileResponse {
+  output: string;
+  error?: string;
+  executionTime?: string;
+  memory?: string;
+}
+
 // For backwards compatibility - define joinChallengeWithCode function in challengeApi
 export interface ChallengeJoinResponse {
   success: boolean;
   challenge: Challenge;
 }
 
+// Export this to avoid duplication in challengeApi.ts
 export function joinChallengeWithCode(code: string): Promise<ChallengeJoinResponse> {
   return Promise.resolve({ 
     success: true,
@@ -382,6 +379,7 @@ export function joinChallengeWithCode(code: string): Promise<ChallengeJoinRespon
       status: "active",
       isPrivate: true,
       inviteCode: code,
+      participants: [],
       
       // For backward compatibility
       createdBy: {
@@ -389,9 +387,8 @@ export function joinChallengeWithCode(code: string): Promise<ChallengeJoinRespon
         username: "user123",
         profileImage: "/assets/avatars/avatar-1.png"
       },
-      participants: [],
-      problemCount: 5,
-      isActive: true
+      isActive: true,
+      problemCount: 5
     }
   });
 }
