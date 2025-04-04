@@ -1,25 +1,10 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getUserProfile, updateUserProfile } from '@/api/userApi';
-// import { UserProfile } from '@/api/types';
+import { UserProfile } from '@/api/types';
 
 export interface UserState {
-  profile: {
-    id: string;
-    username: string;
-    fullName: string;
-    email: string;
-    profileImage: string;
-    country?: string;
-    countryCode?: string;
-    bio?: string;
-    joinDate?: string;
-    problemsSolved: number;
-    currentStreak: number;
-    longestStreak: number;
-    currentRating: number;
-    globalRank: number;
-  } | null;
+  profile: UserProfile | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 }
@@ -34,28 +19,50 @@ export const fetchUserProfile = createAsyncThunk(
   'user/fetchUserProfile',
   async (userId: string) => {
     const response = await getUserProfile(userId);
-    // Transform the UserProfile to match our Redux store shape
     return {
-      id: response.id,
-      username: response.username,
-      fullName: response.fullName,
+      userID: response.userID || response.id,
+      userName: response.userName || response.username,
+      firstName: response.firstName || (response.fullName ? response.fullName.split(' ')[0] : ''),
+      lastName: response.lastName || (response.fullName ? response.fullName.split(' ')[1] : ''),
+      avatarURL: response.avatarURL || response.profileImage || '',
       email: response.email,
-      profileImage: response.profileImage || '',
-      country: response.location,
-      bio: response.bio,
-      joinDate: response.joinedDate,
-      problemsSolved: response.problemsSolved,
-      currentStreak: response.dayStreak,
-      longestStreak: response.dayStreak, // Use dayStreak as a fallback
-      currentRating: response.ranking,
-      globalRank: response.ranking
+      role: response.role || 'user',
+      country: response.country || response.location || '',
+      countryCode: response.countryCode || '',
+      bio: response.bio || '',
+      joinedDate: response.joinedDate || response.createdAt?.toString(),
+      problemsSolved: response.problemsSolved || 0,
+      dayStreak: response.dayStreak || 0,
+      currentStreak: response.currentStreak || response.dayStreak || 0,
+      longestStreak: response.longestStreak || response.dayStreak || 0,
+      currentRating: response.currentRating || response.ranking || 0,
+      globalRank: response.globalRank || response.ranking || 0,
+      isBanned: response.isBanned || false,
+      isVerified: response.isVerified || false,
+      primaryLanguageID: response.primaryLanguageID || '',
+      muteNotifications: response.muteNotifications || false,
+      profileImage: response.profileImage || response.avatarURL || '',
+      socials: response.socials || { github: '', twitter: '', linkedin: '', website: '' },
+      createdAt: response.createdAt || Date.now(),
+      stats: response.stats || {
+        easy: { solved: 0, total: 0 },
+        medium: { solved: 0, total: 0 },
+        hard: { solved: 0, total: 0 }
+      },
+      achievements: response.achievements || {
+        weeklyContests: 0,
+        monthlyContests: 0,
+        specialEvents: 0
+      },
+      badges: response.badges || [],
+      activityHeatmap: response.activityHeatmap || { startDate: '', data: [] }
     };
   }
 );
 
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
-  async (profileData: Partial<UserState['profile']>) => {
+  async (profileData: Partial<UserProfile>) => {
     const response = await updateUserProfile(profileData);
     return response;
   }
@@ -65,7 +72,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<UserState['profile']>) => {
+    setUser: (state, action: PayloadAction<UserProfile>) => {
       state.profile = action.payload;
     },
     clearUser: (state) => {

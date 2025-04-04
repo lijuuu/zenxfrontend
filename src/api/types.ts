@@ -1,30 +1,6 @@
-
 // User related types
-export interface User {
-  id: string;
-  username: string;
-  fullName: string;
-  email: string;
-  profileImage?: string;
-  bio?: string;
-  website?: string;
-  githubProfile?: string;
-  location?: string;
-  joinedDate: string;
-  problemsSolved: number;
-  dayStreak: number;
-  ranking: number;
-  isBanned: boolean;
-  isVerified: boolean;
-  following?: number;
-  followers?: number;
-  is2FAEnabled?: boolean;
-  isOnline?: boolean;
-  country?: string;
-  countryCode?: string;
-}
-// Types based on Go backend models
 export interface UserProfile {
+  // Core identification fields
   userID: string;
   userName: string;
   firstName: string;
@@ -41,27 +17,43 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
+    website?: string; // Added website to socials
   };
   createdAt: number;
-}
-
-export interface UserProfile extends User {
-  stats: {
+  
+  // Additional UI fields
+  joinedDate?: string;
+  problemsSolved?: number;
+  dayStreak?: number;
+  ranking?: number;
+  profileImage?: string; // For compatibility with components expecting 'profileImage'
+  is2FAEnabled?: boolean;
+  followers?: number;
+  following?: number;
+  countryCode?: string;
+  bio?: string;
+  
+  // Stats, achievements, and other data
+  stats?: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };
     hard: { solved: number; total: number };
   };
-  achievements: {
+  achievements?: {
     weeklyContests: number;
     monthlyContests: number;
     specialEvents: number;
   };
-  badges: Badge[];
-  activityHeatmap: HeatmapData;
+  badges?: Badge[];
+  activityHeatmap?: HeatmapData;
   currentStreak?: number;
   longestStreak?: number;
   currentRating?: number;
   globalRank?: number;
+  website?: string;
+  githubProfile?: string;
+  location?: string;
+  isOnline?: boolean;
 }
 
 export interface Friend {
@@ -171,7 +163,7 @@ export interface ChatChannel {
   name: string;
   description?: string;
   type: 'public' | 'private' | 'direct';
-  participants?: User[];
+  participants?: UserProfile[];
   unreadCount?: number;
   isOnline?: boolean;
   lastMessage?: string;
@@ -223,7 +215,7 @@ export interface LeaderboardEntry {
 export interface AuthResponse {
   token: string;
   refreshToken: string;
-  user: User;
+  user: UserProfile;
 }
 
 export interface LoginCredentials {
@@ -285,29 +277,6 @@ export interface CompileResponse {
   memory?: string;
 }
 
-
-// Types based on Go backend models
-export interface UserProfile {
-  userID: string;
-  userName: string;
-  firstName: string;
-  lastName: string;
-  avatarURL: string;
-  email: string;
-  role: string;
-  country: string;
-  isBanned: boolean;
-  isVerified: boolean;
-  primaryLanguageID: string;
-  muteNotifications: boolean;
-  socials: {
-    github: string;
-    twitter: string;
-    linkedin: string;
-  };
-  createdAt: number;
-}
-
 export interface BanHistory {
   id: string;
   userID: string;
@@ -362,8 +331,6 @@ export interface UsersResponse {
   totalCount: number;
   nextPageToken: string;
 }
-
-
 
 export interface File {
   id: string;

@@ -7,18 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "@/api/types";
+import { UserProfile } from "@/api/types";
 import { useMutation } from "@tanstack/react-query";
 import { updateUserProfile } from "@/api/userApi";
 import { toast } from "sonner";
 
 interface ProfileSettingsTabProps {
-  user: User;
+  user: UserProfile;
 }
 
 interface ProfileFormData {
   fullName: string;
-  username: string;
+  userName: string;
   email: string;
   bio: string;
   website: string;
@@ -28,13 +28,13 @@ interface ProfileFormData {
 
 const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
   const [formData, setFormData] = useState<ProfileFormData>({
-    fullName: user?.fullName || "",
-    username: user?.username || "",
+    fullName: `${user?.firstName || ""} ${user?.lastName || ""}`,
+    userName: user?.userName || "",
     email: user?.email || "",
     bio: user?.bio || "",
-    website: user?.website || "",
-    githubProfile: user?.githubProfile || "",
-    location: user?.location || "",
+    website: user?.socials?.website || user?.website || "",
+    githubProfile: user?.socials?.github || user?.githubProfile || "",
+    location: user?.country || user?.location || "",
   });
 
   // Update profile mutation
@@ -70,8 +70,8 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
         <CardContent className="flex flex-col items-center">
           <div className="relative mb-6">
             <Avatar className="w-32 h-32">
-              <AvatarImage src={user?.profileImage || "https://i.pravatar.cc/300?img=1"} />
-              <AvatarFallback>{user?.fullName.charAt(0) || "U"}</AvatarFallback>
+              <AvatarImage src={user?.avatarURL || user?.profileImage || "https://i.pravatar.cc/300?img=1"} />
+              <AvatarFallback>{user?.firstName?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <Button 
               className="absolute bottom-0 right-0 rounded-full bg-zinc-100 dark:bg-zinc-800 text-foreground hover:bg-zinc-200 dark:hover:bg-zinc-700 h-8 w-8 p-0"
@@ -82,8 +82,8 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
           </div>
           
           <div className="text-center">
-            <h3 className="font-semibold text-lg">{user?.fullName}</h3>
-            <p className="text-muted-foreground">@{user?.username}</p>
+            <h3 className="font-semibold text-lg">{user?.firstName} {user?.lastName}</h3>
+            <p className="text-muted-foreground">@{user?.userName}</p>
           </div>
         </CardContent>
       </Card>
@@ -110,11 +110,11 @@ const ProfileSettingsTab: React.FC<ProfileSettingsTabProps> = ({ user }) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="userName">Username</Label>
                 <Input
-                  id="username"
-                  name="username"
-                  value={formData.username}
+                  id="userName"
+                  name="userName"
+                  value={formData.userName}
                   onChange={handleInputChange}
                   placeholder="johndoe"
                 />

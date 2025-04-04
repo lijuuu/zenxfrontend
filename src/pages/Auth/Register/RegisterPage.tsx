@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -86,12 +87,12 @@ function RegisterPage() {
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
       <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
-      <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
+      <div className="text-white text-xl opacity-80 font-inter mt-24">
         Creating your account
       </div>
       <button
         onClick={onCancel}
-        className="text-gray-400 text-sm font-coinbase-sans mt-4 underline hover:text-[#3CE7B2] transition-colors duration-200"
+        className="text-gray-400 text-sm font-inter mt-4 underline hover:text-[#3CE7B2] transition-colors duration-200"
       >
         Cancel
       </button>
@@ -106,7 +107,7 @@ function RegisterPage() {
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative font-inter">
       {loading && <LoaderOverlay onCancel={() => {}} />}
       <div className="w-full bg-[#2C2C2C] h-2">
         <div
