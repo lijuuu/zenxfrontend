@@ -48,7 +48,14 @@ const userSlice = createSlice({
     },
     updateProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
       if (state.profile) {
-        state.profile = { ...state.profile, ...action.payload };
+        state.profile = { 
+          ...state.profile, 
+          ...action.payload,
+          socials: {
+            ...state.profile.socials,
+            ...(action.payload.socials || {})
+          }
+        };
       }
     }
   },

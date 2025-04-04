@@ -1,263 +1,288 @@
+
 import axios from 'axios';
-import { Challenge, User, UserProfile } from './types';
-import { toast } from 'sonner';
+import { Challenge, UserProfile } from './types';
 
-// API endpoints
-const API_URL = '/api';
-
-// Get all challenges
-export const getChallenges = async (): Promise<Challenge[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/challenges`);
-    return response.data.challenges || [];
-  } catch (error) {
-    console.error('Error fetching challenges:', error);
-    throw error;
+// Mock data for development
+const mockChallenges: Challenge[] = [
+  {
+    id: "1",
+    title: "Daily Algorithm Challenge",
+    description: "Solve today's algorithm problem to maintain your streak!",
+    difficulty: "Easy",
+    createdAt: "2023-11-01T12:00:00Z",
+    startDate: "2023-11-01T12:00:00Z",
+    endDate: "2023-11-01T23:59:59Z",
+    type: "daily",
+    status: "active",
+    participants: [
+      {
+        userID: "user1",
+        userName: "johndoe",
+        firstName: "John",
+        lastName: "Doe",
+        avatarURL: "https://i.pravatar.cc/150?img=1",
+        rank: 1,
+        score: 100
+      },
+      {
+        userID: "user2",
+        userName: "janedoe",
+        firstName: "Jane",
+        lastName: "Doe",
+        avatarURL: "https://i.pravatar.cc/150?img=2",
+        rank: 2,
+        score: 95
+      }
+    ],
+    isPrivate: false,
+    problemIds: ["prob1", "prob2"],
+    tags: ["arrays", "dynamic-programming"]
+  },
+  {
+    id: "2",
+    title: "Weekly Challenge: Graph Algorithms",
+    description: "Test your skills with these graph-based problems.",
+    difficulty: "Medium",
+    createdAt: "2023-10-28T00:00:00Z",
+    startDate: "2023-10-28T00:00:00Z",
+    endDate: "2023-11-03T23:59:59Z",
+    type: "weekly",
+    status: "active",
+    participants: [
+      {
+        userID: "user1",
+        userName: "johndoe",
+        firstName: "John",
+        lastName: "Doe",
+        avatarURL: "https://i.pravatar.cc/150?img=1",
+        rank: 3,
+        score: 85
+      }
+    ],
+    isPrivate: false,
+    problemIds: ["prob3", "prob4", "prob5"],
+    tags: ["graphs", "bfs", "dfs"]
+  },
+  {
+    id: "3",
+    title: "Battle: Speed Coding",
+    description: "Race against another coder to solve problems faster!",
+    difficulty: "Hard",
+    createdAt: "2023-11-02T14:00:00Z",
+    startDate: "2023-11-02T15:00:00Z",
+    endDate: "2023-11-02T16:00:00Z",
+    type: "battle",
+    status: "upcoming",
+    participants: [
+      {
+        userID: "user1",
+        userName: "johndoe",
+        firstName: "John",
+        lastName: "Doe",
+        avatarURL: "https://i.pravatar.cc/150?img=1"
+      },
+      {
+        userID: "user3",
+        userName: "alexsmith",
+        firstName: "Alex",
+        lastName: "Smith",
+        avatarURL: "https://i.pravatar.cc/150?img=3"
+      }
+    ],
+    isPrivate: true,
+    inviteCode: "BATTLE123",
+    problemIds: ["prob6"],
+    tags: ["competitive", "timed"]
   }
+];
+
+// Add backward compatibility properties
+mockChallenges.forEach(challenge => {
+  // @ts-ignore - Adding backward compatibility fields
+  challenge.isActive = challenge.status === 'active';
+  // @ts-ignore
+  challenge.problemCount = challenge.problemIds?.length || 0;
+  // @ts-ignore
+  challenge.accessCode = challenge.inviteCode;
+  // @ts-ignore
+  challenge.createdBy = {
+    id: "admin1",
+    username: "admin",
+    profileImage: "https://i.pravatar.cc/150?img=8"
+  };
+  // @ts-ignore
+  challenge.participantUsers = challenge.participants?.map(p => ({
+    id: p.userID,
+    name: `${p.firstName} ${p.lastName}`,
+    avatar: p.avatarURL
+  }));
+});
+
+export const fetchChallenges = async (): Promise<Challenge[]> => {
+  // In a real app, this would be an API call:
+  // return axios.get('/api/challenges').then(res => res.data);
+  return Promise.resolve(mockChallenges);
 };
 
-// Get a specific challenge by ID
-export const getChallenge = async (challengeId: string): Promise<Challenge> => {
-  try {
-    const response = await axios.get(`${API_URL}/challenges/${challengeId}`);
-    return response.data.challenge;
-  } catch (error) {
-    console.error(`Error fetching challenge ${challengeId}:`, error);
-    throw error;
+export const fetchChallengeById = async (id: string): Promise<Challenge> => {
+  // In a real app, this would be an API call:
+  // return axios.get(`/api/challenges/${id}`).then(res => res.data);
+  const challenge = mockChallenges.find(c => c.id === id);
+  if (!challenge) {
+    throw new Error('Challenge not found');
   }
+  return Promise.resolve(challenge);
 };
 
-// Create a new challenge
 export const createChallenge = async (challengeData: Partial<Challenge>): Promise<Challenge> => {
-  try {
-    const response = await axios.post(`${API_URL}/challenges`, challengeData);
-    toast.success('Challenge created successfully!');
-    return response.data.challenge;
-  } catch (error) {
-    console.error('Error creating challenge:', error);
-    toast.error('Failed to create challenge');
-    throw error;
-  }
+  // In a real app, this would be an API call:
+  // return axios.post('/api/challenges', challengeData).then(res => res.data);
+  const newChallenge: Challenge = {
+    id: `${mockChallenges.length + 1}`,
+    title: challengeData.title || 'Untitled Challenge',
+    description: challengeData.description || '',
+    difficulty: challengeData.difficulty || 'Medium',
+    createdAt: new Date().toISOString(),
+    startDate: challengeData.startDate || new Date().toISOString(),
+    endDate: challengeData.endDate || new Date(Date.now() + 86400000).toISOString(),
+    type: challengeData.type || 'daily',
+    status: 'upcoming',
+    participants: [],
+    isPrivate: challengeData.isPrivate || false,
+    inviteCode: challengeData.isPrivate ? Math.random().toString(36).substr(2, 8).toUpperCase() : undefined,
+    problemIds: challengeData.problemIds || [],
+    tags: challengeData.tags || [],
+    
+    // Backward compatibility fields
+    accessCode: challengeData.isPrivate ? Math.random().toString(36).substr(2, 8).toUpperCase() : undefined,
+    isActive: false,
+    problemCount: challengeData.problemIds?.length || 0,
+    createdBy: {
+      id: "admin1",
+      username: "admin",
+      profileImage: "https://i.pravatar.cc/150?img=8"
+    },
+    participantUsers: []
+  };
+  
+  return Promise.resolve(newChallenge);
 };
 
-// Update an existing challenge
-export const updateChallenge = async (challengeId: string, challengeData: Partial<Challenge>): Promise<Challenge> => {
-  try {
-    const response = await axios.put(`${API_URL}/challenges/${challengeId}`, challengeData);
-    toast.success('Challenge updated successfully!');
-    return response.data.challenge;
-  } catch (error) {
-    console.error(`Error updating challenge ${challengeId}:`, error);
-    toast.error('Failed to update challenge');
-    throw error;
+export const joinChallenge = async (challengeId: string): Promise<Challenge> => {
+  // In a real app, this would be an API call:
+  // return axios.post(`/api/challenges/${challengeId}/join`).then(res => res.data);
+  const challenge = mockChallenges.find(c => c.id === challengeId);
+  if (!challenge) {
+    throw new Error('Challenge not found');
   }
+  
+  // Simulate joining the challenge
+  const updatedChallenge = { ...challenge };
+  
+  return Promise.resolve(updatedChallenge);
 };
 
-// Delete a challenge
-export const deleteChallenge = async (challengeId: string): Promise<void> => {
-  try {
-    await axios.delete(`${API_URL}/challenges/${challengeId}`);
-    toast.success('Challenge deleted successfully!');
-  } catch (error) {
-    console.error(`Error deleting challenge ${challengeId}:`, error);
-    toast.error('Failed to delete challenge');
-    throw error;
+export const joinChallengeWithCode = async (code: string): Promise<Challenge> => {
+  // In a real app, this would be an API call:
+  // return axios.post(`/api/challenges/join-with-code`, { code }).then(res => res.data);
+  const challenge = mockChallenges.find(c => c.inviteCode === code || c.accessCode === code);
+  if (!challenge) {
+    throw new Error('Invalid invite code');
   }
+  
+  // Simulate joining the challenge
+  const updatedChallenge = { ...challenge };
+  
+  return Promise.resolve(updatedChallenge);
 };
 
-// Join a challenge
-export const joinChallenge = async (challengeId: string, accessCode?: string): Promise<void> => {
-  try {
-    await axios.post(`${API_URL}/challenges/${challengeId}/join`, { accessCode });
-    toast.success('Joined challenge successfully!');
-  } catch (error) {
-    console.error(`Error joining challenge ${challengeId}:`, error);
-    toast.error('Failed to join challenge');
-    throw error;
-  }
-};
-
-// Leave a challenge
-export const leaveChallenge = async (challengeId: string): Promise<void> => {
-  try {
-    await axios.post(`${API_URL}/challenges/${challengeId}/leave`);
-    toast.success('Left challenge successfully!');
-  } catch (error) {
-    console.error(`Error leaving challenge ${challengeId}:`, error);
-    toast.error('Failed to leave challenge');
-    throw error;
-  }
-};
-
-// Get challenges created by a user
-export const getUserChallenges = async (userId: string): Promise<Challenge[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/users/${userId}/challenges`);
-    return response.data.challenges || [];
-  } catch (error) {
-    console.error(`Error fetching challenges for user ${userId}:`, error);
-    throw error;
-  }
-};
-
-// Get challenges a user is participating in
-export const getUserParticipatingChallenges = async (): Promise<Challenge[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/users/me/participating-challenges`);
-    return response.data.challenges || [];
-  } catch (error) {
-    console.error('Error fetching participating challenges:', error);
-    throw error;
-  }
-};
-
-// Search for users
-export const searchUsers = async (query: string): Promise<User[]> => {
-  // Mock implementation that simulates search results
-  return [
+export const searchUsers = async (query: string): Promise<UserProfile[]> => {
+  // Mock implementation
+  const mockUsers: UserProfile[] = [
     {
-      id: "user1",
-      username: "johndoe",
-      fullName: "John Doe",
-      profileImage: "https://i.pravatar.cc/300?img=1",
+      userID: "user1",
+      userName: "johndoe",
+      firstName: "John",
+      lastName: "Doe",
+      avatarURL: "https://i.pravatar.cc/150?img=1",
+      email: "john@example.com",
+      role: "user",
+      country: "USA",
+      isBanned: false,
+      isVerified: true,
+      primaryLanguageID: "js",
+      muteNotifications: false,
+      socials: {
+        github: "johndoe",
+        twitter: "johndoe",
+        linkedin: "johndoe",
+        website: "johndoe.com"
+      },
+      createdAt: Date.now() - 10000000,
+      stats: {
+        easy: { solved: 15, total: 20 },
+        medium: { solved: 10, total: 30 },
+        hard: { solved: 5, total: 15 }
+      },
+      achievements: {
+        weeklyContests: 5,
+        monthlyContests: 2,
+        specialEvents: 1
+      },
+      badges: [],
+      activityHeatmap: {
+        data: [],
+        totalContributions: 0,
+        currentStreak: 0,
+        longestStreak: 0
+      }
     },
     {
-      id: "user2",
-      username: "janedoe",
-      fullName: "Jane Doe",
-      profileImage: "https://i.pravatar.cc/300?img=2",
-    },
-    {
-      id: "user3",
-      username: "bobsmith",
-      fullName: "Bob Smith",
-      profileImage: "https://i.pravatar.cc/300?img=3",
-    },
-    {
-      id: "user4",
-      username: "alicejones",
-      fullName: "Alice Jones",
-      profileImage: "https://i.pravatar.cc/300?img=4",
-    },
-    {
-      id: "user5",
-      username: "mikebrown",
-      fullName: "Mike Brown",
-      profileImage: "https://i.pravatar.cc/300?img=5",
+      userID: "user2",
+      userName: "janedoe",
+      firstName: "Jane",
+      lastName: "Doe",
+      avatarURL: "https://i.pravatar.cc/150?img=2",
+      email: "jane@example.com",
+      role: "user",
+      country: "UK",
+      isBanned: false,
+      isVerified: true,
+      primaryLanguageID: "python",
+      muteNotifications: true,
+      socials: {
+        github: "janedoe",
+        twitter: "janedoe",
+        linkedin: "janedoe",
+        website: "janedoe.com"
+      },
+      createdAt: Date.now() - 20000000,
+      stats: {
+        easy: { solved: 20, total: 20 },
+        medium: { solved: 15, total: 30 },
+        hard: { solved: 8, total: 15 }
+      },
+      achievements: {
+        weeklyContests: 8,
+        monthlyContests: 3,
+        specialEvents: 2
+      },
+      badges: [],
+      activityHeatmap: {
+        data: [],
+        totalContributions: 0,
+        currentStreak: 0,
+        longestStreak: 0
+      }
     }
-  ].filter(
-    (user) =>
-      user.username.toLowerCase().includes(query.toLowerCase()) ||
-      user.fullName.toLowerCase().includes(query.toLowerCase())
+  ];
+  
+  // Filter users based on query
+  const filteredUsers = mockUsers.filter(user => 
+    user.userName.toLowerCase().includes(query.toLowerCase()) ||
+    user.firstName.toLowerCase().includes(query.toLowerCase()) ||
+    user.lastName.toLowerCase().includes(query.toLowerCase())
   );
-};
-
-// Invite a user to a challenge
-export const inviteUserToChallenge = async (challengeId: string, userId: string): Promise<void> => {
-  try {
-    await axios.post(`${API_URL}/challenges/${challengeId}/invite`, { userId });
-    toast.success('Invitation sent successfully!');
-  } catch (error) {
-    console.error(`Error inviting user ${userId} to challenge ${challengeId}:`, error);
-    toast.error('Failed to send invitation');
-    throw error;
-  }
-};
-
-// Get challenge invitations
-export const getChallengeInvitations = async (): Promise<any[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/users/me/challenge-invitations`);
-    return response.data.invitations || [];
-  } catch (error) {
-    console.error('Error fetching challenge invitations:', error);
-    throw error;
-  }
-};
-
-// Accept a challenge invitation
-export const acceptChallengeInvitation = async (invitationId: string): Promise<void> => {
-  try {
-    await axios.post(`${API_URL}/challenge-invitations/${invitationId}/accept`);
-    toast.success('Invitation accepted!');
-  } catch (error) {
-    console.error(`Error accepting invitation ${invitationId}:`, error);
-    toast.error('Failed to accept invitation');
-    throw error;
-  }
-};
-
-// Decline a challenge invitation
-export const declineChallengeInvitation = async (invitationId: string): Promise<void> => {
-  try {
-    await axios.post(`${API_URL}/challenge-invitations/${invitationId}/decline`);
-    toast.success('Invitation declined');
-  } catch (error) {
-    console.error(`Error declining invitation ${invitationId}:`, error);
-    toast.error('Failed to decline invitation');
-    throw error;
-  }
-};
-
-// Get challenge leaderboard
-export const getChallengeLeaderboard = async (challengeId: string): Promise<any[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/challenges/${challengeId}/leaderboard`);
-    return response.data.leaderboard || [];
-  } catch (error) {
-    console.error(`Error fetching leaderboard for challenge ${challengeId}:`, error);
-    throw error;
-  }
-};
-
-// Submit a solution to a challenge problem
-export const submitChallengeSolution = async (
-  challengeId: string,
-  problemId: string,
-  code: string,
-  language: string
-): Promise<any> => {
-  try {
-    const response = await axios.post(`${API_URL}/challenges/${challengeId}/problems/${problemId}/submit`, {
-      code,
-      language,
-    });
-    return response.data.result;
-  } catch (error) {
-    console.error(`Error submitting solution for problem ${problemId} in challenge ${challengeId}:`, error);
-    throw error;
-  }
-};
-
-// Get user's progress in a challenge
-export const getUserChallengeProgress = async (challengeId: string): Promise<any> => {
-  try {
-    const response = await axios.get(`${API_URL}/challenges/${challengeId}/progress`);
-    return response.data.progress;
-  } catch (error) {
-    console.error(`Error fetching progress for challenge ${challengeId}:`, error);
-    throw error;
-  }
-};
-
-// Get trending challenges
-export const getTrendingChallenges = async (): Promise<Challenge[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/challenges/trending`);
-    return response.data.challenges || [];
-  } catch (error) {
-    console.error('Error fetching trending challenges:', error);
-    throw error;
-  }
-};
-
-// Get recommended challenges for the current user
-export const getRecommendedChallenges = async (): Promise<Challenge[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/challenges/recommended`);
-    return response.data.challenges || [];
-  } catch (error) {
-    console.error('Error fetching recommended challenges:', error);
-    throw error;
-  }
+  
+  return Promise.resolve(filteredUsers);
 };

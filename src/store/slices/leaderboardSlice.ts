@@ -1,82 +1,147 @@
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { LeaderboardEntry } from '@/api/types';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { LeaderboardState, UserProfile } from '@/api/types';
 
-interface LeaderboardState {
-  entries: LeaderboardEntry[];
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  error: string | null;
-  totalEntries: number;
-  currentPage: number;
-  period: "weekly" | "monthly" | "all";
-}
-
-const initialState: LeaderboardState = {
-  entries: [],
-  status: 'idle',
-  error: null,
-  totalEntries: 0,
-  currentPage: 1,
-  period: "weekly"
-};
-
-interface FetchLeaderboardParams {
-  page?: number;
-  limit?: number;
-  period?: "weekly" | "monthly" | "all";
-}
-
-// Fetch leaderboard data
+// Async thunk for fetching leaderboard data
 export const fetchLeaderboard = createAsyncThunk(
   'leaderboard/fetchLeaderboard',
-  async ({ page = 1, limit = 10, period = "weekly" }: FetchLeaderboardParams, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/leaderboard?page=${page}&limit=${limit}&period=${period}`);
+      // In a real app, we would make an API call here
+      // const response = await axios.get('/api/leaderboard');
+      // return response.data;
+      
+      // For now, return mock data
       return {
-        entries: response.data.leaderboard || [],
-        totalEntries: response.data.totalEntries || 0,
-        period,
-        page
+        globalLeaderboard: [
+          // Mock data for global leaderboard
+          {
+            userID: "user1",
+            userName: "codemaster",
+            firstName: "Alex",
+            lastName: "Johnson",
+            avatarURL: "https://i.pravatar.cc/150?img=1",
+            email: "alex@example.com",
+            role: "user",
+            country: "USA",
+            countryCode: "US",
+            isBanned: false,
+            isVerified: true,
+            primaryLanguageID: "js",
+            muteNotifications: false,
+            socials: {
+              github: "alexj",
+              twitter: "alexj",
+              linkedin: "alexj",
+              website: "alexj.com"
+            },
+            createdAt: Date.now() - 10000000,
+            problemsSolved: 120,
+            dayStreak: 30,
+            ranking: 1,
+            stats: {
+              easy: { solved: 50, total: 50 },
+              medium: { solved: 45, total: 50 },
+              hard: { solved: 25, total: 30 }
+            },
+            achievements: {
+              weeklyContests: 10,
+              monthlyContests: 5,
+              specialEvents: 3
+            },
+            badges: [],
+            activityHeatmap: {
+              data: [],
+              totalContributions: 200,
+              currentStreak: 30,
+              longestStreak: 30
+            }
+          },
+          // Add more users here
+        ],
+        friendsLeaderboard: [
+          // Mock data for friends leaderboard
+          {
+            userID: "user2",
+            userName: "friendcoder",
+            firstName: "Sam",
+            lastName: "Smith",
+            avatarURL: "https://i.pravatar.cc/150?img=2",
+            email: "sam@example.com",
+            role: "user",
+            country: "UK",
+            countryCode: "GB",
+            isBanned: false,
+            isVerified: true,
+            primaryLanguageID: "python",
+            muteNotifications: true,
+            socials: {
+              github: "samsmith",
+              twitter: "samsmith",
+              linkedin: "samsmith",
+              website: "samsmith.com"
+            },
+            createdAt: Date.now() - 20000000,
+            problemsSolved: 80,
+            dayStreak: 15,
+            ranking: 5,
+            stats: {
+              easy: { solved: 30, total: 50 },
+              medium: { solved: 35, total: 50 },
+              hard: { solved: 15, total: 30 }
+            },
+            achievements: {
+              weeklyContests: 8,
+              monthlyContests: 3,
+              specialEvents: 1
+            },
+            badges: [],
+            activityHeatmap: {
+              data: [],
+              totalContributions: 150,
+              currentStreak: 15,
+              longestStreak: 20
+            }
+          },
+          // Add more friends here
+        ]
       };
-    } catch (error: any) {
-      toast.error('Failed to load leaderboard data');
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch leaderboard');
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
     }
   }
 );
 
+const initialState: LeaderboardState = {
+  globalLeaderboard: [],
+  friendsLeaderboard: [],
+  status: 'idle',
+  error: null,
+};
+
 const leaderboardSlice = createSlice({
   name: 'leaderboard',
   initialState,
-  reducers: {
-    setCurrentPage: (state, action) => {
-      state.currentPage = action.payload;
-    },
-    setPeriod: (state, action) => {
-      state.period = action.payload;
-    }
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchLeaderboard.pending, (state) => {
         state.status = 'loading';
-        state.error = null;
       })
-      .addCase(fetchLeaderboard.fulfilled, (state, action) => {
+      .addCase(fetchLeaderboard.fulfilled, (state, action: PayloadAction<{
+        globalLeaderboard: UserProfile[],
+        friendsLeaderboard: UserProfile[]
+      }>) => {
         state.status = 'succeeded';
-        state.entries = action.payload.entries;
-        state.totalEntries = action.payload.totalEntries;
-        state.period = action.payload.period;
-        state.currentPage = action.payload.page;
+        state.globalLeaderboard = action.payload.globalLeaderboard;
+        state.friendsLeaderboard = action.payload.friendsLeaderboard;
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       });
-  }
+  },
 });
 
-export const { setCurrentPage, setPeriod } = leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

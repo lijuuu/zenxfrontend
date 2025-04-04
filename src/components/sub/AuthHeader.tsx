@@ -1,29 +1,37 @@
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface SimpleHeaderProps {
-  page: string;
-  name: string;
+export interface SimpleHeaderProps {
+  showBackButton?: boolean;
+  showLogo?: boolean;
 }
 
-const SimpleHeader: React.FC<SimpleHeaderProps> = ({ page, name }) => {
+const AuthHeader: React.FC<SimpleHeaderProps> = ({ 
+  showBackButton = false,
+  showLogo = true 
+}) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex justify-between items-center p-6">
+    <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50">
       <div className="flex items-center">
-        <div className="text-xl font-bold text-white font-coinbase-display">ZenX</div>
+        {showBackButton && (
+          <button
+            onClick={() => navigate(-1)}
+            className="mr-4 text-zinc-400 hover:text-white transition-colors p-1"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        )}
+        
+        {showLogo && (
+          <div className="font-bold text-xl text-white">ZenX</div>
+        )}
       </div>
-      <Button
-        onClick={() => navigate(page)}
-        className="bg-[#2C2C2C] hover:bg-[#3CE7B2] hover:text-[#121212] text-white font-coinbase-sans rounded-md px-4 py-2 transition-all duration-200"
-      >
-        {name}
-      </Button>
     </div>
   );
 };
 
-export default SimpleHeader;
+export default AuthHeader;

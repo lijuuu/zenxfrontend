@@ -4,12 +4,12 @@ import MainNavbar from '@/components/MainNavbar';
 import StatsCard from '@/components/StatsCard';
 import ClearInactivityCard from '@/components/ClearInactivityCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ActivityHeatmap } from '@/components/activity/ActivityHeatmap';
+import ActivityHeatmap from '@/components/activity/ActivityHeatmap';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { getCurrentUser } from '@/api/userApi';
 import { setUserSuccess, setUserLoading, setUserError } from '@/store/slices/userSlice';
 import { Loader2 } from 'lucide-react';
-import { ActivityDay } from '@/api/types/problem-execution';
+import { ActivityDay } from '@/api/types';
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
