@@ -23,14 +23,27 @@ export const getChallenges = async (filters?: { active?: boolean; participated?:
       }
     }
     
-    setTimeout(() => resolve(filteredChallenges), 600);
+    // Ensure all challenges have properly typed difficulties
+    const typedChallenges = filteredChallenges.map(challenge => ({
+      ...challenge,
+      difficulty: challenge.difficulty as "Easy" | "Medium" | "Hard"
+    }));
+    
+    setTimeout(() => resolve(typedChallenges), 600);
   });
 };
 
 export const getChallenge = async (id: string): Promise<Challenge | null> => {
   return new Promise(resolve => {
     const challenge = mockChallenges.find(c => c.id === id) || null;
-    setTimeout(() => resolve(challenge), 500);
+    
+    // Ensure challenge has properly typed difficulty if found
+    const typedChallenge = challenge ? {
+      ...challenge,
+      difficulty: challenge.difficulty as "Easy" | "Medium" | "Hard"
+    } : null;
+    
+    setTimeout(() => resolve(typedChallenge), 500);
   });
 };
 
@@ -93,8 +106,9 @@ export const joinChallengeWithCode = async (accessCode: string): Promise<Challen
       return;
     }
     
-    const updatedChallenge = { 
+    const updatedChallenge: Challenge = { 
       ...challenge,
+      difficulty: challenge.difficulty as "Easy" | "Medium" | "Hard",
       participants: challenge.participants + 1,
       participantUsers: [
         ...(challenge.participantUsers || []),
@@ -156,7 +170,13 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 // For admin users - get all challenges
 export const getAllChallenges = async (): Promise<Challenge[]> => {
   return new Promise(resolve => {
-    setTimeout(() => resolve(mockChallenges), 400);
+    // Ensure all challenges have properly typed difficulties
+    const typedChallenges = mockChallenges.map(challenge => ({
+      ...challenge,
+      difficulty: challenge.difficulty as "Easy" | "Medium" | "Hard"
+    }));
+    
+    setTimeout(() => resolve(typedChallenges), 400);
   });
 };
 
@@ -166,6 +186,13 @@ export const getUserChallenges = async (userId: string): Promise<Challenge[]> =>
     const userChallenges = mockChallenges.filter(
       c => c.createdBy.id === userId || c.participantUsers?.some(p => p.id === userId)
     );
-    setTimeout(() => resolve(userChallenges), 500);
+    
+    // Ensure all challenges have properly typed difficulties
+    const typedChallenges = userChallenges.map(challenge => ({
+      ...challenge,
+      difficulty: challenge.difficulty as "Easy" | "Medium" | "Hard"
+    }));
+    
+    setTimeout(() => resolve(typedChallenges), 500);
   });
 };

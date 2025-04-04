@@ -5,7 +5,13 @@ import { ChatChannel, ChatMessage } from './types';
 // API functions
 export const getChannels = async (): Promise<ChatChannel[]> => {
   return new Promise(resolve => {
-    setTimeout(() => resolve(mockChannels), 500);
+    // Ensure channels have properly typed 'type' properties
+    const typedChannels = mockChannels.map(channel => ({
+      ...channel,
+      type: channel.type as "public" | "private" | "direct"
+    }));
+    
+    setTimeout(() => resolve(typedChannels), 500);
   });
 };
 
@@ -85,7 +91,7 @@ export const createDirectChannel = async (userId: string): Promise<ChatChannel> 
     setTimeout(() => resolve({
       id: `dm-${userId}`,
       name: "Direct Message",
-      type: "direct",
+      type: "direct" as "public" | "private" | "direct",
       participants: [
         {
           id: "1",
@@ -121,6 +127,13 @@ export const createDirectChannel = async (userId: string): Promise<ChatChannel> 
 export const getDirectChannels = async (): Promise<ChatChannel[]> => {
   return new Promise(resolve => {
     const directChannels = mockChannels.filter(channel => channel.type === "direct");
-    setTimeout(() => resolve(directChannels), 500);
+    
+    // Ensure channels have properly typed 'type' properties
+    const typedChannels = directChannels.map(channel => ({
+      ...channel,
+      type: channel.type as "public" | "private" | "direct"
+    }));
+    
+    setTimeout(() => resolve(typedChannels), 500);
   });
 };

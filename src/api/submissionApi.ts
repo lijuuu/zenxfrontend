@@ -10,7 +10,11 @@ export const getUserSubmissions = async (userId: string): Promise<Submission[]> 
   await new Promise(resolve => setTimeout(resolve, 500));
   
   // Return all submissions regardless of userId for mock purposes
-  return mockSubmissions;
+  // Ensure each submission has a properly typed status
+  return mockSubmissions.map(submission => ({
+    ...submission,
+    status: submission.status as Submission['status']
+  }));
 };
 
 export const getSubmission = async (submissionId: string): Promise<Submission> => {
@@ -23,7 +27,11 @@ export const getSubmission = async (submissionId: string): Promise<Submission> =
   const submission = mockSubmissions.find(s => s.id === submissionId);
   if (!submission) throw new Error('Submission not found');
   
-  return submission;
+  // Ensure submission has a properly typed status
+  return {
+    ...submission,
+    status: submission.status as Submission['status']
+  };
 };
 
 export const submitSolution = async (

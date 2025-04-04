@@ -31,7 +31,13 @@ export const getProblems = async (filters?: { difficulty?: string; tags?: string
       }
     }
     
-    setTimeout(() => resolve(filteredProblems), 600);
+    // Ensure all problems have properly typed difficulties
+    const typedProblems = filteredProblems.map(problem => ({
+      ...problem,
+      difficulty: problem.difficulty as "Easy" | "Medium" | "Hard"
+    }));
+    
+    setTimeout(() => resolve(typedProblems), 600);
   });
 };
 
@@ -40,7 +46,13 @@ export const getProblem = async (idOrSlug: string): Promise<Problem | null> => {
     // For any problem id/slug, return the Two Sum problem when no data from server
     const problem = mockProblems[0];
     
-    setTimeout(() => resolve(problem), 500);
+    // Ensure problem has properly typed difficulty
+    const typedProblem = {
+      ...problem,
+      difficulty: problem.difficulty as "Easy" | "Medium" | "Hard"
+    };
+    
+    setTimeout(() => resolve(typedProblem), 500);
   });
 };
 
@@ -52,7 +64,13 @@ export const getSubmissions = async (problemId?: string): Promise<Submission[]> 
       filteredSubmissions = filteredSubmissions.filter(s => s.problemId === problemId);
     }
     
-    setTimeout(() => resolve(filteredSubmissions), 500);
+    // Ensure all submissions have properly typed status
+    const typedSubmissions = filteredSubmissions.map(submission => ({
+      ...submission,
+      status: submission.status as Submission['status']
+    }));
+    
+    setTimeout(() => resolve(typedSubmissions), 500);
   });
 };
 
@@ -62,10 +80,12 @@ export const submitSolution = async (submission: Omit<Submission, 'id' | 'timest
     const problem = mockProblems.find(p => p.id === submission.problemId);
     const isCorrect = Math.random() > 0.3; // 70% chance of success
     
+    const status: Submission['status'] = isCorrect ? "Accepted" : "Wrong Answer";
+    
     const newSubmission: Submission = {
       id: `s${Date.now()}`,
       ...submission,
-      status: isCorrect ? "Accepted" : "Wrong Answer",
+      status,
       runtime: isCorrect ? `${Math.floor(Math.random() * 100 + 50)} ms` : undefined,
       memory: isCorrect ? `${(Math.random() * 50 + 10).toFixed(1)} MB` : undefined,
       timestamp: new Date().toISOString(),
