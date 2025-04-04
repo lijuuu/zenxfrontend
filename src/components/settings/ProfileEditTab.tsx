@@ -8,18 +8,22 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAppDispatch, useAppSelector } from "@/hooks";
-import { updateProfile } from "@/store/slices/userSlice";
+import { useMutation } from "@tanstack/react-query";
+import { updateUserProfile } from "@/api/userApi";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { getUser } from "@/store/slices/authSlice";
 import { toast } from "sonner";
-import { UserProfile } from "@/api/types";
+import Cookies from "js-cookie";
+import axios from "axios";
 
 interface ProfileEditTabProps {
-  user: UserProfile;
+  user: any;
 }
 
 const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   const dispatch = useAppDispatch();
-  const { status, error } = useAppSelector((state) => state.user);
+  const authState = useAppSelector((state) => state.auth);
   
   // Form state
   const [userName, setUserName] = useState("");
@@ -31,13 +35,12 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   const [github, setGithub] = useState("");
   const [twitter, setTwitter] = useState("");
   const [linkedin, setLinkedin] = useState("");
-  const [website, setWebsite] = useState("");
   const [bio, setBio] = useState("");
 
   // Populate form with user profile data on mount
   useEffect(() => {
     if (user) {
-      setUserName(user.userName || "");
+      setUserName(user.userName || user.username || "");
       setFirstName(user.firstName || "");
       setLastName(user.lastName || "");
       setCountry(user.country || "");
@@ -50,24 +53,34 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
         setGithub(user.socials.github || "");
         setTwitter(user.socials.twitter || "");
         setLinkedin(user.socials.linkedin || "");
-        setWebsite(user.socials.website || "");
       }
     }
   }, [user]);
 
-  // Show success/error messages when profile update status changes
-  useEffect(() => {
-    if (status === 'succeeded') {
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData: any) => {
+      const accessToken = Cookies.get("accessToken");
+      return await axios.put("http://localhost:7000/api/v1/users/profile/update", profileData, {
+        headers: {
+          "Authorization": `Bearer ${accessToken}`
+        }
+      });
+    },
+    onSuccess: () => {
       toast.success("Profile updated successfully");
-    } else if (status === 'failed' && error) {
-      toast.error(`Failed to update profile: ${error}`);
-    }
-  }, [status, error]);
+      dispatch(getUser() as any);
+    },
+    onError: (error) => {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const profileData: Partial<UserProfile> = {
+    const profileData = {
       userName,
       firstName,
       lastName,
@@ -75,15 +88,10 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
       primaryLanguageID,
       muteNotifications,
       bio,
-      socials: { 
-        github, 
-        twitter, 
-        linkedin,
-        website
-      }
+      socials: { github, twitter, linkedin },
     };
     
-    dispatch(updateProfile(profileData));
+    updateProfileMutation.mutate(profileData);
   };
 
   // Use initials for avatar fallback
@@ -115,7 +123,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-1/3 flex flex-col items-center space-y-4">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={user.avatarURL} />
+                  <AvatarImage src={user.avatarURL || user.profileImage} />
                   <AvatarFallback className="bg-green-900/30 text-green-500">{getInitials()}</AvatarFallback>
                 </Avatar>
                 <Button variant="outline" className="w-full">
@@ -246,7 +254,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                 id="github"
                 value={github}
                 onChange={(e) => setGithub(e.target.value)}
-                placeholder="username"
+                placeholder="https://github.com/username"
               />
             </div>
             
@@ -256,7 +264,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                 id="twitter"
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
-                placeholder="username"
+                placeholder="https://twitter.com/username"
               />
             </div>
             
@@ -266,27 +274,13 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                 id="linkedin"
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
-                placeholder="username"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://yourwebsite.com"
+                placeholder="https://linkedin.com/in/username"
               />
             </div>
             
             <div className="flex justify-end mt-6">
-              <Button 
-                type="submit" 
-                className="bg-green-600 hover:bg-green-700"
-                disabled={status === 'loading'}
-              >
-                {status === 'loading' ? 'Saving...' : 'Save Changes'}
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save Changes
               </Button>
             </div>
           </CardContent>

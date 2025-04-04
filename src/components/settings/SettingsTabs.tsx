@@ -5,10 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileSettingsTab from "./ProfileSettingsTab";
 import AccountSettingsTab from "./AccountSettingsTab";
 import NotificationsSettingsTab from "./NotificationsSettingsTab";
-import { UserProfile } from "@/api/types";
+import { User as UserType } from "@/api/types";
+import { UserProfile } from "@/store/slices/authSlice";
 
 interface SettingsTabsProps {
-  user: UserProfile;
+  user: UserType;
 }
 
 const SettingsTabs: React.FC<SettingsTabsProps> = ({ user }) => {
@@ -49,7 +50,7 @@ const SettingsTabs: React.FC<SettingsTabsProps> = ({ user }) => {
       </TabsContent>
       
       <TabsContent value="notifications">
-        <NotificationsSettingsTab userProfile={user} />
+        <NotificationsSettingsTab userProfile={user as unknown as UserProfile} />
       </TabsContent>
     </Tabs>
   );

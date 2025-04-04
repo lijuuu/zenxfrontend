@@ -1,49 +1,41 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getLeaderboard, getFriendsLeaderboard } from '@/api/leaderboardApi';
 import { LeaderboardEntry } from '@/api/types';
-import axios from 'axios';
-import { toast } from 'sonner';
 
 interface LeaderboardState {
   entries: LeaderboardEntry[];
+  friendsEntries: LeaderboardEntry[];
+  totalEntries: number;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
-  totalEntries: number;
   currentPage: number;
-  period: "weekly" | "monthly" | "all";
+  period: 'all' | 'monthly' | 'weekly';
 }
 
 const initialState: LeaderboardState = {
   entries: [],
+  friendsEntries: [],
+  totalEntries: 0,
   status: 'idle',
   error: null,
-  totalEntries: 0,
   currentPage: 1,
-  period: "weekly"
+  period: 'weekly',
 };
 
-interface FetchLeaderboardParams {
-  page?: number;
-  limit?: number;
-  period?: "weekly" | "monthly" | "all";
-}
-
-// Fetch leaderboard data
 export const fetchLeaderboard = createAsyncThunk(
   'leaderboard/fetchLeaderboard',
-  async ({ page = 1, limit = 10, period = "weekly" }: FetchLeaderboardParams, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`/api/leaderboard?page=${page}&limit=${limit}&period=${period}`);
-      return {
-        entries: response.data.leaderboard || [],
-        totalEntries: response.data.totalEntries || 0,
-        period,
-        page
-      };
-    } catch (error: any) {
-      toast.error('Failed to load leaderboard data');
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch leaderboard');
-    }
+  async ({ page, limit, period }: { page: number; limit: number; period: 'all' | 'monthly' | 'weekly' }) => {
+    const response = await getLeaderboard({ page, limit, period });
+    return response;
+  }
+);
+
+export const fetchFriendsLeaderboard = createAsyncThunk(
+  'leaderboard/fetchFriendsLeaderboard',
+  async () => {
+    const response = await getFriendsLeaderboard();
+    return response;
   }
 );
 
@@ -56,26 +48,26 @@ const leaderboardSlice = createSlice({
     },
     setPeriod: (state, action) => {
       state.period = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLeaderboard.pending, (state) => {
         state.status = 'loading';
-        state.error = null;
       })
       .addCase(fetchLeaderboard.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.entries = action.payload.entries;
-        state.totalEntries = action.payload.totalEntries;
-        state.period = action.payload.period;
-        state.currentPage = action.payload.page;
+        state.entries = action.payload.leaderboard;
+        state.totalEntries = action.payload.total;
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload as string;
+        state.error = action.error.message || 'Failed to fetch leaderboard';
+      })
+      .addCase(fetchFriendsLeaderboard.fulfilled, (state, action) => {
+        state.friendsEntries = action.payload;
       });
-  }
+  },
 });
 
 export const { setCurrentPage, setPeriod } = leaderboardSlice.actions;

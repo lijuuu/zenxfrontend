@@ -1,6 +1,30 @@
+
+// User related types
+export interface User {
+  id: string;
+  username: string;
+  fullName: string;
+  email: string;
+  profileImage?: string;
+  bio?: string;
+  website?: string;
+  githubProfile?: string;
+  location?: string;
+  joinedDate: string;
+  problemsSolved: number;
+  dayStreak: number;
+  ranking: number;
+  isBanned: boolean;
+  isVerified: boolean;
+  following?: number;
+  followers?: number;
+  is2FAEnabled?: boolean;
+  isOnline?: boolean;
+  country?: string;
+  countryCode?: string;
+}
 // Types based on Go backend models
 export interface UserProfile {
-  // Core identification fields
   userID: string;
   userName: string;
   firstName: string;
@@ -17,22 +41,11 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
-    website: string;
   };
   createdAt: number;
-  
-  // Additional UI fields
-  joinedDate?: string;
-  problemsSolved?: number;
-  dayStreak?: number;
-  ranking?: number;
-  is2FAEnabled?: boolean;
-  followers?: number;
-  following?: number;
-  countryCode?: string;
-  bio?: string;
-  
-  // Stats, achievements, and other data
+}
+
+export interface UserProfile extends User {
   stats: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };
@@ -49,30 +62,6 @@ export interface UserProfile {
   longestStreak?: number;
   currentRating?: number;
   globalRank?: number;
-}
-
-// We'll keep the User interface for now for backward compatibility but mark it as deprecated
-/** @deprecated Use UserProfile instead */
-export interface User {
-  id: string;
-  username: string;
-  fullName: string;
-  email: string;
-  profileImage?: string;
-  bio?: string;
-  website?: string;
-  githubProfile?: string;
-  joinedDate: string;
-  problemsSolved: number;
-  dayStreak: number;
-  ranking: number;
-  isBanned: boolean;
-  isVerified: boolean;
-  following?: number;
-  followers?: number;
-  is2FAEnabled?: boolean;
-  country?: string;
-  countryCode?: string;
 }
 
 export interface Friend {
@@ -234,15 +223,7 @@ export interface LeaderboardEntry {
 export interface AuthResponse {
   token: string;
   refreshToken: string;
-  user: UserProfile;
-}
-
-// For admin api
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  adminID: string;
+  user: User;
 }
 
 export interface LoginCredentials {
@@ -306,6 +287,27 @@ export interface CompileResponse {
 
 
 // Types based on Go backend models
+export interface UserProfile {
+  userID: string;
+  userName: string;
+  firstName: string;
+  lastName: string;
+  avatarURL: string;
+  email: string;
+  role: string;
+  country: string;
+  isBanned: boolean;
+  isVerified: boolean;
+  primaryLanguageID: string;
+  muteNotifications: boolean;
+  socials: {
+    github: string;
+    twitter: string;
+    linkedin: string;
+  };
+  createdAt: number;
+}
+
 export interface BanHistory {
   id: string;
   userID: string;
@@ -342,11 +344,26 @@ export interface AdminState {
   expiresIn: number | null;
 }
 
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  adminID: string;
+  message: string;
+}
+
 export interface UsersResponse {
   users: UserProfile[];
   totalCount: number;
   nextPageToken: string;
 }
+
+
 
 export interface File {
   id: string;
@@ -357,7 +374,6 @@ export interface File {
   lastModified: string;
 }
 
-// Exporting these again to avoid circular dependencies
 export interface CompilerResponse {
   output?: string;
   status_message?: string;
@@ -412,6 +428,7 @@ export type ApiResponsePayload = {
   is_run_testcase: boolean;
   rawoutput: ExecutionResult;
 };
+
 
 export const twoSumProblem: ProblemMetadata = {
   problem_id: "67d96452d3fe6af39801337b",
@@ -469,7 +486,7 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
     return [];
 }`,
     python: `def two_sum(nums, target):
-    // Type your code
+    # Type your code
     return []`,
   },
 };

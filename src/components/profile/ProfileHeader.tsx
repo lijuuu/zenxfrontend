@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { useAppSelector } from "@/hooks";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -9,6 +8,7 @@ import {
   UserPlus,
   UserMinus,
   Loader2,
+  MapPin,
   CalendarDays
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -31,16 +32,16 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const authState = useAppSelector((state) => state.auth);
+  const authState = useSelector((state: any) => state.auth);
   
-  const isOwnProfile = !userId || userId === profile.userID || 
+  const isOwnProfile = !userId || userId === profile.id || 
     (authState.userProfile && (userId === authState.userProfile.userID || userId === authState.userId));
   
   const handleCopyUsername = () => {
-    navigator.clipboard.writeText(profile.userName);
+    navigator.clipboard.writeText(profile.username);
     toast({
       title: "Username copied",
-      description: `@${profile.userName} copied to clipboard`,
+      description: `@${profile.username} copied to clipboard`,
     });
   };
   
@@ -55,8 +56,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
       toast({
         title: isFollowing ? "Unfollowed" : "Followed",
         description: isFollowing 
-          ? `You unfollowed @${profile.userName}` 
-          : `You are now following @${profile.userName}`,
+          ? `You unfollowed @${profile.username}` 
+          : `You are now following @${profile.username}`,
       });
     } catch (error) {
       toast({
@@ -73,10 +74,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
 
   // Get initials for avatar fallback
   const getInitials = () => {
-    const fullName = `${profile.firstName} ${profile.lastName}`;
-    const fullNameChars = fullName?.split(' ').map(n => n[0]).join('');
+    const fullNameChars = profile.fullName?.split(' ').map(n => n[0]).join('');
     if (fullNameChars) return fullNameChars;
-    if (profile.userName) return profile.userName.charAt(0).toUpperCase();
+    if (profile.username) return profile.username.charAt(0).toUpperCase();
     return "U";
   };
   
@@ -85,17 +85,21 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
       <div className="flex flex-col items-center md:items-start">
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-            <AvatarImage src={profile.avatarURL} alt={`${profile.firstName} ${profile.lastName}`} />
+            <AvatarImage src={profile.profileImage} alt={profile.fullName} />
             <AvatarFallback className="text-xl font-bold">
               {getInitials()}
             </AvatarFallback>
           </Avatar>
+          
+          {profile.isOnline && (
+            <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-background"></span>
+          )}
         </div>
         
         <div className="flex gap-2 mt-3">
           {profile.country && (
             <img 
-              src={`https://flagcdn.com/24x18/${profile.countryCode?.toLowerCase() || 'us'}.png`}
+              src={`https://flagcdn.com/24x18/${profile.countryCode?.toLowerCase()}.png`}
               alt={profile.country}
               className="h-5 rounded"
             />
@@ -105,7 +109,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
       
       <div className="flex-1 flex flex-col md:items-start items-center text-center md:text-left">
         <div className="flex flex-wrap gap-2 items-center">
-          <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+          <h1 className="text-2xl font-bold">{profile.fullName}</h1>
           
           {profile.ranking && profile.ranking <= 100 && (
             <Badge className="bg-gradient-to-r from-amber-500 to-yellow-300 text-zinc-900">
@@ -115,7 +119,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
         </div>
         
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-lg text-muted-foreground font-medium">@{profile.userName}</span>
+          <span className="text-lg text-muted-foreground font-medium">@{profile.username}</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -142,7 +146,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userId }) => {
         <div className="flex flex-wrap items-center gap-4 mt-3">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <CalendarDays className="h-4 w-4" />
-            <span>Joined {new Date(profile.createdAt).toLocaleDateString()}</span>
+            <span>Joined {new Date(profile.joinedDate).toLocaleDateString()}</span>
           </div>
           
           {profile.followers !== undefined && (

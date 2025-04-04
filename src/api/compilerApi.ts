@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { CompilerResponse } from '@/api/types/compiler';
+import { CompilerResponse } from './types/compiler';
 
 export const executeCode = async (code: string, language: string): Promise<CompilerResponse> => {
   const environment = import.meta.env.VITE_ENVIRONMENT;

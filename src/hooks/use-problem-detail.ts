@@ -2,16 +2,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAppDispatch, useAppSelector } from './index';
-import { ProblemMetadata, TestCase, ExecutionResult } from '@/api/types/problem-execution';
+import { fetchProblemByIdAPI, executeCode } from '@/api/problemApi';
+import { ProblemMetadata, TestCase, ExecutionResult, GenericResponse } from '@/api/types/problem-execution';
 import { useIsMobile } from '@/hooks/use-mobile';
-import axios from 'axios';
-import axiosInstance from '@/utils/axiosInstance';
 
 export const useProblemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const isMobile = useIsMobile();
-  const dispatch = useAppDispatch();
 
   const [isLoading, setIsLoading] = useState(true);
   const [problem, setProblem] = useState<ProblemMetadata | null>(null);
@@ -32,8 +29,7 @@ export const useProblemDetail = () => {
     
     const fetchProblem = async () => {
       try {
-        const response = await axiosInstance.get(`/problems/${id}`);
-        const problemData = response.data.payload;
+        const problemData = await fetchProblemByIdAPI(id);
         setProblem(problemData);
         
         // Get stored language preference
@@ -96,27 +92,28 @@ export const useProblemDetail = () => {
     setExecutionResult(null);
     
     try {
-      const response = await axiosInstance.post('/code/execute', {
-        problem_id: problem.problem_id,
+      const response = await executeCode(
+        problem.problem_id,
         language,
         code,
-        is_run_testcase: type === 'run'
-      });
+        type === 'run'
+      );
       
-      const result = response.data;
+      // Add type assertion to handle the response properly
+      const typedResponse = response as GenericResponse;
       
-      if (!result.success) {
+      if (!typedResponse.success) {
         // Handle error case
         let errorMsg = 'Execution error';
         
-        if (result.error) {
-          errorMsg = `${result.error.errorType}: ${result.error.message}`;
-        } else if (result.payload.rawoutput.syntaxError) {
-          errorMsg = result.payload.rawoutput.syntaxError;
+        if (typedResponse.error) {
+          errorMsg = `${typedResponse.error.errorType}: ${typedResponse.error.message}`;
+        } else if (typedResponse.payload.rawoutput.syntaxError) {
+          errorMsg = typedResponse.payload.rawoutput.syntaxError;
         }
         
         setOutput([`[Error] ${errorMsg}`]);
-        setExecutionResult(result.payload.rawoutput);
+        setExecutionResult(typedResponse.payload.rawoutput);
         setConsoleTab('output');
         
         toast.error(`${type === 'run' ? 'Run' : 'Submit'} failed`, {
@@ -124,29 +121,29 @@ export const useProblemDetail = () => {
         });
       } else {
         // Handle success case
-        const executionResult = result.payload.rawoutput;
+        const result = typedResponse.payload.rawoutput;
         
-        setExecutionResult(executionResult);
+        setExecutionResult(result);
         
-        if (executionResult.overallPass) {
+        if (result.overallPass) {
           setOutput([
             "Execution successful!",
-            `All ${executionResult.totalTestCases} test cases passed.`,
+            `All ${result.totalTestCases} test cases passed.`,
             `Status: ${type === 'run' ? 'Run' : 'Submission'} successful`
           ]);
           
           toast.success(`${type === 'run' ? 'Run' : 'Submission'} successful`, {
-            description: `All ${executionResult.totalTestCases} test cases passed!`
+            description: `All ${result.totalTestCases} test cases passed!`
           });
           
           setConsoleTab('output');
         } else {
           setOutput([
-            `[Warning] ${executionResult.passedTestCases}/${executionResult.totalTestCases} test cases passed.`,
+            `[Warning] ${result.passedTestCases}/${result.totalTestCases} test cases passed.`,
             "See the 'Test Cases' tab for details."
           ]);
           
-          toast.warning(`${executionResult.passedTestCases} of ${executionResult.totalTestCases} test cases passed`, {
+          toast.warning(`${result.passedTestCases} of ${result.totalTestCases} test cases passed`, {
             description: "Check the Test Cases tab for details"
           });
           
@@ -154,10 +151,7 @@ export const useProblemDetail = () => {
         }
       }
     } catch (error) {
-      const errorMsg = axios.isAxiosError(error) 
-        ? error.response?.data?.message || error.message 
-        : 'Network error occurred';
-      
+      const errorMsg = (error as Error).message || 'Network error occurred';
       setOutput([`[Error] ${errorMsg}`]);
       
       toast.error(`${type === 'run' ? 'Run' : 'Submit'} failed`, {
