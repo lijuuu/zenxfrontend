@@ -1,31 +1,6 @@
-
-// User related types
-export interface User {
-  id: string;
-  username: string;
-  fullName: string;
-  email: string;
-  profileImage?: string;
-  bio?: string;
-  website?: string;
-  githubProfile?: string;
-  location?: string;
-  joinedDate: string;
-  problemsSolved: number;
-  dayStreak: number;
-  ranking: number;
-  isBanned: boolean;
-  isVerified: boolean;
-  following?: number;
-  followers?: number;
-  is2FAEnabled?: boolean;
-  isOnline?: boolean;
-  country?: string;
-  countryCode?: string;
-}
-
 // Types based on Go backend models
 export interface UserProfile {
+  // Core identification fields
   userID: string;
   userName: string;
   firstName: string;
@@ -42,17 +17,26 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
+    website?: string; // Added website to socials
   };
   createdAt: number;
-  // Additional fields that are used in the UI
-  id?: string;
-  username?: string;
-  fullName?: string;
+  
+  // Additional UI fields
+  id?: string; // For compatibility with components expecting 'id'
+  username?: string; // For compatibility with components expecting 'username'
+  fullName?: string; // For compatibility with components expecting 'fullName'
   joinedDate?: string;
   problemsSolved?: number;
   dayStreak?: number;
   ranking?: number;
-  profileImage?: string;
+  profileImage?: string; // For compatibility with components expecting 'profileImage'
+  is2FAEnabled?: boolean;
+  followers?: number;
+  following?: number;
+  countryCode?: string;
+  bio?: string;
+  
+  // Stats, achievements, and other data
   stats: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };
@@ -69,6 +53,30 @@ export interface UserProfile {
   longestStreak?: number;
   currentRating?: number;
   globalRank?: number;
+}
+
+// We'll keep the User interface for now for backward compatibility but mark it as deprecated
+/** @deprecated Use UserProfile instead */
+export interface User {
+  id: string;
+  username: string;
+  fullName: string;
+  email: string;
+  profileImage?: string;
+  bio?: string;
+  website?: string;
+  githubProfile?: string;
+  joinedDate: string;
+  problemsSolved: number;
+  dayStreak: number;
+  ranking: number;
+  isBanned: boolean;
+  isVerified: boolean;
+  following?: number;
+  followers?: number;
+  is2FAEnabled?: boolean;
+  country?: string;
+  countryCode?: string;
 }
 
 export interface Friend {
@@ -230,7 +238,7 @@ export interface LeaderboardEntry {
 export interface AuthResponse {
   token: string;
   refreshToken: string;
-  user: User;
+  user: UserProfile;
 }
 
 export interface LoginCredentials {
@@ -457,7 +465,7 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
     return [];
 }`,
     python: `def two_sum(nums, target):
-    # Type your code
+    // Type your code
     return []`,
   },
 };

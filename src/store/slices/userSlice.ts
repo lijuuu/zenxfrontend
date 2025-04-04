@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { UserProfile } from '@/api/types';
 import axiosInstance from '@/utils/axiosInstance';
+import { toast } from 'sonner';
 
 export interface UserState {
   profile: UserProfile | null;
@@ -18,14 +19,15 @@ const initialState: UserState = {
 
 export const fetchUserProfile = createAsyncThunk(
   'user/fetchUserProfile',
-  async (userId: string) => {
+  async (userId?: string, { rejectWithValue }) => {
     try {
       // Using the API directly with axios
-      const response = await axiosInstance.get(`/users/${userId}`);
+      const response = await axiosInstance.get(`/users/${userId || 'current'}`);
       return response.data.payload as UserProfile;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch user profile');
+        toast.error('Failed to fetch user profile');
+        return rejectWithValue(error.response?.data?.message || 'Failed to fetch user profile');
       }
       throw error;
     }
@@ -34,13 +36,15 @@ export const fetchUserProfile = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
-  async (profileData: Partial<UserProfile>) => {
+  async (profileData: Partial<UserProfile>, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.put('/users/profile/update', profileData);
+      toast.success('Profile updated successfully');
       return response.data.payload as UserProfile;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to update profile');
+        toast.error('Failed to update profile');
+        return rejectWithValue(error.response?.data?.message || 'Failed to update profile');
       }
       throw error;
     }

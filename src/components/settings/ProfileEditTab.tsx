@@ -31,12 +31,13 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   const [github, setGithub] = useState("");
   const [twitter, setTwitter] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  const [website, setWebsite] = useState("");
   const [bio, setBio] = useState("");
 
   // Populate form with user profile data on mount
   useEffect(() => {
     if (user) {
-      setUserName(user.userName || user.username || "");
+      setUserName(user.userName || "");
       setFirstName(user.firstName || "");
       setLastName(user.lastName || "");
       setCountry(user.country || "");
@@ -49,6 +50,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
         setGithub(user.socials.github || "");
         setTwitter(user.socials.twitter || "");
         setLinkedin(user.socials.linkedin || "");
+        setWebsite(user.socials.website || "");
       }
     }
   }, [user]);
@@ -65,7 +67,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const profileData = {
+    const profileData: Partial<UserProfile> = {
       userName,
       firstName,
       lastName,
@@ -73,7 +75,12 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
       primaryLanguageID,
       muteNotifications,
       bio,
-      socials: { github, twitter, linkedin },
+      socials: { 
+        github, 
+        twitter, 
+        linkedin,
+        website
+      }
     };
     
     dispatch(updateProfile(profileData));
@@ -108,7 +115,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-1/3 flex flex-col items-center space-y-4">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={user.avatarURL || user.profileImage} />
+                  <AvatarImage src={user.avatarURL} />
                   <AvatarFallback className="bg-green-900/30 text-green-500">{getInitials()}</AvatarFallback>
                 </Avatar>
                 <Button variant="outline" className="w-full">
@@ -239,7 +246,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                 id="github"
                 value={github}
                 onChange={(e) => setGithub(e.target.value)}
-                placeholder="https://github.com/username"
+                placeholder="username"
               />
             </div>
             
@@ -249,7 +256,7 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                 id="twitter"
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
-                placeholder="https://twitter.com/username"
+                placeholder="username"
               />
             </div>
             
@@ -259,7 +266,17 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                 id="linkedin"
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
-                placeholder="https://linkedin.com/in/username"
+                placeholder="username"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://yourwebsite.com"
               />
             </div>
             
