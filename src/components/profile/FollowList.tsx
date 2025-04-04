@@ -1,212 +1,130 @@
-
 import React, { useState, useEffect } from 'react';
-import { UserProfile } from '@/api/types';
-import { getUserFollowers, getUserFollowing } from '@/api/userApi';
-import { Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useAppDispatch, useAppSelector } from '@/hooks';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { UserPlus, UserMinus, Check, Loader2 } from 'lucide-react';
+import { useAppSelector, useAppDispatch } from '@/hooks';
 import { followUser, unfollowUser } from '@/store/slices/userSlice';
-import { toast } from 'sonner';
-import { Loader2, Check, UserPlus, X } from 'lucide-react';
+import { getUserFollowers, getUserFollowing } from '@/api/userApi';
+import { UserProfile } from '@/api/types';
 
-interface FollowListProps {
+export interface FollowListProps {
   userId: string;
+  type: 'followers' | 'following';
 }
 
-const FollowList: React.FC<FollowListProps> = ({ userId }) => {
-  const [activeTab, setActiveTab] = useState('followers');
-  const [followers, setFollowers] = useState<UserProfile[]>([]);
-  const [following, setFollowing] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
-  
+const FollowList: React.FC<FollowListProps> = ({ userId, type }) => {
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector(state => state.user.profile);
-  
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    setLoading(true);
-    if (activeTab === 'followers') {
-      getUserFollowers(userId)
-        .then(data => {
-          setFollowers(data);
-          setLoading(false);
-        })
-        .catch(() => {
-          toast.error('Failed to load followers');
-          setLoading(false);
-        });
-    } else {
-      getUserFollowing(userId)
-        .then(data => {
-          setFollowing(data);
-          setLoading(false);
-        })
-        .catch(() => {
-          toast.error('Failed to load following');
-          setLoading(false);
-        });
-    }
-  }, [userId, activeTab]);
-  
-  const handleFollow = async (targetUserId: string) => {
-    if (!currentUser) return;
-    
-    setActionLoading(prev => ({ ...prev, [targetUserId]: true }));
-    
-    try {
-      await followUser(targetUserId);
-      dispatch(followUser(targetUserId));
-      toast.success('User followed successfully');
-    } catch (error) {
-      toast.error('Failed to follow user');
-    } finally {
-      setActionLoading(prev => ({ ...prev, [targetUserId]: false }));
-    }
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        let fetchedUsers: UserProfile[] = [];
+        if (type === 'followers') {
+          fetchedUsers = await getUserFollowers(userId);
+        } else {
+          fetchedUsers = await getUserFollowing(userId);
+        }
+        setUsers(fetchedUsers);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load users.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [userId, type]);
+
+  const handleFollow = (userToFollowId: string) => {
+    dispatch(followUser(userToFollowId));
+    setUsers(prevUsers =>
+      prevUsers.map(user =>
+        user.userID === userToFollowId ? { ...user, isFriend: true } : user
+      )
+    );
   };
-  
-  const handleUnfollow = async (targetUserId: string) => {
-    if (!currentUser) return;
-    
-    setActionLoading(prev => ({ ...prev, [targetUserId]: true }));
-    
-    try {
-      await unfollowUser(targetUserId);
-      dispatch(unfollowUser(targetUserId));
-      toast.success('User unfollowed successfully');
-    } catch (error) {
-      toast.error('Failed to unfollow user');
-    } finally {
-      setActionLoading(prev => ({ ...prev, [targetUserId]: false }));
-    }
+
+  const handleUnfollow = (userToUnfollowId: string) => {
+    dispatch(unfollowUser(userToUnfollowId));
+    setUsers(prevUsers =>
+      prevUsers.map(user =>
+        user.userID === userToUnfollowId ? { ...user, isFriend: false } : user
+      )
+    );
   };
-  
+
   const isFollowing = (userId: string) => {
-    return currentUser?.following?.includes(userId) || false;
+    if (!currentUser?.following) return false;
+    
+    if (Array.isArray(currentUser.following)) {
+      return currentUser.following.includes(userId);
+    } else if (typeof currentUser.following === 'number') {
+      return false; // Can't check exact follows when it's just a number
+    }
+    
+    return false;
   };
-  
+
   return (
-    <div className="bg-zinc-900/40 rounded-lg border border-zinc-800 p-4">
-      <Tabs defaultValue="followers" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 mb-4">
-          <TabsTrigger value="followers">
-            Followers <Badge className="ml-2">{followers.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="following">
-            Following <Badge className="ml-2">{following.length}</Badge>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="followers" className="mt-0">
-          {loading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold tracking-tight">
+        {type === 'followers' ? 'Followers' : 'Following'}
+      </h2>
+      {loading ? (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center space-x-4">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
             </div>
-          ) : followers.length === 0 ? (
-            <div className="text-center py-6 text-zinc-500">
-              <p>No followers yet</p>
-            </div>
-          ) : (
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-              {followers.map(user => (
-                <div key={user.userID} className="flex items-center justify-between gap-4 p-3 rounded-lg bg-zinc-800/50">
-                  <Link to={`/profile/${user.userName}`} className="flex items-center gap-3">
-                    <img 
-                      src={user.avatarURL || user.profileImage || "https://i.pravatar.cc/300"} 
-                      alt={`${user.firstName} ${user.lastName}`}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-medium">{`${user.firstName} ${user.lastName}`}</p>
-                      <p className="text-sm text-zinc-500">@{user.userName}</p>
-                    </div>
-                  </Link>
-                  
-                  {currentUser && currentUser.userID !== user.userID && (
-                    isFollowing(user.userID) ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleUnfollow(user.userID)}
-                        disabled={actionLoading[user.userID]}
-                      >
-                        {actionLoading[user.userID] ? (
-                          <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                        ) : (
-                          <Check className="h-3 w-3 mr-2" />
-                        )}
-                        Following
-                      </Button>
-                    ) : (
-                      <Button 
-                        size="sm"
-                        className="accent-color" 
-                        onClick={() => handleFollow(user.userID)}
-                        disabled={actionLoading[user.userID]}
-                      >
-                        {actionLoading[user.userID] ? (
-                          <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                        ) : (
-                          <UserPlus className="h-3 w-3 mr-2" />
-                        )}
-                        Follow
-                      </Button>
-                    )
-                  )}
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : users.length === 0 ? (
+        <p className="text-muted-foreground">No {type} found.</p>
+      ) : (
+        <div className="space-y-3">
+          {users.map((user) => (
+            <div key={user.userID} className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={user.avatarURL} alt={user.userName} />
+                  <AvatarFallback>{user.firstName[0]}{user.lastName[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium leading-none">{user.fullName || `${user.firstName} ${user.lastName}`}</p>
+                  <p className="text-sm text-muted-foreground">@{user.userName}</p>
                 </div>
-              ))}
+              </div>
+              {currentUser?.userID !== user.userID && (
+                isFollowing(user.userID) ? (
+                  <Button variant="outline" size="sm" onClick={() => handleUnfollow(user.userID)}>
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserMinus className="h-4 w-4 mr-2" />}
+                    Unfollow
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={() => handleFollow(user.userID)}>
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                    Follow
+                  </Button>
+                )
+              )}
             </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="following" className="mt-0">
-          {loading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : following.length === 0 ? (
-            <div className="text-center py-6 text-zinc-500">
-              <p>Not following anyone yet</p>
-            </div>
-          ) : (
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-              {following.map(user => (
-                <div key={user.userID} className="flex items-center justify-between gap-4 p-3 rounded-lg bg-zinc-800/50">
-                  <Link to={`/profile/${user.userName}`} className="flex items-center gap-3">
-                    <img 
-                      src={user.avatarURL || user.profileImage || "https://i.pravatar.cc/300"} 
-                      alt={`${user.firstName} ${user.lastName}`}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-medium">{`${user.firstName} ${user.lastName}`}</p>
-                      <p className="text-sm text-zinc-500">@{user.userName}</p>
-                    </div>
-                  </Link>
-                  
-                  {currentUser && currentUser.userID !== user.userID && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-red-500 hover:text-red-600 hover:bg-red-950/20"
-                      onClick={() => handleUnfollow(user.userID)}
-                      disabled={actionLoading[user.userID]}
-                    >
-                      {actionLoading[user.userID] ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                      ) : (
-                        <X className="h-3 w-3 mr-2" />
-                      )}
-                      Unfollow
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

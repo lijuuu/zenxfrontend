@@ -16,7 +16,9 @@ const store = configureStore({
     problems: problemsReducer,
     challenges: challengesReducer,
     compiler: compilerReducer,
-    leaderboard: leaderboardReducer
+    leaderboard: leaderboardReducer,
+    // Add xCodeCompiler reducer for compiler components
+    xCodeCompiler: compilerReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

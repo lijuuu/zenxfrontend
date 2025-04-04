@@ -50,17 +50,19 @@ const userSlice = createSlice({
       state.error = action.payload;
     },
     followUser: (state, action: PayloadAction<string>) => {
-      if (state.profile && !state.profile.following?.includes(action.payload)) {
+      if (state.profile) {
         if (typeof state.profile.following === 'number') {
+          // If following is a number, convert to array with the new userId
           state.profile.following = [action.payload];
         } else {
+          // If following is an array, add the new userId if not already included
           state.profile.following = [...(state.profile.following || []), action.payload];
         }
         toast.success(`You are now following this user`);
       }
     },
     unfollowUser: (state, action: PayloadAction<string>) => {
-      if (state.profile && state.profile.following) {
+      if (state.profile) {
         if (Array.isArray(state.profile.following)) {
           state.profile.following = state.profile.following.filter(id => id !== action.payload);
         } else if (typeof state.profile.following === 'number' && state.profile.following > 0) {

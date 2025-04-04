@@ -1,440 +1,343 @@
+import { ChatChannel, ChatMessage, UserProfile } from './types';
 
-import { ChatChannel, ChatMessage } from './types';
+// Mock API functions for chat
 
-// Mock data for chat channels
-const mockChannels: ChatChannel[] = [
+// Function to fetch chat channels for a user
+export const fetchChatChannels = async (userId: string): Promise<ChatChannel[]> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const channels: ChatChannel[] = [
+        {
+          id: "channel-1",
+          name: "General Chat",
+          description: "A public channel for general discussions.",
+          type: "public",
+          lastMessage: "Hello everyone!",
+          lastMessageTime: new Date().toISOString(),
+          unreadCount: 3,
+          participants: [],
+        },
+        {
+          id: "channel-2",
+          name: "Project Alpha",
+          description: "A private channel for the Project Alpha team.",
+          type: "private",
+          lastMessage: "Progress update: UI is almost done.",
+          lastMessageTime: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+          unreadCount: 0,
+          participants: [],
+        },
+        {
+          id: "channel-3",
+          name: "John Doe",
+          type: "direct",
+          lastMessage: "Hey, how's it going?",
+          lastMessageTime: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
+          unreadCount: 1,
+          participants: [],
+          isOnline: true
+        },
+        {
+          id: "channel-4",
+          name: "Jane Smith",
+          type: "direct",
+          lastMessage: "I finished the task.",
+          lastMessageTime: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          unreadCount: 0,
+          participants: [],
+          isOnline: false
+        }
+      ];
+      resolve(channels);
+    }, 500);
+  });
+};
+
+// Function to fetch messages for a specific chat channel
+export const fetchChatMessages = async (channelId: string): Promise<ChatMessage[]> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const messages: ChatMessage[] = [
+        {
+          id: "message-1",
+          channelId: channelId,
+          sender: {
+            id: "user-1",
+            username: "johndoe",
+            profileImage: "/assets/avatars/avatar-1.png",
+            isOnline: true
+          },
+          content: "Hello everyone!",
+          timestamp: new Date().toISOString(),
+          isCurrentUser: true,
+          attachments: [],
+          liked: true,
+          likeCount: 3
+        },
+        {
+          id: "message-2",
+          channelId: channelId,
+          sender: {
+            id: "user-2",
+            username: "janesmith",
+            profileImage: "/assets/avatars/avatar-2.png",
+            isOnline: false
+          },
+          content: "Hi John!",
+          timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 minutes ago
+          isCurrentUser: false,
+          attachments: [],
+          liked: false,
+          likeCount: 0
+        },
+        {
+          id: "message-3",
+          channelId: channelId,
+          sender: {
+            id: "user-1",
+            username: "johndoe",
+            profileImage: "/assets/avatars/avatar-1.png",
+            isOnline: true
+          },
+          content: "How's the project going?",
+          timestamp: new Date(Date.now() - 900000).toISOString(), // 15 minutes ago
+          isCurrentUser: true,
+          attachments: [],
+          liked: false,
+          likeCount: 1
+        },
+        {
+          id: "message-4",
+          channelId: channelId,
+          sender: {
+            id: "user-2",
+            username: "janesmith",
+            profileImage: "/assets/avatars/avatar-2.png",
+            isOnline: false
+          },
+          content: "Almost done with the UI.",
+          timestamp: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+          isCurrentUser: false,
+          attachments: [],
+          liked: true,
+          likeCount: 2
+        },
+        {
+          id: "message-5",
+          channelId: channelId,
+          sender: {
+            id: "user-1",
+            username: "johndoe",
+            profileImage: "/assets/avatars/avatar-1.png",
+            isOnline: true
+          },
+          content: "Great!",
+          timestamp: new Date().toISOString(),
+          isCurrentUser: true,
+          attachments: [],
+          liked: false,
+          likeCount: 0
+        }
+      ];
+      resolve(messages);
+    }, 300);
+  });
+};
+
+// Function to send a new message to a chat channel
+export const sendChatMessage = async (channelId: string, content: string): Promise<ChatMessage> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const newMessage: ChatMessage = {
+        id: `message-${Date.now()}`,
+        channelId: channelId,
+        sender: {
+          id: "user-1",
+          username: "johndoe",
+          profileImage: "/assets/avatars/avatar-1.png",
+          isOnline: true
+        },
+        content: content,
+        timestamp: new Date().toISOString(),
+        isCurrentUser: true,
+        attachments: [],
+        liked: false,
+        likeCount: 0
+      };
+      resolve(newMessage);
+    }, 400);
+  });
+};
+
+// Function to like a message
+export const likeMessage = async (messageId: string): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, 200);
+  });
+};
+
+// Function to unlike a message
+export const unlikeMessage = async (messageId: string): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, 200);
+  });
+};
+
+// Function to create a new chat channel
+export const createChatChannel = async (name: string, description?: string, type: 'public' | 'private' = 'public'): Promise<ChatChannel> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const newChannel: ChatChannel = {
+        id: `channel-${Date.now()}`,
+        name: name,
+        description: description,
+        type: type,
+        lastMessage: "",
+        lastMessageTime: new Date().toISOString(),
+        unreadCount: 0,
+        participants: []
+      };
+      resolve(newChannel);
+    }, 500);
+  });
+};
+
+// Function to add a user to a chat channel
+export const addUserToChannel = async (channelId: string, userId: string): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, 300);
+  });
+};
+
+// Function to remove a user from a chat channel
+export const removeUserFromChannel = async (channelId: string, userId: string): Promise<void> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, 300);
+  });
+};
+
+// Mock user data for testing purposes
+const users: UserProfile[] = [
   {
-    id: "general",
-    name: "General",
-    description: "Community chat for all topics",
-    type: "public",
-    lastMessage: "Try using a hash map to store the elements you've seen",
-    lastMessageTime: "2023-04-02T13:02:00Z"
-  },
-  {
-    id: "easy-problems",
-    name: "Easy Problems",
-    description: "Discussion for easy difficulty problems",
-    type: "public",
-    lastMessage: "Two Sum is a classic problem to start with",
-    lastMessageTime: "2023-04-01T22:30:00Z"
-  },
-  {
-    id: "medium-problems",
-    name: "Medium Problems",
-    description: "Discussion for medium difficulty problems",
-    type: "public",
-    lastMessage: "Has anyone solved the LRU Cache problem?",
-    lastMessageTime: "2023-04-02T16:45:00Z"
-  },
-  {
-    id: "hard-problems",
-    name: "Hard Problems",
-    description: "Discussion for hard difficulty problems",
-    type: "public",
-    lastMessage: "The dynamic programming approach works better here",
-    lastMessageTime: "2023-04-02T14:20:00Z"
-  },
-  {
-    id: "contests",
-    name: "Contests",
-    description: "Discussions about contests and competitions",
-    type: "public",
-    lastMessage: "Weekly contest starting in 2 hours",
-    lastMessageTime: "2023-04-02T08:10:00Z"
-  },
-  {
-    id: "job-hunting",
-    name: "Job Hunting",
-    description: "Career advice and job opportunities",
-    type: "public",
-    lastMessage: "Google is hiring for SWE positions",
-    lastMessageTime: "2023-04-01T19:15:00Z"
-  },
-  {
-    id: "interviews",
-    name: "Interviews",
-    description: "Interview preparation and experiences",
-    type: "public",
-    lastMessage: "What's your approach to system design interviews?",
-    lastMessageTime: "2023-04-02T11:30:00Z"
-  },
-  {
-    id: "dm-4",
-    name: "Sophie Williams",
-    type: "direct",
+    userID: "user-1",
+    userName: "johndoe",
+    firstName: "John",
+    lastName: "Doe",
+    avatarURL: "/assets/avatars/avatar-1.png",
+    email: "john.doe@example.com",
+    role: "user",
+    country: "US",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "github.com/johndoe",
+      twitter: "twitter.com/johndoe",
+      linkedin: "linkedin.com/in/johndoe",
+      website: "johndoe.com"
+    },
+    createdAt: Date.now(),
+    
+    // Backward compatibility fields
+    profileImage: "/assets/avatars/avatar-1.png",
+    joinedDate: "2021-01-01",
+    problemsSolved: 248,
+    dayStreak: 45,
+    ranking: 121,
+    is2FAEnabled: false,
+    followers: [],
+    following: [],
     isOnline: true,
-    lastMessage: "I'm creating a new challenge, want to join?",
-    lastMessageTime: "2023-04-02T15:30:00Z"
+    
+    stats: {
+      easy: { solved: 100, total: 150 },
+      medium: { solved: 80, total: 200 },
+      hard: { solved: 68, total: 100 }
+    },
+    achievements: {
+      weeklyContests: 15,
+      monthlyContests: 5,
+      specialEvents: 3
+    },
+    badges: [],
+    activityHeatmap: { data: [], totalContributions: 350, currentStreak: 45, longestStreak: 60 }
   },
   {
-    id: "dm-5",
-    name: "Taylor Smith",
-    type: "direct",
+    userID: "user-2",
+    userName: "janesmith",
+    firstName: "Jane",
+    lastName: "Smith",
+    avatarURL: "/assets/avatars/avatar-2.png",
+    email: "jane.smith@example.com",
+    role: "user",
+    country: "UK",
+    isBanned: false,
+    isVerified: true,
+    primaryLanguageID: "en",
+    muteNotifications: false,
+    socials: {
+      github: "github.com/janesmith",
+      twitter: "twitter.com/janesmith",
+      linkedin: "linkedin.com/in/janesmith",
+      website: "janesmith.com"
+    },
+    createdAt: Date.now(),
+    
+    // Backward compatibility fields
+    profileImage: "/assets/avatars/avatar-2.png",
+    joinedDate: "2021-03-15",
+    problemsSolved: 197,
+    dayStreak: 23,
+    ranking: 245,
+    is2FAEnabled: true,
+    followers: [],
+    following: [],
     isOnline: false,
-    lastMessage: "Check out this private challenge I created",
-    lastMessageTime: "2023-04-03T09:45:00Z"
-  },
-  {
-    id: "dm-3",
-    name: "Mike Chen",
-    type: "direct",
-    isOnline: true,
-    lastMessage: "Let's practice for the upcoming contest",
-    lastMessageTime: "2023-04-03T11:20:00Z"
+    
+    stats: {
+      easy: { solved: 85, total: 150 },
+      medium: { solved: 72, total: 200 },
+      hard: { solved: 40, total: 100 }
+    },
+    achievements: {
+      weeklyContests: 10,
+      monthlyContests: 3,
+      specialEvents: 2
+    },
+    badges: [],
+    activityHeatmap: { data: [], totalContributions: 280, currentStreak: 23, longestStreak: 35 }
   }
 ];
 
-// Mock message data for different channels
-const mockMessages: Record<string, ChatMessage[]> = {
-  "general": [
-    {
-      id: "m1",
-      channelId: "general",
-      sender: {
-        id: "4",
-        username: "Alice",
-        profileImage: "https://i.pravatar.cc/300?img=5"
-      },
-      content: "Hey, anyone working on the Two Sum problem?",
-      timestamp: "2023-04-02T12:47:00Z"
-    },
-    {
-      id: "m2",
-      channelId: "general",
-      sender: {
-        id: "5",
-        username: "Bob",
-        profileImage: "https://i.pravatar.cc/300?img=8"
-      },
-      content: "Yeah, I solved it using a hash map. What approach are you using?",
-      timestamp: "2023-04-02T12:52:00Z"
-    },
-    {
-      id: "m3",
-      channelId: "general",
-      sender: {
-        id: "1",
-        username: "Me",
-        profileImage: "https://i.pravatar.cc/300?img=1"
-      },
-      content: "I'm struggling with the time complexity. My brute force approach is O(n²) but I think there's a more efficient way.",
-      timestamp: "2023-04-02T12:57:00Z",
-      isCurrentUser: true
-    },
-    {
-      id: "m4",
-      channelId: "general",
-      sender: {
-        id: "4",
-        username: "Alice",
-        profileImage: "https://i.pravatar.cc/300?img=5"
-      },
-      content: "Try using a hash map to store the elements you've seen. It can reduce time complexity to O(n).",
-      timestamp: "2023-04-02T13:02:00Z"
-    },
-    {
-      id: "m5",
-      channelId: "general",
-      sender: {
-        id: "5",
-        username: "Bob",
-        profileImage: "https://i.pravatar.cc/300?img=8"
-      },
-      content: "Exactly. As you iterate through the array, check if the complement (target - current element) exists in the hash map. If it does, you've found your pair.",
-      timestamp: "2023-04-02T13:07:00Z"
-    }
-  ],
-  "dm-4": [
-    {
-      id: "dm4-1",
-      channelId: "dm-4",
-      sender: {
-        id: "4",
-        username: "Sophie",
-        profileImage: "https://i.pravatar.cc/300?img=9",
-        isOnline: true
-      },
-      content: "Hey! How's your practice going?",
-      timestamp: "2023-04-02T14:45:00Z"
-    },
-    {
-      id: "dm4-2",
-      channelId: "dm-4",
-      sender: {
-        id: "1",
-        username: "Me",
-        profileImage: "https://i.pravatar.cc/300?img=1"
-      },
-      content: "Pretty good! Working on dynamic programming problems this week.",
-      timestamp: "2023-04-02T14:48:00Z",
-      isCurrentUser: true
-    },
-    {
-      id: "dm4-3",
-      channelId: "dm-4",
-      sender: {
-        id: "4",
-        username: "Sophie",
-        profileImage: "https://i.pravatar.cc/300?img=9",
-        isOnline: true
-      },
-      content: "Nice! I'm creating a new challenge focused on graph algorithms.",
-      timestamp: "2023-04-02T14:52:00Z"
-    },
-    {
-      id: "dm4-4",
-      channelId: "dm-4",
-      sender: {
-        id: "4",
-        username: "Sophie",
-        profileImage: "https://i.pravatar.cc/300?img=9",
-        isOnline: true
-      },
-      content: "I'm creating a new challenge, want to join?",
-      timestamp: "2023-04-02T15:30:00Z",
-      attachments: [
-        {
-          type: "challenge-invite",
-          content: "Data Structure Masters",
-          challengeId: "c2",
-          challengeTitle: "Data Structure Masters",
-          isPrivate: false
-        }
-      ]
-    }
-  ],
-  "dm-5": [
-    {
-      id: "dm5-1",
-      channelId: "dm-5",
-      sender: {
-        id: "5",
-        username: "Taylor",
-        profileImage: "https://i.pravatar.cc/300?img=5",
-        isOnline: false
-      },
-      content: "Hi there! Would you be interested in a 1v1 coding challenge?",
-      timestamp: "2023-04-03T09:30:00Z"
-    },
-    {
-      id: "dm5-2",
-      channelId: "dm-5",
-      sender: {
-        id: "1",
-        username: "Me",
-        profileImage: "https://i.pravatar.cc/300?img=1"
-      },
-      content: "Absolutely! What kind of problems are you thinking?",
-      timestamp: "2023-04-03T09:33:00Z",
-      isCurrentUser: true
-    },
-    {
-      id: "dm5-3",
-      channelId: "dm-5",
-      sender: {
-        id: "5",
-        username: "Taylor",
-        profileImage: "https://i.pravatar.cc/300?img=5",
-        isOnline: false
-      },
-      content: "I was thinking hard difficulty, focused on dynamic programming and backtracking.",
-      timestamp: "2023-04-03T09:38:00Z"
-    },
-    {
-      id: "dm5-4",
-      channelId: "dm-5",
-      sender: {
-        id: "5",
-        username: "Taylor",
-        profileImage: "https://i.pravatar.cc/300?img=5",
-        isOnline: false
-      },
-      content: "Check out this private challenge I created",
-      timestamp: "2023-04-03T09:45:00Z",
-      attachments: [
-        {
-          type: "challenge-invite",
-          content: "Private Coding Duel",
-          challengeId: "c4",
-          challengeTitle: "Private Coding Duel",
-          isPrivate: true,
-          accessCode: "XYZ123"
-        }
-      ]
-    }
-  ],
-  "dm-3": [
-    {
-      id: "dm3-1",
-      channelId: "dm-3",
-      sender: {
-        id: "3",
-        username: "Mike",
-        profileImage: "https://i.pravatar.cc/300?img=3",
-        isOnline: true
-      },
-      content: "Hey! Are you preparing for the upcoming weekly contest?",
-      timestamp: "2023-04-03T10:45:00Z"
-    },
-    {
-      id: "dm3-2",
-      channelId: "dm-3",
-      sender: {
-        id: "1",
-        username: "Me",
-        profileImage: "https://i.pravatar.cc/300?img=1"
-      },
-      content: "Yes! Looking forward to it. How about you?",
-      timestamp: "2023-04-03T10:50:00Z",
-      isCurrentUser: true
-    },
-    {
-      id: "dm3-3",
-      channelId: "dm-3",
-      sender: {
-        id: "3",
-        username: "Mike",
-        profileImage: "https://i.pravatar.cc/300?img=3",
-        isOnline: true
-      },
-      content: "Same here. We should practice together before the contest.",
-      timestamp: "2023-04-03T10:55:00Z"
-    },
-    {
-      id: "dm3-4",
-      channelId: "dm-3",
-      sender: {
-        id: "3",
-        username: "Mike",
-        profileImage: "https://i.pravatar.cc/300?img=3",
-        isOnline: true
-      },
-      content: "Let's practice for the upcoming contest",
-      timestamp: "2023-04-03T11:20:00Z"
-    }
-  ]
-};
-
-// API functions
-export const getChannels = async (): Promise<ChatChannel[]> => {
+// Function to get user profile by ID
+export const getUserProfile = async (userId: string): Promise<UserProfile | undefined> => {
   return new Promise(resolve => {
-    setTimeout(() => resolve(mockChannels), 500);
+    setTimeout(() => {
+      const user = users.find(u => u.userID === userId);
+      resolve(user);
+    }, 300);
   });
 };
 
-export const getMessages = async (channelId: string, options?: { limit?: number; before?: string }): Promise<ChatMessage[]> => {
+// Function to simulate searching for users
+export const searchUsers = async (query: string): Promise<UserProfile[]> => {
   return new Promise(resolve => {
-    let messages = mockMessages[channelId] || [];
-    
-    if (options?.before) {
-      const beforeIndex = messages.findIndex(m => m.id === options.before);
-      if (beforeIndex !== -1) {
-        messages = messages.slice(0, beforeIndex);
-      }
-    }
-    
-    if (options?.limit && messages.length > options.limit) {
-      messages = messages.slice(messages.length - options.limit);
-    }
-    
-    setTimeout(() => resolve(messages), 600);
-  });
-};
-
-export const sendMessage = async (channelId: string, content: string, attachments?: any[]): Promise<ChatMessage> => {
-  return new Promise(resolve => {
-    const newMessage: ChatMessage = {
-      id: `m${Date.now()}`,
-      channelId,
-      sender: {
-        id: "1",
-        username: "Me",
-        profileImage: "https://i.pravatar.cc/300?img=1"
-      },
-      content,
-      timestamp: new Date().toISOString(),
-      isCurrentUser: true,
-      attachments
-    };
-    
-    setTimeout(() => resolve(newMessage), 300);
-  });
-};
-
-export const sendChallengeInvite = async (channelId: string, challenge: { id: string; title: string; isPrivate: boolean; accessCode?: string }): Promise<ChatMessage> => {
-  return new Promise(resolve => {
-    const newMessage: ChatMessage = {
-      id: `m${Date.now()}`,
-      channelId,
-      sender: {
-        id: "1",
-        username: "Me",
-        profileImage: "https://i.pravatar.cc/300?img=1"
-      },
-      content: challenge.isPrivate 
-        ? `Join my private challenge: ${challenge.title}` 
-        : `Join my challenge: ${challenge.title}`,
-      timestamp: new Date().toISOString(),
-      isCurrentUser: true,
-      attachments: [
-        {
-          type: "challenge-invite",
-          content: challenge.title,
-          challengeId: challenge.id,
-          challengeTitle: challenge.title,
-          isPrivate: challenge.isPrivate,
-          accessCode: challenge.accessCode
-        }
-      ]
-    };
-    
-    setTimeout(() => resolve(newMessage), 300);
-  });
-};
-
-export const createDirectChannel = async (userId: string): Promise<ChatChannel> => {
-  return new Promise((resolve, reject) => {
-    // In a real app, this would create or retrieve an existing DM channel
-    setTimeout(() => resolve({
-      id: `dm-${userId}`,
-      name: "Direct Message",
-      type: "direct",
-      participants: [
-        {
-          id: "1",
-          username: "johndoe",
-          fullName: "John Doe",
-          email: "john.doe@example.com",
-          profileImage: "https://i.pravatar.cc/300?img=1",
-          joinedDate: "2022-01-15",
-          problemsSolved: 147,
-          dayStreak: 26,
-          ranking: 354,
-          isBanned: false,
-          isVerified: true
-        },
-        {
-          id: userId,
-          username: userId === "4" ? "Alice" : "Bob",
-          fullName: userId === "4" ? "Alice Johnson" : "Bob Smith",
-          email: userId === "4" ? "alice@example.com" : "bob@example.com",
-          profileImage: `https://i.pravatar.cc/300?img=${userId === "4" ? "5" : "8"}`,
-          joinedDate: "2022-02-20",
-          problemsSolved: 120,
-          dayStreak: 15,
-          ranking: 450,
-          isBanned: false,
-          isVerified: true
-        }
-      ]
-    }), 700);
-  });
-};
-
-export const getDirectChannels = async (): Promise<ChatChannel[]> => {
-  return new Promise(resolve => {
-    const directChannels = mockChannels.filter(channel => channel.type === "direct");
-    setTimeout(() => resolve(directChannels), 500);
+    setTimeout(() => {
+      const results = users.filter(user =>
+        user.userName.toLowerCase().includes(query.toLowerCase()) ||
+        user.firstName.toLowerCase().includes(query.toLowerCase()) ||
+        user.lastName.toLowerCase().includes(query.toLowerCase())
+      );
+      resolve(results);
+    }, 400);
   });
 };

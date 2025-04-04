@@ -1,7 +1,7 @@
 
 // Instead of re-exporting all types, we'll selectively re-export to avoid conflicts
 import { ActivityDay } from './problem-execution';
-export { ActivityDay } from './problem-execution';
+export type { ActivityDay } from './problem-execution';
 
 // Define common response types
 export interface LoginResponse {
@@ -358,6 +358,37 @@ export interface Comment {
 }
 
 // For backwards compatibility - define joinChallengeWithCode function in challengeApi
-export function joinChallengeWithCode(code: string): Promise<any> {
-  return Promise.resolve({ success: true });
+export interface ChallengeJoinResponse {
+  success: boolean;
+  challenge: Challenge;
+}
+
+export function joinChallengeWithCode(code: string): Promise<ChallengeJoinResponse> {
+  return Promise.resolve({ 
+    success: true,
+    challenge: {
+      id: "mock-challenge-id",
+      title: "Mock Challenge",
+      description: "This is a mock challenge",
+      difficulty: "Medium",
+      type: "battle",
+      accessCode: code,
+      createdAt: new Date().toISOString(),
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "active",
+      isPrivate: true,
+      inviteCode: code,
+      
+      // For backward compatibility
+      createdBy: {
+        id: "user-123",
+        username: "user123",
+        profileImage: "/assets/avatars/avatar-1.png"
+      },
+      participants: [],
+      problemCount: 5,
+      isActive: true
+    }
+  });
 }
