@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { RefreshCw, CheckCircle, XCircle, Plus, Terminal, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TestCase, ExecutionResult } from "@/api/types/problem-execution";
+import { TestCase, ExecutionResult } from "@/api/types";
 
 interface ConsoleProps {
   output: string[];

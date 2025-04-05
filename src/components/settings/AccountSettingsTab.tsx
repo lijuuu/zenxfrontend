@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "@/api/types";
+import { UserProfile } from "@/api/types";
 import { useMutation } from "@tanstack/react-query";
 import { setUpTwoFactorAuth } from "@/api/userApi";
 import { toast } from "sonner";
 
 interface AccountSettingsTabProps {
-  user: User;
+  user: UserProfile;
 }
 
 const AccountSettingsTab: React.FC<AccountSettingsTabProps> = ({ user }) => {

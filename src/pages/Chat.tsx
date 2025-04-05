@@ -104,7 +104,7 @@ const Chat = () => {
   const filteredChats = chats ? chats.filter((chat: ChatChannel) => 
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (chat.participants && chat.participants.some(participant => 
-      participant.username.toLowerCase().includes(searchQuery.toLowerCase())
+      participant.userName.toLowerCase().includes(searchQuery.toLowerCase())
     ))
   ) : [];
   
@@ -217,7 +217,7 @@ const Chat = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <span className="font-medium truncate">
-                                  {chat.name || (chat.participants && chat.participants[0] ? chat.participants[0].username : 'Chat')}
+                                  {chat.name || (chat.participants && chat.participants[0] ? chat.participants[0].userName : 'Chat')}
                                 </span>
                                 <span className="text-xs text-zinc-500">
                                   {new Date(chat.lastMessageTime || '').toLocaleTimeString([], { 
@@ -279,7 +279,7 @@ const Chat = () => {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
                                   <span className="font-medium truncate">
-                                    {chat.name || (chat.participants && chat.participants[0] ? chat.participants[0].username : 'Chat')}
+                                    {chat.name || (chat.participants && chat.participants[0] ? chat.participants[0].userName : 'Chat')}
                                   </span>
                                   <span className="text-xs text-zinc-500">
                                     {new Date(chat.lastMessageTime || '').toLocaleTimeString([], { 
@@ -391,7 +391,7 @@ const Chat = () => {
                   
                   <div>
                     <h3 className="font-medium">
-                      {selectedChat.name || (selectedChat.participants && selectedChat.participants[0] ? selectedChat.participants[0].username : 'Chat')}
+                      {selectedChat.name || (selectedChat.participants && selectedChat.participants[0] ? selectedChat.participants[0].userName : 'Chat')}
                     </h3>
                     <div className="text-xs text-zinc-400">
                       {selectedChat.type === 'public' 
