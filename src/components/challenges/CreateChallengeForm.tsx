@@ -38,7 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { createChallenge } from "@/api/challengeApi";
-import { Challenge, User as UserType } from "@/api/types";
+import { Challenge, UserProfile } from "@/api/types";
 import {
   FileCode,
   Lock,
@@ -78,8 +78,8 @@ interface CreateChallengeFormProps {
 // Create a simplified Friend type that doesn't need all User properties
 interface FriendItem {
   id: string;
-  username: string;
-  fullName: string;
+  userName: string;
+  firstName: string;
   profileImage: string;
   isOnline?: boolean;
 }
@@ -105,18 +105,18 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   ]);
   const [selectedFriends, setSelectedFriends] = useState<FriendItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<UserType[]>([]);
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
   // Mock friends
-  const friends: FriendItem[] = [
-    { id: '1', username: 'sophiew', fullName: 'Sophie Williams', profileImage: 'https://i.pravatar.cc/300?img=9', isOnline: true },
-    { id: '2', username: 'tsmith', fullName: 'Taylor Smith', profileImage: 'https://i.pravatar.cc/300?img=5', isOnline: false },
-    { id: '3', username: 'mchen', fullName: 'Mike Chen', profileImage: 'https://i.pravatar.cc/300?img=3', isOnline: true },
-    { id: '4', username: 'alexj', fullName: 'Alex Johnson', profileImage: 'https://i.pravatar.cc/300?img=4', isOnline: false },
-    { id: '5', username: 'ewilson', fullName: 'Emma Wilson', profileImage: 'https://i.pravatar.cc/300?img=2', isOnline: true },
+  const friends: UserProfile[] = [
+    { userID: '1', userName: 'sophiew', firstName: 'Sophie Williams', profileImage: 'https://i.pravatar.cc/300?img=9', isOnline: true },
+    { userID: '2', userName: 'tsmith', firstName: 'Taylor Smith', profileImage: 'https://i.pravatar.cc/300?img=5', isOnline: false },
+    { userID: '3', userName: 'mchen', firstName: 'Mike Chen', profileImage: 'https://i.pravatar.cc/300?img=3', isOnline: true },
+    { userID: '4', userName: 'alexj', firstName: 'Alex Johnson', profileImage: 'https://i.pravatar.cc/300?img=4', isOnline: false },
+    { userID: '5', userName: 'ewilson', firstName: 'Emma Wilson', profileImage: 'https://i.pravatar.cc/300?img=2', isOnline: true },
   ];
 
   const form = useForm<FormValues>({
@@ -184,12 +184,12 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     }
   };
 
-  const toggleFriendSelection = (friend: FriendItem | UserType) => {
+  const toggleFriendSelection = (friend: FriendItem | UserProfile) => {
     // Create a FriendItem from either a FriendItem or UserType
     const friendItem: FriendItem = {
-      id: friend.id,
-      username: friend.username,
-      fullName: friend.fullName,
+      id: friend.userID,
+      userName: friend.userName,
+      firstName: friend.firstName,
       profileImage: friend.profileImage || '',
       isOnline: 'isOnline' in friend ? friend.isOnline : undefined
     };
@@ -624,7 +624,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                                   <div className="relative mr-3">
                                     <img 
                                       src={friend.profileImage} 
-                                      alt={friend.fullName} 
+                                      alt={friend.firstName} 
                                       className="w-10 h-10 rounded-full"
                                     />
                                     {friend.isOnline && (
@@ -632,9 +632,9 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                                     )}
                                   </div>
                                   <div>
-                                    <h4 className="font-medium text-sm">{friend.fullName}</h4>
+                                    <h4 className="font-medium text-sm">{friend.firstName}</h4>
                                     <p className="text-xs text-muted-foreground">
-                                      @{friend.username} • {friend.isOnline ? 'Online' : 'Offline'}
+                                      @{friend.userName} • {friend.isOnline ? 'Online' : 'Offline'}
                                     </p>
                                   </div>
                                 </div>
@@ -663,10 +663,10 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                         <div className="space-y-2">
                           {searchResults.map((user) => (
                             <Card 
-                              key={user.id} 
+                              key={user.userID} 
                               className={cn(
                                 "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.id === user.id)
+                                selectedFriends.some(f => f.id === user.userID)
                                   ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
                                   : "hover:bg-accent/5"
                               )}
@@ -676,16 +676,16 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                                 <div className="flex items-center">
                                   <img 
                                     src={user.profileImage} 
-                                    alt={user.fullName} 
+                                    alt={user.firstName} 
                                     className="w-10 h-10 rounded-full mr-3"
                                   />
                                   <div>
-                                    <h4 className="font-medium text-sm">{user.fullName}</h4>
-                                    <p className="text-xs text-muted-foreground">@{user.username}</p>
+                                    <h4 className="font-medium text-sm">{user.firstName}</h4>
+                                    <p className="text-xs text-muted-foreground">@{user.userName}</p>
                                   </div>
                                 </div>
                                 
-                                {selectedFriends.some(f => f.id === user.id) ? (
+                                {selectedFriends.some(f => f.id === user.userID) ? (
                                   <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
                                 ) : (
                                   <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
@@ -722,10 +722,10 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                         >
                           <img 
                             src={friend.profileImage} 
-                            alt={friend.username}
+                            alt={friend.userName}
                             className="w-5 h-5 rounded-full"
                           />
-                          <span>{friend.fullName}</span>
+                          <span>{friend.firstName}</span>
                           <X 
                             className="h-3 w-3 ml-1 cursor-pointer opacity-70 hover:opacity-100" 
                             onClick={(e) => {

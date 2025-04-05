@@ -1,16 +1,16 @@
 // User related types
 export interface UserProfile {
   // Core identification fields
-  userID: string;
-  userName: string;
-  firstName: string;
+  userID?: string;
+  userName?: string;
+  firstName?: string;
   lastName?: string;
   avatarURL?: string;
-  email: string;
+  email?: string;
   role?: string;
   country?: string;
-  isBanned: boolean;
-  isVerified: boolean;
+  isBanned?: boolean;
+  isVerified?: boolean;
   primaryLanguageID?: string;
   muteNotifications?: boolean;
   socials?: {
