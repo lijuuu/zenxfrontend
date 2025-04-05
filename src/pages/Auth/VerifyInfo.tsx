@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import image from "@/assets/email.png";
 import { resendEmail, setAuthLoading } from "@/store/slices/authSlice";
@@ -22,7 +23,6 @@ const VerifyInfo = () => {
       navigate("/login");
     } else {
       setEmailVerified(email);
-      // dispatch(resendEmail({ email }) as any);
     }
   }, [dispatch, navigate]);
 
@@ -47,8 +47,6 @@ const VerifyInfo = () => {
     if (successMessage && !loading) {
       toast.success(successMessage);
     }
-   //console.log("success in verifiy info, ",successMessage)
-   //console.log("error in verifiy info, ",error)
     
     if (error?.type == "ERR_ALREADY_VERIFIED"){
       navigate("/login")
@@ -73,14 +71,14 @@ const VerifyInfo = () => {
   }, []);
 
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50">
-      <Loader1 className="w-12 h-12 mr-10 text-blue-800" />
-      <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50 font-roboto">
+      <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
+      <div className="text-white text-xl opacity-80 mt-24">
         Sending verification email...
       </div>
       <button
         onClick={onCancel}
-        className="text-white text-sm font-coinbase-sans mt-4 underline hover:text-blue-800 transition-colors duration-200"
+        className="text-white text-base mt-4 underline hover:text-[#3CE7B2] transition-colors duration-200"
       >
         Cancel
       </button>
@@ -88,7 +86,7 @@ const VerifyInfo = () => {
   );
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen relative">
+    <div className="flex flex-col items-center justify-center h-screen relative font-roboto">
       {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
       <img
         src={image}
@@ -99,17 +97,17 @@ const VerifyInfo = () => {
         }}
       />
       <h1 className="text-4xl font-bold text-white mix-blend-difference">Verify your email</h1>
-      <p className="text-sm text-gray-400 mt-2">
+      <p className="text-base text-gray-400 mt-2">
         Check your email for a verification link.
       </p>
-      <p className="text-md text-center text-gray-400 mt-2">{emailVerified}</p>
+      <p className="text-lg text-center text-gray-400 mt-2">{emailVerified}</p>
       {remainingTime !== null && remainingTime > 0 ? (
-        <p className="text-sm text-gray-400 mt-2">
+        <p className="text-base text-gray-400 mt-2">
           Wait {remainingTime} seconds to resend email
         </p>
       ) : (
         <button
-          className="text-sm text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md mt-5"
+          className="text-base text-white bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] px-4 py-2 rounded-md mt-5 font-medium"
           onClick={handleResendEmail}
           disabled={loading}
         >

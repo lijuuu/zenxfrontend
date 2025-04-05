@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -27,6 +26,8 @@ export default {
 				display: ['Urbanist', 'SF Pro Display', 'Inter', 'sans-serif'],
 				mono: ['JetBrains Mono', 'Consolas', 'Monaco', 'monospace'],
 				inter: ['Inter', 'sans-serif'],
+				roboto: ['Roboto', 'sans-serif'],
+				urbanist: ['Urbanist', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

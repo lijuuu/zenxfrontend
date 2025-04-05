@@ -14,11 +14,11 @@ const SimpleHeader: React.FC<SimpleHeaderProps> = ({ page, name }) => {
   return (
     <div className="flex justify-between items-center p-6">
       <div className="flex items-center">
-        <div className="text-xl font-bold text-white font-inter">zenx</div>
+        <div className="text-xl font-bold text-white font-roboto">zenx</div>
       </div>
       <Button
         onClick={() => navigate(page)}
-        className="bg-[#2C2C2C] hover:bg-[#3CE7B2] hover:text-[#121212] text-white rounded-md px-4 py-2 transition-all duration-200"
+        className="bg-[#2C2C2C] hover:bg-[#3CE7B2] hover:text-[#121212] text-white rounded-md px-4 py-2 transition-all duration-200 font-roboto"
       >
         {name}
       </Button>

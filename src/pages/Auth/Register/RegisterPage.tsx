@@ -100,7 +100,7 @@ function RegisterPage() {
 
   // Loader Overlay Component
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50 font-roboto">
       <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
       <div className="text-white text-xl opacity-80 mt-24">Creating your account</div>
       <button
@@ -120,7 +120,7 @@ function RegisterPage() {
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative font-inter">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative font-roboto">
       {loading && <LoaderOverlay onCancel={() => {}} />}
       <div className="w-full bg-[#2C2C2C] h-2">
         <div

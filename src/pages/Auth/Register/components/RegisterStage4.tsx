@@ -48,7 +48,7 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
   };
 
   return (
-    <div className="flex flex-col bg-[#121212] text-white">
+    <div className="flex flex-col bg-[#121212] text-white font-roboto">
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
@@ -57,15 +57,15 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
+          <p className="text-center text-gray-400 mb-6 text-base">
             Please set your password
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onFormSubmit)}>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-white">
+              <Label htmlFor="password" className="text-sm font-medium text-white">
                 Password
               </Label>
               <Input
@@ -73,16 +73,16 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
                 type="password"
                 {...register('password')}
                 className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]',
+                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
                   errors.password ? 'border-[#3CE7B2]' : ''
                 )}
               />
               {errors.password && (
-                <p className="text-xs text-[#3CE7B2]">{errors.password.message}</p>
+                <p className="text-sm text-[#3CE7B2]">{errors.password.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm text-white">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-white">
                 Confirm Password
               </Label>
               <Input
@@ -90,25 +90,25 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
                 type="password"
                 {...register('confirmPassword')}
                 className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]',
+                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
                   errors.confirmPassword ? 'border-[#3CE7B2]' : ''
                 )}
               />
               {errors.confirmPassword && (
-                <p className="text-xs text-[#3CE7B2]">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-[#3CE7B2]">{errors.confirmPassword.message}</p>
               )}
             </div>
             <div className="flex justify-between space-x-2">
               <Button
                 type="button"
                 onClick={onBack}
-                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md"
+                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md text-base"
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md"
+                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base"
               >
                 Submit
               </Button>

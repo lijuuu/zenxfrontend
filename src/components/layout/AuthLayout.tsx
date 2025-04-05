@@ -24,7 +24,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   fullHeight = true,
 }) => {
   return (
-    <div className={`bg-[#121212] text-white ${fullHeight ? "min-h-screen" : ""} flex flex-col font-inter`}>
+    <div className={`bg-[#121212] text-white ${fullHeight ? "min-h-screen" : ""} flex flex-col font-roboto`}>
       {/* Green accent bar at top */}
       <div className="bg-[#3CE7B2] h-2 w-full" />
       
@@ -39,12 +39,12 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {(title || subtitle) && (
             <div className="mb-8 text-center">
               {title && (
-                <h1 className="text-3xl font-bold font-inter tracking-tight mb-2">
+                <h1 className="text-3xl font-bold tracking-tight mb-2">
                   {title}
                 </h1>
               )}
               {subtitle && (
-                <p className="text-gray-400 font-inter">
+                <p className="text-gray-400 text-base">
                   {subtitle}
                 </p>
               )}

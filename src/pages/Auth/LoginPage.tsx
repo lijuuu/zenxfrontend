@@ -46,7 +46,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#121212] text-white font-inter">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white font-roboto">
       <div className="bg-[#3CE7B2] h-2 w-full" />
       
       <div className="flex justify-between items-center p-6">
@@ -64,7 +64,7 @@ const LoginPage = () => {
       <div className="flex-grow flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg hover:border-gray-700 transition-all duration-300">
           <h1 className="text-2xl font-bold text-center mb-2">Welcome back</h1>
-          <p className="text-center text-gray-400 mb-6 text-sm">
+          <p className="text-center text-gray-400 mb-6 text-base">
             Log in to your account to continue
           </p>
 
@@ -75,7 +75,7 @@ const LoginPage = () => {
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm">
+                <Label htmlFor="email" className="text-sm font-medium">
                   Email
                 </Label>
                 <Input
@@ -84,21 +84,21 @@ const LoginPage = () => {
                   placeholder="m@example.com"
                   {...register('email')}
                   className={cn(
-                    'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]',
+                    'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
                     errors.email ? 'border-[#3CE7B2]' : ''
                   )}
                 />
                 {errors.email && (
-                  <p className="text-xs text-[#3CE7B2]">{errors.email.message}</p>
+                  <p className="text-sm text-[#3CE7B2]">{errors.email.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <Label htmlFor="password" className="text-sm">
+                  <Label htmlFor="password" className="text-sm font-medium">
                     Password
                   </Label>
-                  <Link to="/forgot-password" className="text-xs text-[#3CE7B2] hover:underline">
+                  <Link to="/forgot-password" className="text-sm text-[#3CE7B2] hover:underline">
                     Forgot password?
                   </Link>
                 </div>
@@ -109,7 +109,7 @@ const LoginPage = () => {
                     placeholder="••••••••"
                     {...register('password')}
                     className={cn(
-                      'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]',
+                      'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
                       errors.password ? 'border-[#3CE7B2]' : ''
                     )}
                   />
@@ -122,39 +122,39 @@ const LoginPage = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-[#3CE7B2]">{errors.password.message}</p>
+                  <p className="text-sm text-[#3CE7B2]">{errors.password.message}</p>
                 )}
               </div>
 
-              {error && <p className="text-xs text-[#3CE7B2]">{error}</p>}
+              {error && <p className="text-sm text-[#3CE7B2]">{error}</p>}
 
               <Button
                 type="submit"
-                className="w-full bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md"
+                className="w-full bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base"
               >
                 Sign in
               </Button>
             </form>
           )}
 
-          <div className="mt-4 text-center text-xs text-gray-400">OR</div>
+          <div className="mt-4 text-center text-sm text-gray-400">OR</div>
           
           <div className="mt-4 space-y-2">
             <Button
               type="button"
-              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center"
+              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center text-base"
             >
               Sign in with Google
             </Button>
             <Button
               type="button"
-              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center"
+              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center text-base"
             >
               Sign in with Github
             </Button>
           </div>
 
-          <p className="mt-6 text-center text-xs text-gray-400">
+          <p className="mt-6 text-center text-sm text-gray-400">
             Don't have an account?{' '}
             <Link to="/register" className="text-[#3CE7B2] hover:underline">
               Sign up
