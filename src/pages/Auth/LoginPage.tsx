@@ -1,261 +1,169 @@
 
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser, clearAuthState, setAuthLoading, resendEmail } from "@/store/slices/authSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import Cookies from "js-cookie";
-import Loader1 from "@/components/ui/loader1";
-import { handleError, handleInfo } from "@/components/sub/ErrorToast";
-import MainNavbar from "@/components/common/MainNavbar";
-import axios from "axios";
-import SimpleSpinLoader from "@/components/ui/simplespinloader"
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { loginUser } from '@/store/slices/authSlice';
+import AuthLayout from '@/components/layout/AuthLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import Loader1 from '@/components/ui/loader1';
+import { Link } from 'react-router-dom';
 
-const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
-    <SimpleSpinLoader className="w-12 h-12 text-green-500" />
-    {/* <div className="text-white text-md opacity-80 ">
-      Logging in...
-    </div> */}
-    {/* <button
-      onClick={onCancel}
-      className="text-gray-400 text-sm mt-4 underline hover:text-green-500 transition-colors duration-200"
-    >
-      Cancel
-    </button> */}
-  </div>
-);
+// Form schema
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
 
-// --- LoginForm Component ---
-function LoginForm() {
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
-
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-
-  const loginSchema = React.useMemo(
-    () =>
-      z.object({
-        email: z.string().min(1, "Email is required").email("Invalid email address"),
-        password: z
-          .string()
-          .min(6, "Password must be at least 6 characters")
-          .regex(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-            "Password must have uppercase, lowercase, number, and special character"
-          )
-          .max(20, "Password must be less than 20 characters"),
-        code: twoFactorEnabled
-          ? z.string().min(6, "Code must be 6 characters").nonempty("2FA code is required")
-          : z.string().optional(),
-      }),
-    [twoFactorEnabled]
-  );
-
-  type LoginFormData = z.infer<typeof loginSchema>;
+  const { loading, error } = useSelector((state: any) => state.auth);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
-  } = useForm<LoginFormData>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
-  const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
-
-  // Watch the email field from the form
-  const formEmail = watch("email");
-
-  const onSubmit = (data: LoginFormData) => {
-
-    dispatch(loginUser({
-      email: data.email,
-      password: data.password,
-      code: data.code
-    }) as any);
+  const onSubmit = (data: LoginFormValues) => {
+    dispatch(loginUser(data) as any);
   };
 
-  // Single useEffect for auth state and navigation
-  useEffect(() => {
-    // //console.log("useEffect triggered");
-    // //console.log("isAuthenticated:", isAuthenticated);
-    // //console.log("userProfile:", userProfile);
-    // //console.log("loading:", loading);
-    // //console.log("error:", error);
-
-    if (userProfile?.isVerified) {
-      // //console.log("User is authenticated and verified. Navigating to /dashboard...");
-      navigate("/dashboard");
-      toast.success(successMessage || "Login successful!");
-    } else if (error) {
-      //console.log("Error detected:", error);
-
-      if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
-        //console.log("User is not verified. Navigating to /verify-info...");
-        Cookies.set("emailtobeverified", formEmail);
-        navigate("/verify-info");
-        handleInfo(error);
-      } else {
-        //console.log("An unknown error occurred:", error.message);
-        toast.error(error.message || "An error occurred");
-      }
-
-      //console.log("Clearing auth state...");
-      dispatch(clearAuthState());
-    }
-  }, [isAuthenticated, userProfile, loading, error, navigate, successMessage, dispatch, formEmail]);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const accessToken = Cookies.get("accessToken");
-    if (accessToken) {
-      navigate("/dashboard");
-      toast.success("Logged in!");
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (formEmail && formEmail.includes("@") && formEmail.includes(".")) {
-      axios
-        .get(`http://localhost:7000/api/v1/auth/2fa/status?email=${formEmail}`)
-        .then((res: any) => {
-          setTwoFactorEnabled(res.data.payload.isEnabled);
-        })
-        .catch((err: any) => {
-          setTwoFactorEnabled(false);
-        });
-    } else {
-      setTwoFactorEnabled(false);
-    }
-  }, [formEmail]);
-
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
-      <MainNavbar isAuthenticated={false} />
-      <div className="flex justify-center items-center flex-1 pt-16">
-        {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
-        <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-lg p-6 hover:border-zinc-700 transition-all duration-300">
-          <div className="space-y-1">
-            <h2 className="text-2xl text-center font-bold text-white">
-              Login to your account
-            </h2>
-            <p className="text-zinc-500 text-center text-sm">
-              Enter your email below to login to your account
-            </p>
-          </div>
-          <div className="pt-6">
-            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white font-inter">
+      <div className="bg-[#3CE7B2] h-2 w-full" />
+      
+      <div className="flex justify-between items-center p-6">
+        <div className="flex items-center">
+          <div className="text-xl font-bold text-white">zenx</div>
+        </div>
+        <Button
+          onClick={() => navigate('/register')}
+          className="bg-[#2C2C2C] hover:bg-[#3CE7B2] hover:text-[#121212] text-white rounded-md px-4 py-2 transition-all duration-200"
+        >
+          Sign Up
+        </Button>
+      </div>
+
+      <div className="flex-grow flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg hover:border-gray-700 transition-all duration-300">
+          <h1 className="text-2xl font-bold text-center mb-2">Welcome back</h1>
+          <p className="text-center text-gray-400 mb-6 text-sm">
+            Log in to your account to continue
+          </p>
+
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Loader1 className="w-10 h-10 text-[#3CE7B2]" />
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm text-white">
+                <Label htmlFor="email" className="text-sm">
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
-                  {...register("email")}
+                  {...register('email')}
+                  className={cn(
+                    'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]',
+                    errors.email ? 'border-[#3CE7B2]' : ''
+                  )}
                 />
                 {errors.email && (
-                  <p className="text-green-500 text-sm">{errors.email.message}</p>
+                  <p className="text-xs text-[#3CE7B2]">{errors.email.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password" className="text-sm text-white">
+                <div className="flex justify-between">
+                  <Label htmlFor="password" className="text-sm">
                     Password
                   </Label>
+                  <Link to="/forgot-password" className="text-xs text-[#3CE7B2] hover:underline">
+                    Forgot password?
+                  </Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
-                  {...register("password")}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    {...register('password')}
+                    className={cn(
+                      'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]',
+                      errors.password ? 'border-[#3CE7B2]' : ''
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
                 {errors.password && (
-                  <p className="text-green-500 text-start mt-2 text-sm">{errors.password.message}</p>
+                  <p className="text-xs text-[#3CE7B2]">{errors.password.message}</p>
                 )}
               </div>
-              {twoFactorEnabled && (
-                <div className="mt-4 text-center text-sm mb-4 text-gray-400">
-                  <p>Two-factor authentication is enabled for your account.</p>
-                  <p>Please enter the code from your authenticator app.</p>
-                  <Input
-                    id="code"
-                    type="text"
-                    placeholder="Enter the code"
-                    {...register("code")}
-                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 mt-4 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
-                  />
-                  {errors.code && (
-                    <p className="text-green-500 text-sm mt-4">{errors.code.message}</p>
-                  )}
-                </div>
-              )}
-              {error && !loading && (
-                <p className="text-green-500 text-sm">Login failed</p>
-              )}
+
+              {error && <p className="text-xs text-[#3CE7B2]">{error}</p>}
 
               <Button
                 type="submit"
-                className="w-full bg-green-500 text-black hover:bg-green-600 py-3 rounded-md transition-colors duration-200"
-                disabled={loading}
+                className="w-full bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md"
               >
-                {loading ? "Logging in..." : "Login"}
+                Sign in
               </Button>
             </form>
+          )}
 
-            <div className="mt-4 text-center text-xs text-gray-400">OR</div>
-            <div className="mt-4 space-y-2">
-              <Button
-                type="button"
-                className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
-              >
-                Sign up with Google
-              </Button>
-              <Button
-                type="button"
-                className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
-              >
-                Sign up with Github
-              </Button>
-            </div>
-
-            <div className="mt-4 text-center text-sm text-gray-400 flex">
-              {loading ? (
-                <span>Loading...</span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => navigate("/signup")}
-                  className="font-sm underline-offset-4 hover:text-green-500 transition-colors duration-200"
-                >
-                  Don't have an account?{" "}
-                </button>
-              )}
-
-              <a
-                href="/forgot-password"
-                className="ml-auto text-sm text-gray-400 hover:text-green-500 transition-colors duration-200"
-              >
-                Forgot password?
-              </a>
-            </div>
+          <div className="mt-4 text-center text-xs text-gray-400">OR</div>
+          
+          <div className="mt-4 space-y-2">
+            <Button
+              type="button"
+              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center"
+            >
+              Sign in with Google
+            </Button>
+            <Button
+              type="button"
+              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center"
+            >
+              Sign in with Github
+            </Button>
           </div>
+
+          <p className="mt-6 text-center text-xs text-gray-400">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-[#3CE7B2] hover:underline">
+              Sign up
+            </Link>
+          </p>
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default LoginForm;
+export default LoginPage;

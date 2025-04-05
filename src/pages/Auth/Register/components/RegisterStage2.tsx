@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,26 +16,47 @@ const stage2Schema = z.object({
 
 type Stage2FormData = z.infer<typeof stage2Schema>;
 
+interface RegisterStage2Props extends React.ComponentPropsWithoutRef<'div'> {
+  email: string;
+  onNext: (data: Stage2FormData) => void;
+  onBack: () => void;
+  setFormData: (data: Stage2FormData) => void;
+  initialData?: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
 function RegisterStage2({
   email,
   onNext,
   onBack,
   setFormData,
+  initialData = { firstName: '', lastName: '' },
   className,
   ...props
-}: React.ComponentPropsWithoutRef<'div'> & {
-  email: string;
-  onNext: (data: Stage2FormData) => void;
-  onBack: () => void;
-  setFormData: (data: Stage2FormData) => void;
-}) {
+}: RegisterStage2Props) {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue
   } = useForm<Stage2FormData>({
     resolver: zodResolver(stage2Schema),
+    defaultValues: {
+      firstName: initialData.firstName,
+      lastName: initialData.lastName
+    }
   });
+
+  useEffect(() => {
+    if (initialData.firstName) {
+      setValue('firstName', initialData.firstName);
+    }
+    if (initialData.lastName) {
+      setValue('lastName', initialData.lastName);
+    }
+  }, [initialData, setValue]);
 
   const onSubmit = (data: Stage2FormData) => {
     setFormData(data);
@@ -51,10 +73,10 @@ function RegisterStage2({
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm">
+          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
             Please enter your name
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

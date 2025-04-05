@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -92,31 +93,48 @@ const CountriesWithFlags = ({
   );
 };
 
+interface RegisterStage3Props extends React.ComponentPropsWithoutRef<'div'> {
+  email: string;
+  onNext: (data: Stage3FormData) => void;
+  onBack: () => void;
+  setFormData: (data: Stage3FormData) => void;
+  initialData?: {
+    country: string;
+    profession: string;
+  };
+}
+
 function RegisterStage3({
   email,
   onNext,
   onBack,
   setFormData,
+  initialData = { country: '', profession: '' },
   className,
   ...props
-}: React.ComponentPropsWithoutRef<'div'> & {
-  email: string;
-  onNext: (data: Stage3FormData) => void;
-  onBack: () => void;
-  setFormData: (data: Stage3FormData) => void;
-}) {
+}: RegisterStage3Props) {
   const {
     control,
     register,
     handleSubmit,
     formState: { errors },
+    setValue
   } = useForm<Stage3FormData>({
     resolver: zodResolver(stage3Schema),
     defaultValues: {
-      country: '',
-      profession: '',
+      country: initialData.country,
+      profession: initialData.profession,
     },
   });
+
+  useEffect(() => {
+    if (initialData.country) {
+      setValue('country', initialData.country);
+    }
+    if (initialData.profession) {
+      setValue('profession', initialData.profession);
+    }
+  }, [initialData, setValue]);
 
   const onSubmit = (data: Stage3FormData) => {
     setFormData(data);
@@ -133,10 +151,10 @@ function RegisterStage3({
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm">
+          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
             Please provide your user information
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

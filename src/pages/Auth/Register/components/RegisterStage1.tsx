@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,23 +17,39 @@ const stage1Schema = z.object({
 
 type Stage1FormData = z.infer<typeof stage1Schema>;
 
+interface SignupFormProps extends React.ComponentPropsWithoutRef<'div'> {
+  onNext: () => void;
+  setFormData: (data: Stage1FormData) => void;
+  initialData?: {
+    email: string;
+  };
+}
+
 function SignupForm({
   onNext,
   setFormData,
+  initialData = { email: '' },
   className,
   ...props
-}: React.ComponentPropsWithoutRef<'div'> & {
-  onNext: () => void;
-  setFormData: (data: Stage1FormData) => void;
-}) {
+}: SignupFormProps) {
   const { error } = useSelector((state: any) => state.auth);
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue
   } = useForm<Stage1FormData>({
     resolver: zodResolver(stage1Schema),
+    defaultValues: {
+      email: initialData.email
+    }
   });
+
+  useEffect(() => {
+    if (initialData.email) {
+      setValue('email', initialData.email);
+    }
+  }, [initialData.email, setValue]);
 
   useEffect(() => {
     Cookies.remove('emailtobeverified');
@@ -54,11 +71,11 @@ function SignupForm({
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
             Create your account
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm">
-            Register your account to access all that xcode has to offer
+          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
+            Register your account to access all that zenx has to offer
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">

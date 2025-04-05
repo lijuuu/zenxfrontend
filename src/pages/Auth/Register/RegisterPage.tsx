@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -119,7 +120,7 @@ function RegisterPage() {
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative font-inter">
       {loading && <LoaderOverlay onCancel={() => {}} />}
       <div className="w-full bg-[#2C2C2C] h-2">
         <div
@@ -133,6 +134,7 @@ function RegisterPage() {
           <SignupForm
             onNext={handleStage1Submit}
             setFormData={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+            initialData={formData}
           />
         )}
         {stage === 2 && (
@@ -141,6 +143,7 @@ function RegisterPage() {
             onNext={handleStage2Submit}
             onBack={goBack}
             setFormData={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+            initialData={formData}
           />
         )}
         {stage === 3 && (
@@ -149,6 +152,7 @@ function RegisterPage() {
             onNext={handleStage3Submit}
             onBack={goBack}
             setFormData={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+            initialData={formData}
           />
         )}
         {stage === 4 && (
