@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {  Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity } from "lucide-react";
+import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import {  getUserChallenges } from "@/api/challengeApi";
-import { getUserProfile } from "@/api/userApi";
-import {  Challenge } from "@/api/types";
+import { getUserChallenges } from "@/api/challengeApi";
+import { Challenge } from "@/api/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
@@ -19,23 +18,21 @@ import ProblemsSolvedChart from "@/components/profile/ProblemsSolvedChart";
 import RecentSubmissions from "@/components/profile/RecentSubmissions";
 import ProfileAchievements from "@/components/profile/ProfileAchievements";
 import MainNavbar from "@/components/common/MainNavbar";
+import { useGetUserProfile } from "@/services/useGetUserProfile";
 
 const Profile = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userID } = useParams<{ userID: string }>();
   const { toast } = useToast();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const isMobile = useIsMobile();
-  
-  const { 
-    data: profile, 
-    isLoading: profileLoading, 
-    isError: profileError 
-  } = useQuery({
-    queryKey: ["profile", userId],
-    queryFn: () => getUserProfile(userId || 'current'),
-    retry: false,
-  });
-  
+
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+    error
+  } = useGetUserProfile(userID);
+
   useEffect(() => {
     const loadChallenges = async () => {
       if (profile) {
@@ -52,14 +49,15 @@ const Profile = () => {
         }
       }
     };
-    
+
     loadChallenges();
   }, [profile, toast]);
-  
+
+  console.log("profile ",profile)
   // Count private and public challenges
   const privateChallenges = challenges.filter(c => c.isPrivate).length;
   const publicChallenges = challenges.filter(c => !c.isPrivate).length;
-  
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-zinc-900 text-white pt-5 pb-8">
@@ -89,7 +87,7 @@ const Profile = () => {
       </div>
     );
   }
-  
+
   if (profileError) {
     return (
       <div className="min-h-screen bg-zinc-900 text-white pt-5 pb-8">
@@ -106,10 +104,10 @@ const Profile = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen  text-white">
-      <MainNavbar/>
+      <MainNavbar />
       <main className="pt-20 pb-8">
         <div className="page-container">
           <div className="w-full max-w-6xl mx-auto">
@@ -117,10 +115,10 @@ const Profile = () => {
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardContent className="p-6">
                 {/* Profile Header Section */}
-                <ProfileHeader profile={profile!} userID={userId} />
+                <ProfileHeader profile={profile!} userID={userID} />
               </CardContent>
             </Card>
-            
+
             {/* Stats Section */}
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardHeader className="pb-2">
@@ -130,7 +128,7 @@ const Profile = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <ProfileStats profile={profile!} />
-                
+
                 {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card className="bg-zinc-800 border-zinc-700">
                     <CardHeader className="p-4 pb-2">
@@ -200,7 +198,7 @@ const Profile = () => {
                 </div> */}
               </CardContent>
             </Card>
-            
+
             {/* Activity Section - Only show on small screens */}
             {isMobile && (
               <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50 sm:hidden">
@@ -214,7 +212,7 @@ const Profile = () => {
                 </CardContent>
               </Card>
             )}
-            
+
             {/* Activity & Challenges Section */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column - Problems Solved */}
@@ -225,7 +223,7 @@ const Profile = () => {
                     <TabsTrigger value="submissions" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">Recent Submissions</TabsTrigger>
                     <TabsTrigger value="achievements" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">Achievements</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="problems" className="mt-4">
                     <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                       <CardContent className="p-4">
@@ -233,7 +231,7 @@ const Profile = () => {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="submissions" className="mt-4">
                     <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                       <CardContent className="p-4">
@@ -241,7 +239,7 @@ const Profile = () => {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="achievements" className="mt-4">
                     <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                       <CardContent className="p-4">
@@ -251,7 +249,7 @@ const Profile = () => {
                   </TabsContent>
                 </Tabs>
               </div>
-              
+
               {/* Right Column - Challenges */}
               <div className="lg:col-span-4">
                 <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
@@ -265,7 +263,7 @@ const Profile = () => {
                   </CardHeader>
                   <CardContent>
                     <ChallengesList challenges={challenges} />
-                    
+
                     <div className="mt-4 pt-4 border-t border-zinc-700/50">
                       <Button className="w-full bg-green-500 hover:bg-green-600">
                         <Puzzle className="mr-2 h-4 w-4" />
@@ -274,7 +272,7 @@ const Profile = () => {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {profile?.website || profile?.githubProfile || profile?.location ? (
                   <Card className="mt-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                     <CardHeader className="pb-2">
@@ -282,9 +280,9 @@ const Profile = () => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {profile?.website && (
-                        <a 
+                        <a
                           href={profile.website}
-                          target="_blank" 
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
@@ -292,11 +290,11 @@ const Profile = () => {
                           <span className="text-sm truncate">{profile.website}</span>
                         </a>
                       )}
-                      
+
                       {profile?.githubProfile && (
-                        <a 
+                        <a
                           href={`https://github.com/${profile.githubProfile}`}
-                          target="_blank" 
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
@@ -304,7 +302,7 @@ const Profile = () => {
                           <span className="text-sm truncate">{profile.githubProfile}</span>
                         </a>
                       )}
-                      
+
                       {profile?.location && (
                         <div className="flex items-center gap-2 text-zinc-400">
                           <MapPin className="h-4 w-4" />

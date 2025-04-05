@@ -7,19 +7,19 @@ interface ProblemsSolvedChartProps {
 }
 
 const ProblemsSolvedChart: React.FC<ProblemsSolvedChartProps> = ({ profile }) => {
-  
   const easyColor = '#22c55e'; // green-500
   const mediumColor = '#f59e0b'; // amber-500
   const hardColor = '#ef4444'; // red-500
-  
-  const { easy, medium, hard } = profile.stats;
-  
+
+  const { easy = { solved: 0, total: 0 }, medium = { solved: 0, total: 0 }, hard = { solved: 0, total: 0 } } =
+    profile.stats || {};
+
   const data = [
     { name: 'Easy', value: easy.solved, color: easyColor, total: easy.total },
     { name: 'Medium', value: medium.solved, color: mediumColor, total: medium.total },
-    { name: 'Hard', value: hard.solved, color: hardColor, total: hard.total }
+    { name: 'Hard', value: hard.solved, color: hardColor, total: hard.total },
   ];
-  
+
   const total = easy.solved + medium.solved + hard.solved;
   const totalAvailable = easy.total + medium.total + hard.total;
   

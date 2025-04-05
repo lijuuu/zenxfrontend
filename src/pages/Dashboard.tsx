@@ -1,12 +1,8 @@
 
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { fetchUserProfile } from '@/store/slices/userSlice';
 import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import StatsCard from '@/components/common/StatsCard';
 import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
@@ -15,22 +11,17 @@ import { getUserProfile } from '@/api/userApi';
 import { getProblems } from '@/api/problemApi';
 import { getChallenges } from '@/api/challengeApi';
 import { getLeaderboard } from '@/api/leaderboardApi';
-import { useIsMobile } from '@/hooks/use-mobile';
 import MainNavbar from '@/components/common/MainNavbar';
+import {useGetUserProfile} from "@/services/useGetUserProfile"
 
 const Dashboard = () => {
-  const { toast } = useToast();
-  const dispatch = useAppDispatch();
-  const userProfile = useAppSelector((state) => state.user.profile);
-  const isMobile = useIsMobile();
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isError: profileError,
+    error
+  } = useGetUserProfile();
 
-  useEffect(() => {
-    // Scroll to top on component mount
-    window.scrollTo(0, 0);
-
-    // Load user profile on mount
-    dispatch(fetchUserProfile('1'));
-  }, [dispatch]);
 
   // Fetch problem stats with React Query
   const { data: problemStats } = useQuery({
@@ -50,11 +41,6 @@ const Dashboard = () => {
     queryFn: () => getLeaderboard({ period: 'weekly' }),
   });
 
-  // Fetch user profile with React Query (separate from Redux for demonstration)
-  const { data: userProfileData } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: () => getUserProfile('1'),
-  });
 
   // Navigate to other pages
   const navigate = useNavigate();
@@ -101,27 +87,27 @@ const Dashboard = () => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Problems Solved"
-                  value={userProfileData?.problemsSolved || 147}
+                  value={userProfile?.problemsSolved || 147}
                   change="+3 this week"
                   icon={<Code className="h-4 w-4 text-green-400" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Streak"
-                  value={`${userProfileData?.dayStreak || 26} days`}
+                  value={`${userProfile?.dayStreak || 26} days`}
                   icon={<Zap className="h-4 w-4 text-amber-400" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Global Rank"
-                  value={`#${userProfileData?.ranking || 354}`}
+                  value={`#${userProfile?.ranking || 354}`}
                   change="+12"
                   icon={<Trophy className="h-4 w-4 text-amber-500" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Rating"
-                  value={userProfileData?.ranking || 354}
+                  value={userProfile?.ranking || 354}
                   change="+15"
                   icon={<Award className="h-4 w-4 text-blue-400" />}
                 />

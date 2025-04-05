@@ -1,4 +1,3 @@
-
 import HomeComponent from '@/components/common/Home'
 
 const Home = () => {

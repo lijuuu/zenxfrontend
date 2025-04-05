@@ -8,29 +8,32 @@ interface ProfileStatsProps {
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
   // Calculate total problems
-  const totalSolved = (profile.stats?.easy?.solved || 0) +
-    (profile.stats?.medium?.solved || 0) +
-    (profile.stats?.hard?.solved || 0);
+  const totalSolved =
+    (profile?.stats?.easy?.solved || 0) +
+    (profile?.stats?.medium?.solved || 0) +
+    (profile?.stats?.hard?.solved || 0);
 
-  const totalAvailable = (profile.stats?.easy?.total || 0) +
-    (profile.stats?.medium?.total || 0) +
-    (profile.stats?.hard?.total || 0);
+  const totalAvailable =
+    (profile?.stats?.easy?.total || 0) +
+    (profile?.stats?.medium?.total || 0) +
+    (profile?.stats?.hard?.total || 0);
 
-  // Calculate problem percentages
-  const easyPercentage = profile.stats?.easy?.total
-    ? Math.round(((profile.stats?.easy?.solved || 0) / profile.stats?.easy?.total) * 100)
+  // Calculate problem percentages safely
+  const easyPercentage = profile?.stats?.easy?.total
+    ? Math.round(((profile?.stats?.easy?.solved || 0) / profile?.stats?.easy?.total) * 100)
     : 0;
 
-  const mediumPercentage = profile.stats?.medium?.total
-    ? Math.round(((profile.stats?.medium?.solved || 0) / profile.stats?.medium?.total) * 100)
+  const mediumPercentage = profile?.stats?.medium?.total
+    ? Math.round(((profile?.stats?.medium?.solved || 0) / profile?.stats?.medium?.total) * 100)
     : 0;
 
-  const hardPercentage = profile.stats?.hard?.total
-    ? Math.round(((profile.stats?.hard?.solved || 0) / profile.stats?.hard?.total) * 100)
+  const hardPercentage = profile?.stats?.hard?.total
+    ? Math.round(((profile?.stats?.hard?.solved || 0) / profile?.stats?.hard?.total) * 100)
     : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Problems Solved */}
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-green-100/50 dark:bg-green-900/20 flex items-center justify-center">
           <CheckCircle className="h-6 w-6 text-green-500" />
@@ -38,7 +41,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         <div>
           <p className="text-sm text-muted-foreground">Problems Solved</p>
           <div className="mt-1 flex items-baseline">
-            <span className="text-xl font-bold">{profile.problemsSolved}</span>
+            <span className="text-xl font-bold">{totalSolved}</span>
             <span className="ml-1 text-xs text-muted-foreground">/ {totalAvailable}</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -49,6 +52,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         </div>
       </div>
 
+      {/* Contest Participation */}
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-blue-100/50 dark:bg-blue-900/20 flex items-center justify-center">
           <Trophy className="h-6 w-6 text-blue-500" />
@@ -57,17 +61,20 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
           <p className="text-sm text-muted-foreground">Contest Participation</p>
           <div className="mt-1 flex items-baseline">
             <span className="text-xl font-bold">
-              {profile.achievements.weeklyContests + profile.achievements.monthlyContests + profile.achievements.specialEvents}
+              {(profile?.achievements?.weeklyContests || 0) +
+                (profile?.achievements?.monthlyContests || 0) +
+                (profile?.achievements?.specialEvents || 0)}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span>Weekly: {profile.achievements.weeklyContests}</span>
-            <span>Monthly: {profile.achievements.monthlyContests}</span>
-            <span>Special: {profile.achievements.specialEvents}</span>
+            <span>Weekly: {profile?.achievements?.weeklyContests || 0}</span>
+            <span>Monthly: {profile?.achievements?.monthlyContests || 0}</span>
+            <span>Special: {profile?.achievements?.specialEvents || 0}</span>
           </div>
         </div>
       </div>
 
+      {/* Global Ranking */}
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-purple-100/50 dark:bg-purple-900/20 flex items-center justify-center">
           <BarChart3 className="h-6 w-6 text-purple-500" />
@@ -75,15 +82,21 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         <div>
           <p className="text-sm text-muted-foreground">Global Ranking</p>
           <div className="mt-1 flex items-baseline">
-            <span className="text-xl font-bold">#{profile.globalRank || '-'}</span>
+            <span className="text-xl font-bold">#{profile?.globalRank || '-'}</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span>Rating: {profile.currentRating || 0}</span>
-            <span>Top {profile.ranking <= 100 ? profile.ranking : Math.round(profile.ranking / 100) * 100}</span>
+            <span>Rating: {profile?.currentRating || 0}</span>
+            <span>
+              Top{" "}
+              {profile?.ranking && profile?.ranking <= 100
+                ? profile?.ranking
+                : Math.round((profile?.ranking || 0) / 100) * 100}
+            </span>
           </div>
         </div>
       </div>
 
+      {/* Challenge Stats */}
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 flex items-center justify-center">
           <Puzzle className="h-6 w-6 text-amber-500" />
@@ -91,12 +104,12 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         <div>
           <p className="text-sm text-muted-foreground">Challenge Stats</p>
           <div className="mt-1 flex items-baseline">
-            <span className="text-xl font-bold">{profile.badges?.length || 0}</span>
+            <span className="text-xl font-bold">{profile?.badges?.length || 0}</span>
             <span className="ml-1 text-xs text-muted-foreground">badges earned</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span>Public: {profile.achievements?.weeklyContests || 0}</span>
-            <span>Private: {profile.achievements?.monthlyContests || 0}</span>
+            <span>Public: {profile?.achievements?.weeklyContests || 0}</span>
+            <span>Private: {profile?.achievements?.monthlyContests || 0}</span>
           </div>
         </div>
       </div>

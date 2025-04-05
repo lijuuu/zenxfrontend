@@ -2,6 +2,7 @@
 import { UserProfile } from '@/store/slices/authSlice';
 import { mockUsers, mockFriends } from './mockData';
 import {  Friend } from './types';
+import axiosInstance from '@/utils/axiosInstance';
 
 export const getFriends = async (): Promise<Friend[]> => {
   return new Promise(resolve => {
@@ -41,25 +42,34 @@ export const getRecentlyActiveFriends = async (): Promise<Friend[]> => {
   });
 };
 
-// Add missing functions
-export const getUserProfile = async (userId: string): Promise<UserProfile> => {
-  return new Promise(resolve => {
-    const user = mockUsers.find(u => u.userID === userId) || mockUsers[0];
-    setTimeout(() => resolve(user), 500);
-  });
-};
-
-export const updateUserProfile = async (profileData: Partial<any>): Promise<any> => {
-  return new Promise(resolve => {
-    // Simulate API call to update profile
-    console.log('Updating profile with data:', profileData);
-    setTimeout(() => resolve(profileData), 700);
-  });
-};
-
 export const setUpTwoFactorAuth = async (): Promise<{ qrCode: string }> => {
   return new Promise(resolve => {
     // Simulate 2FA setup
     setTimeout(() => resolve({ qrCode: 'https://example.com/qr-code.png' }), 800);
   });
+};
+
+
+export const getUserProfile = async (userID?: string): Promise<UserProfile> => {
+  const url = userID ? `/users/public/profile/${userID}` : `/users/profile`;
+  const res = await axiosInstance.get(url, {
+    headers: {
+      'X-Requires-Auth': userID?'false':'true',
+    },
+  });
+
+  // console.log("triggered api getUserProfile, ", res.data);
+  return res.data.payload.userProfile;
+};
+
+
+export const updateUserProfile = async (
+  profileData: Partial<UserProfile>
+): Promise<UserProfile> => {
+  const res = await axiosInstance.put(`/users/profile/update/${profileData.userID}`, profileData, {
+    headers: {
+      'X-Requires-Auth': 'true', 
+    },
+  });
+  return res.data;
 };

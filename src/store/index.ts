@@ -1,13 +1,11 @@
 
 import { configureStore } from '@reduxjs/toolkit';
-import userReducer from './slices/userSlice';
 import leaderboardReducer from './slices/leaderboardSlice';
 import compilerReducer from './slices/compilerSlice';
 import authReducer from './slices/authSlice';
 
 export const store = configureStore({
   reducer: {
-    user: userReducer,
     leaderboard: leaderboardReducer,
     xCodeCompiler: compilerReducer,
     auth: authReducer,
@@ -16,7 +14,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
     }),
-    devTools:true,
+  devTools: true,
 });
 
 export type RootState = ReturnType<typeof store.getState>;

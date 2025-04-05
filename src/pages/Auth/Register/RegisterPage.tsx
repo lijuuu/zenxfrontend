@@ -1,52 +1,69 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { toast } from "sonner";
-import { registerUser, clearAuthState as clearAuthInitialState } from "@/store/slices/authSlice";
-import Loader1 from "@/components/ui/loader1";
-import SignupForm from "./components/RegisterStage1";
-import RegisterStage2 from "./components/RegisterStage2";
-import RegisterStage3 from "./components/RegisterStage3";
-import RegisterStage4 from "./components/RegisterStage4";
-import AuthHeader from "@/components/sub/AuthHeader";
-import Cookies from "js-cookie";
-import { handleError } from "@/components/sub/ErrorToast";
-// --- Constants ---
-const STAGE_COUNT = 4;
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
+import { registerUser, clearAuthState as clearAuthInitialState } from '@/store/slices/authSlice';
+import Loader1 from '@/components/ui/loader1';
+import SignupForm from './components/RegisterStage1';
+import RegisterStage2 from './components/RegisterStage2';
+import RegisterStage3 from './components/RegisterStage3';
+import RegisterStage4 from './components/RegisterStage4';
+import AuthHeader from '@/components/sub/AuthHeader';
+import Cookies from 'js-cookie';
+import { handleError } from '@/components/sub/ErrorToast';
 
-// --- Type Definitions ---
+// Constants
+const STAGE_COUNT = 4;
+const FORM_STORAGE_KEY = 'registerFormData';
+
+// Type Definitions
 type Stage1FormData = { email: string };
 type Stage2FormData = { firstName: string; lastName: string };
 type Stage3FormData = { country: string; profession: string };
 type Stage4FormData = { password: string; confirmPassword: string };
+type FormData = Stage1FormData & Stage2FormData & Stage3FormData & Stage4FormData;
 
-// --- Main RegisterPage Component ---
+// Main RegisterPage Component
 function RegisterPage() {
-  const [stage, setStage] = useState(1);
-  const [formData, setFormData] = useState<
-    Stage1FormData & Stage2FormData & Stage3FormData & Stage4FormData
-  >({
-    email: "",
-    firstName: "",
-    lastName: "",
-    country: "",
-    profession: "",
-    password: "",
-    confirmPassword: "",
+  const [stage, setStage] = useState(() => {
+    const storedStage = localStorage.getItem('registerStage');
+    return storedStage ? parseInt(storedStage, 10) : 1;
+  });
+  const [formData, setFormData] = useState<FormData>(() => {
+    const storedData = localStorage.getItem(FORM_STORAGE_KEY);
+    return storedData
+      ? JSON.parse(storedData)
+      : {
+          email: '',
+          firstName: '',
+          lastName: '',
+          country: '',
+          profession: '',
+          password: '',
+          confirmPassword: '',
+        };
   });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, successMessage, userId } = useSelector((state: any) => state.auth);
 
+  // Sync form data and stage to localStorage
+  useEffect(() => {
+    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+    localStorage.setItem('registerStage', stage.toString());
+  }, [formData, stage]);
+
   // Redirect to verify email on successful registration
   useEffect(() => {
     if (userId && !error) {
-      navigate("/verify-info");
-      toast.success(successMessage || "Verify your email to continue", {
-        style: { background: "#1D1D1D", color: "#3CE7B2" },
+      navigate('/verify-info');
+      toast.success(successMessage || 'Verify your email to continue', {
+        style: { background: '#1D1D1D', color: '#3CE7B2' },
       });
       dispatch(clearAuthInitialState());
+      localStorage.removeItem(FORM_STORAGE_KEY); // Clear form data on success
+      localStorage.removeItem('registerStage');
     }
   }, [userId, error, successMessage, navigate, dispatch]);
 
@@ -65,13 +82,11 @@ function RegisterPage() {
 
   const handleStage3Submit = (data: Stage3FormData) => {
     setFormData((prev) => ({ ...prev, ...data }));
-    console.log("Stage 3 Data:", formData);
     setStage(4);
   };
 
   const handleStage4Submit = (data: Stage4FormData) => {
     const finalData = { ...formData, ...data };
-    console.log("Final Submission Data:", finalData);
     dispatch(registerUser(finalData) as any);
   };
 
@@ -86,12 +101,10 @@ function RegisterPage() {
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
       <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
-      <div className="text-white text-xl opacity-80 font-coinbase-sans mt-24">
-        Creating your account
-      </div>
+      <div className="text-white text-xl opacity-80 mt-24">Creating your account</div>
       <button
         onClick={onCancel}
-        className="text-gray-400 text-sm font-coinbase-sans mt-4 underline hover:text-[#3CE7B2] transition-colors duration-200"
+        className="text-gray-400 text-sm mt-4 underline hover:text-[#3CE7B2]"
       >
         Cancel
       </button>
@@ -125,7 +138,7 @@ function RegisterPage() {
         {stage === 2 && (
           <RegisterStage2
             email={formData.email}
-            onNext={handleStage2Submit as any}
+            onNext={handleStage2Submit}
             onBack={goBack}
             setFormData={(data) => setFormData((prev) => ({ ...prev, ...data }))}
           />
@@ -133,7 +146,7 @@ function RegisterPage() {
         {stage === 3 && (
           <RegisterStage3
             email={formData.email}
-            onNext={handleStage3Submit as any}
+            onNext={handleStage3Submit}
             onBack={goBack}
             setFormData={(data) => setFormData((prev) => ({ ...prev, ...data }))}
           />
@@ -142,7 +155,7 @@ function RegisterPage() {
           <RegisterStage4
             email={formData.email}
             onBack={goBack}
-            onSubmit={handleStage4Submit as any}
+            onSubmit={handleStage4Submit}
           />
         )}
       </div>
