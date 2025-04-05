@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import emailIcon from "@/assets/email.png";
@@ -8,7 +7,6 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyEmail } from "@/store/slices/authSlice";
 import Cookies from "js-cookie";
-
 const VerifyEmail = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,12 +41,12 @@ const VerifyEmail = () => {
 
   if (!location.search.includes("email=") || !location.search.includes("token=")) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-[#121212] font-roboto">
+      <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-black">
         <h1 className="text-4xl font-bold text-white">No Verification Data Provided</h1>
         <p className="text-sm text-gray-400 mt-2">Please use a valid verification link.</p>
         <button
           onClick={() => navigate("/login")}
-          className="px-4 py-2 mt-4 text-white bg-[#3CE7B2] text-[#121212] rounded-md hover:bg-[#27A98B] transition-colors"
+          className="px-4 py-2 mt-4 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
         >
           Go to Login
         </button>
@@ -57,7 +55,7 @@ const VerifyEmail = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-[#121212] font-roboto">
+    <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-black">
       {/* Email Icon Animation */}
       <motion.img
         src={emailIcon}
@@ -91,7 +89,7 @@ const VerifyEmail = () => {
       {error && !loading && (
         <button
           onClick={() => navigate("/login")}
-          className="px-4 py-2 mt-4 text-white bg-[#3CE7B2] text-[#121212] rounded-md hover:bg-[#27A98B] transition-colors focus:outline-none focus:ring-2 focus:ring-[#3CE7B2]"
+          className="px-4 py-2 mt-4 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
           aria-label="Return to login"
         >
           Back to Login

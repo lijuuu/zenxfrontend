@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { loginUser } from '@/store/slices/authSlice';
+import AuthLayout from '@/components/layout/AuthLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,7 +46,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#121212] text-white font-roboto">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-white font-inter">
       <div className="bg-[#3CE7B2] h-2 w-full" />
       
       <div className="flex justify-between items-center p-6">

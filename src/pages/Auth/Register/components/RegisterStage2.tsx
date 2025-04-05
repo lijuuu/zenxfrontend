@@ -73,10 +73,10 @@ function RegisterStage2({
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white font-roboto">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm font-roboto">
+          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
             Please enter your name
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

@@ -71,10 +71,10 @@ function SignupForm({
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white font-roboto">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
             Create your account
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm font-roboto">
+          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
             Register your account to access all that zenx has to offer
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
