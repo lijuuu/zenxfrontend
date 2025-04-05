@@ -33,6 +33,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "@/store/slices/authSlice";
 import { isAuthenticated } from "@/utils/authUtils";
+import {clearAuthState} from "@/store/slices/authSlice"
 
 interface NavItem {
   name: string;
@@ -101,6 +102,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     localStorage.removeItem("auth");
+    dispatch(clearAuthState())
     navigate("/login");
   };
 
