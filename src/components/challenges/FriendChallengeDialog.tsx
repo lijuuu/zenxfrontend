@@ -37,7 +37,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { searchUsers } from '@/api/challengeApi';
-import { User as UserType } from '@/api/types';
+import { UserProfile as UserType } from '@/api/types';
 import { useToast } from '@/hooks/use-toast';
 import ChallengeBattleInvite from '@/components/challenges/ChallengeBattleInvite';
 
@@ -48,9 +48,9 @@ interface FriendChallengeDialogProps {
 
 // Create a simplified Friend type that doesn't need all User properties
 interface FriendItem {
-  id: string;
-  username: string;
-  fullName: string;
+  userID: string;
+  userName: string;
+  firstName: string;
   profileImage: string;
   isOnline?: boolean;
 }
@@ -72,11 +72,11 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
 
   // Mock friends data
   const friends: FriendItem[] = [
-    { id: '1', username: 'sophie', fullName: 'Sophie Williams', profileImage: 'https://i.pravatar.cc/300?img=9', isOnline: true },
-    { id: '2', username: 'taylor', fullName: 'Taylor Smith', profileImage: 'https://i.pravatar.cc/300?img=5', isOnline: false },
-    { id: '3', username: 'mchen', fullName: 'Mike Chen', profileImage: 'https://i.pravatar.cc/300?img=3', isOnline: true },
-    { id: '4', username: 'alex', fullName: 'Alex Johnson', profileImage: 'https://i.pravatar.cc/300?img=4', isOnline: false },
-    { id: '5', username: 'emma', fullName: 'Emma Wilson', profileImage: 'https://i.pravatar.cc/300?img=2', isOnline: true },
+    { userID: '1', userName: 'sophie', firstName: 'Sophie Williams', profileImage: 'https://i.pravatar.cc/300?img=9', isOnline: true },
+    { userID: '2', userName: 'taylor', firstName: 'Taylor Smith', profileImage: 'https://i.pravatar.cc/300?img=5', isOnline: false },
+    { userID: '3', userName: 'mchen', firstName: 'Mike Chen', profileImage: 'https://i.pravatar.cc/300?img=3', isOnline: true },
+    { userID: '4', userName: 'alex', firstName: 'Alex Johnson', profileImage: 'https://i.pravatar.cc/300?img=4', isOnline: false },
+    { userID: '5', userName: 'emma', firstName: 'Emma Wilson', profileImage: 'https://i.pravatar.cc/300?img=2', isOnline: true },
   ];
 
   const handleSearch = async () => {
@@ -99,9 +99,9 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
   const selectFriend = (friend: FriendItem | UserType) => {
     // Create a FriendItem from either a FriendItem or UserType
     const friendItem: FriendItem = {
-      id: friend.id,
-      username: friend.username,
-      fullName: friend.fullName,
+      userID: friend.userID,
+      userName: friend.userName,
+      firstName: friend.firstName,
       profileImage: friend.profileImage || '',
       isOnline: 'isOnline' in friend ? friend.isOnline : undefined
     };
@@ -126,7 +126,7 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
     setTimeout(() => {
       toast({
         title: "Challenge sent!",
-        description: `Your challenge has been sent to ${selectedFriend.fullName}`,
+        description: `Your challenge has been sent to ${selectedFriend.firstName}`,
       });
       
       setIsLoading(false);
@@ -223,10 +223,10 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
                 <div className="space-y-2">
                   {friends.map((friend) => (
                     <Card 
-                      key={friend.id} 
+                      key={friend.userID} 
                       className={cn(
                         "cursor-pointer transition-colors",
-                        selectedFriend?.id === friend.id 
+                        selectedFriend?.userID === friend.userID 
                           ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
                           : "hover:bg-accent/5"
                       )}
@@ -237,7 +237,7 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
                           <div className="relative mr-3">
                             <img 
                               src={friend.profileImage} 
-                              alt={friend.fullName} 
+                              alt={friend.firstName} 
                               className="w-10 h-10 rounded-full"
                             />
                             {friend.isOnline && (
@@ -245,14 +245,14 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
                             )}
                           </div>
                           <div>
-                            <h4 className="font-medium text-sm">{friend.fullName}</h4>
+                            <h4 className="font-medium text-sm">{friend.firstName}</h4>
                             <p className="text-xs text-muted-foreground">
-                              @{friend.username} • {friend.isOnline ? 'Online' : 'Offline'}
+                              @{friend.userName} • {friend.isOnline ? 'Online' : 'Offline'}
                             </p>
                           </div>
                         </div>
                         
-                        {selectedFriend?.id === friend.id ? (
+                        {selectedFriend?.userID === friend.userID ? (
                           <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
                         ) : (
                           <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
@@ -290,10 +290,10 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
                   <div className="space-y-2">
                     {searchResults.map((user) => (
                       <Card 
-                        key={user.id} 
+                        key={user.userID} 
                         className={cn(
                           "cursor-pointer transition-colors",
-                          selectedFriend?.id === user.id 
+                          selectedFriend?.userID === user.userID 
                             ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
                             : "hover:bg-accent/5"
                         )}
@@ -303,16 +303,16 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
                           <div className="flex items-center">
                             <img 
                               src={user.profileImage} 
-                              alt={user.fullName} 
+                              alt={user.firstName} 
                               className="w-10 h-10 rounded-full mr-3"
                             />
                             <div>
-                              <h4 className="font-medium text-sm">{user.fullName}</h4>
-                              <p className="text-xs text-muted-foreground">@{user.username}</p>
+                              <h4 className="font-medium text-sm">{user.firstName}</h4>
+                              <p className="text-xs text-muted-foreground">@{user.userName}</p>
                             </div>
                           </div>
                           
-                          {selectedFriend?.id === user.id ? (
+                          {selectedFriend?.userID === user.userID ? (
                             <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
                           ) : (
                             <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>

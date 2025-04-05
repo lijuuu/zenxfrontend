@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { fetchProblemByIdAPI, executeCode } from '@/api/problemApi';
-import { ProblemMetadata, TestCase, ExecutionResult, GenericResponse } from '@/api/types/problem-execution';
+import { ProblemMetadata, TestCase, ExecutionResult, GenericResponse } from '@/api/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export const useProblemDetail = () => {
@@ -100,7 +100,7 @@ export const useProblemDetail = () => {
       );
       
       // Add type assertion to handle the response properly
-      const typedResponse = response as GenericResponse;
+      const typedResponse = response as any
       
       if (!typedResponse.success) {
         // Handle error case

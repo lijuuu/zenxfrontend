@@ -5,7 +5,7 @@ import { Search, User, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { searchUsers } from "@/api/challengeApi";
-import { User as UserType } from "@/api/types";
+import { UserProfile as UserType } from "@/api/types";
 
 interface UserSearchProps {
   onSelect?: (user: UserType) => void;
@@ -108,14 +108,14 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <div className="max-h-72 overflow-y-auto">
               {results.map((user) => (
                 <div
-                  key={user.id}
+                  key={user.userID}
                   className="p-2 flex items-center gap-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                   onClick={() => handleUserSelect(user)}
                 >
                   <div className="relative">
                     <img
                       src={user.profileImage || "https://i.pravatar.cc/300?img=1"}
-                      alt={user.username}
+                      alt={user.userName}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     {user.isOnline && (
@@ -123,12 +123,12 @@ const UserSearch: React.FC<UserSearchProps> = ({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{user.fullName}</div>
-                    <div className="text-sm text-zinc-500 truncate">@{user.username}</div>
+                    <div className="font-medium truncate">{user.firstName}</div>
+                    <div className="text-sm text-zinc-500 truncate">@{user.userName}</div>
                   </div>
                   {withLink && (
                     <Link
-                      to={`/profile/${user.username}`}
+                      to={`/profile/${user.userName}`}
                       className="text-xs text-blue-600 hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >

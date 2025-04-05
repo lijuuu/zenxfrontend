@@ -77,7 +77,7 @@ interface CreateChallengeFormProps {
 
 // Create a simplified Friend type that doesn't need all User properties
 interface FriendItem {
-  id: string;
+  userID: string;
   userName: string;
   firstName: string;
   profileImage: string;
@@ -187,7 +187,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   const toggleFriendSelection = (friend: FriendItem | UserProfile) => {
     // Create a FriendItem from either a FriendItem or UserType
     const friendItem: FriendItem = {
-      id: friend.userID,
+      userID: friend.userID,
       userName: friend.userName,
       firstName: friend.firstName,
       profileImage: friend.profileImage || '',
@@ -195,9 +195,9 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     };
     
     setSelectedFriends(prev => {
-      const isSelected = prev.some(f => f.id === friendItem.id);
+      const isSelected = prev.some(f => f.userID === friendItem.userID);
       return isSelected 
-        ? prev.filter(f => f.id !== friendItem.id)
+        ? prev.filter(f => f.userID !== friendItem.userID)
         : [...prev, friendItem];
     });
   };
@@ -240,7 +240,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         problemIds: data.problemIds,
         isPrivate: data.isPrivate,
         timeLimit: parseInt(data.timeLimit),
-        invitedUsers: selectedFriends.map(f => f.id),
+        invitedUsers: selectedFriends.map(f => f.userID),
       });
 
       toast({
@@ -610,10 +610,10 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                         <div className="space-y-2">
                           {friends.map((friend) => (
                             <Card 
-                              key={friend.id} 
+                              key={friend.userID} 
                               className={cn(
                                 "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.id === friend.id)
+                                selectedFriends.some(f => f.userID === friend.userID)
                                   ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
                                   : "hover:bg-accent/5"
                               )}
@@ -639,7 +639,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                                   </div>
                                 </div>
                                 
-                                {selectedFriends.some(f => f.id === friend.id) ? (
+                                {selectedFriends.some(f => f.userID === friend.userID) ? (
                                   <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
                                 ) : (
                                   <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
@@ -666,7 +666,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                               key={user.userID} 
                               className={cn(
                                 "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.id === user.userID)
+                                selectedFriends.some(f => f.userID === user.userID)
                                   ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
                                   : "hover:bg-accent/5"
                               )}
@@ -685,7 +685,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                                   </div>
                                 </div>
                                 
-                                {selectedFriends.some(f => f.id === user.userID) ? (
+                                {selectedFriends.some(f => f.userID === user.userID) ? (
                                   <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
                                 ) : (
                                   <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
@@ -717,7 +717,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                     <div className="flex flex-wrap gap-2">
                       {selectedFriends.map(friend => (
                         <Badge 
-                          key={friend.id}
+                          key={friend.userID}
                           className="flex items-center gap-1 py-1 pl-1 pr-2"
                         >
                           <img 
