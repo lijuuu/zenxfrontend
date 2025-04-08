@@ -152,7 +152,6 @@ export default function AdminDashboard() {
         setApiHistory((prev) => [historyEntry, ...prev])
         setError(errorMessage)
         toast.error(errorMessage, { duration: 10000 })
-        throw error
       } finally {
         setLoading(false)
       }

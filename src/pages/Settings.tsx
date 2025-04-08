@@ -7,12 +7,19 @@ import ProfileEditTab from '@/components/settings/ProfileEditTab';
 import TwoFactorAuthTab from '@/components/settings/TwoFactorAuthTab';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
+import { useGetUserProfile } from '@/services/useGetUserProfile';
 
 const Settings = () => {
-  const { userProfile, loading } = useAppSelector((state) => state.auth);
+    const {
+      data: userProfile,
+      isLoading: profileLoading,
+      isError: profileError,
+      error
+    } = useGetUserProfile();
+
   const [activeTab, setActiveTab] = useState('profile');
   
-  if (loading) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-zinc-950 text-white">
         <MainNavbar />

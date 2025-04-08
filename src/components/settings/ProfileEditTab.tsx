@@ -1,215 +1,262 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { PenSquare, Save, Crop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMutation } from "@tanstack/react-query";
-import { updateUserProfile } from "@/api/userApi";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useAppSelector } from "@/hooks/useAppSelector";
-import { getUser } from "@/store/slices/authSlice";
-import { toast } from "sonner";
-import Cookies from "js-cookie";
-import axios from "axios";
+import { useGetUserProfile } from "@/services/useGetUserProfile";
+import { useUpdateUserProfile } from "@/services/useUpdateUserProfile";
+import { useUpdateProfileImage } from "@/services/useUpdateProfileImage";
+import { useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import SimpleSpinLoader from "../ui/simplespinloader";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import Cropper from "react-easy-crop";
+import "react-easy-crop/react-easy-crop.css";
 
-interface ProfileEditTabProps {
-  user: any;
-}
+// validation schema
+const profileSchema = z.object({
+  userName: z.string().min(3).max(20),
+  firstName: z.string().max(50).optional(),
+  lastName: z.string().max(50).optional(),
+  bio: z.string().max(160).optional(),
+});
 
-const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
-  const dispatch = useAppDispatch();
-  
-  // Form state
-  const [userName, setUserName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [country, setCountry] = useState("");
-  const [primaryLanguageID, setPrimaryLanguageID] = useState("");
-  const [muteNotifications, setMuteNotifications] = useState(false);
-  const [github, setGithub] = useState("");
-  const [twitter, setTwitter] = useState("");
-  const [linkedin, setLinkedin] = useState("");
-  const [bio, setBio] = useState("");
+const ProfileEditTab: React.FC = () => {
+  const { data: userProfile, isLoading, error } = useGetUserProfile();
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUserProfile();
+  const { mutate: updateProfileImage, isPending: isUpdatingImage } = useUpdateProfileImage(userProfile?.userID);
+  const queryClient = useQueryClient();
 
-  // Populate form with user profile data on mount
-  useEffect(() => {
-    if (user) {
-      setUserName(user.userName || user.username || "");
-      setFirstName(user.firstName || "");
-      setLastName(user.lastName || "");
-      setCountry(user.country || "");
-      setPrimaryLanguageID(user.primaryLanguageID || "");
-      setMuteNotifications(user.muteNotifications || false);
-      setBio(user.bio || "");
-      
-      // Set social media links
-      if (user.socials) {
-        setGithub(user.socials.github || "");
-        setTwitter(user.socials.twitter || "");
-        setLinkedin(user.socials.linkedin || "");
-      }
-    }
-  }, [user]);
+  const [usernameCheck, setUsernameCheck] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (profileData: any) => {
-      const accessToken = Cookies.get("accessToken");
-      return await axios.put("http://localhost:7000/api/v1/users/profile/update", profileData, {
-        headers: {
-          "Authorization": `Bearer ${accessToken}`
-        }
-      });
-    },
-    onSuccess: () => {
-      toast.success("Profile updated successfully");
-      dispatch(getUser() as any);
-    },
-    onError: (error) => {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const profileData = {
-      userName,
-      firstName,
-      lastName,
-      country,
-      primaryLanguageID,
-      muteNotifications,
-      bio,
-      socials: { github, twitter, linkedin },
-    };
-    
-    updateProfileMutation.mutate(profileData);
+  // handle username change
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsernameCheck(true);
   };
 
-  // Use initials for avatar fallback
+  // handle form submission
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const profileData = {
+      userID: userProfile?.userID,
+      userName: formData.get("userName") as string,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      country: formData.get("country") as string,
+      primaryLanguageID: formData.get("primaryLanguageID") as string,
+      muteNotifications: formData.get("muteNotifications") === "on",
+      bio: formData.get("bio") as string,
+      socials: {
+        github: formData.get("github") as string,
+        twitter: formData.get("twitter") as string,
+        linkedin: formData.get("linkedin") as string,
+      },
+    };
+
+    const validation = profileSchema.safeParse({
+      userName: profileData.userName,
+      firstName: profileData.firstName,
+      lastName: profileData.lastName,
+      bio: profileData.bio,
+    });
+
+    if (validation.success) {
+      updateUser(profileData);
+    }
+  };
+
+  // handle image selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setImageSrc(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // handle crop completion
+  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  // crop and upload image
+  const handleCropAndUpload = useCallback(async () => {
+    if (!imageSrc || !croppedAreaPixels || !userProfile?.userID) return;
+
+    const image = new Image();
+    image.src = imageSrc;
+    await new Promise((resolve) => (image.onload = resolve));
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    canvas.width = croppedAreaPixels.width;
+    canvas.height = croppedAreaPixels.height;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
+      0,
+      0,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height
+    );
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const croppedFile = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+        setIsDialogOpen(false); 
+        updateProfileImage(croppedFile, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["userProfile",""] });
+          },
+        });
+      }
+    }, "image/jpeg", 0.9);
+  }, [imageSrc, croppedAreaPixels, updateProfileImage, userProfile?.userID, queryClient]);
+
+  // get avatar initials
   const getInitials = () => {
-    if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    }
-    if (userName) {
-      return userName.charAt(0).toUpperCase();
-    }
+    if (userProfile?.firstName && userProfile?.lastName)
+      return `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase();
+    if (userProfile?.userName)
+      return userProfile.userName[0].toUpperCase();
     return "U";
   };
 
-  if (!user) {
-    return <div className="text-center py-8">Loading user data...</div>;
-  }
+  if (isLoading) return <div className="text-center py-8">Loading...</div>;
+  if (error) return <div className="text-center py-8">Error Loading Profile</div>;
 
   return (
     <div className="space-y-6">
+      {(isUpdating || isUpdatingImage) && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <SimpleSpinLoader />
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <Card className="border border-zinc-800 bg-zinc-900/40">
           <CardHeader>
             <CardTitle className="text-xl">Personal Information</CardTitle>
-            <CardDescription>
-              Update your personal details and public profile
-            </CardDescription>
+            <CardDescription>Update Your Personal Details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-1/3 flex flex-col items-center space-y-4">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={user.avatarURL || user.profileImage} />
+                  <AvatarImage src={userProfile?.avatarURL || userProfile?.profileImage} />
                   <AvatarFallback className="bg-green-900/30 text-green-500">{getInitials()}</AvatarFallback>
                 </Avatar>
-                <Button variant="outline" className="w-full">
-                  Change Avatar
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <PenSquare className="h-4 w-4 mr-2" /> Change Avatar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Edit Avatar</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input type="file" accept="image/*" onChange={handleImageChange} />
+                      {imageSrc && (
+                        <div className="relative h-96">
+                          <Cropper
+                            image={imageSrc}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1}
+                            cropShape="round"
+                            showGrid={false}
+                            onCropChange={setCrop}
+                            onZoomChange={setZoom}
+                            onCropComplete={onCropComplete}
+                          />
+                        </div>
+                      )}
+                      {imageSrc && (
+                        <Button onClick={handleCropAndUpload} className="w-full" disabled={isUpdatingImage}>
+                          <Crop className="h-4 w-4 mr-2" /> Upload
+                        </Button>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-              
               <div className="md:w-2/3 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Your first name"
-                    />
+                    <Input id="firstName" name="firstName" defaultValue={userProfile?.firstName} />
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Your last name"
-                    />
+                    <Input id="lastName" name="lastName" defaultValue={userProfile?.lastName} />
                   </div>
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="userName">Username</Label>
                   <Input
                     id="userName"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Your username"
+                    name="userName"
+                    defaultValue={userProfile?.userName}
+                    onChange={handleUsernameChange}
                   />
+                  {usernameCheck && <span className="text-sm text-green-500">Checking...</span>}
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell us about yourself"
-                    rows={4}
-                  />
+                  <Textarea id="bio" name="bio" defaultValue={userProfile?.bio} rows={4} />
                 </div>
               </div>
             </div>
-            
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
-                <Select
-                  value={country}
-                  onValueChange={setCountry}
-                >
+                <Select name="country" defaultValue={userProfile?.country}>
                   <SelectTrigger id="country">
-                    <SelectValue placeholder="Select your country" />
+                    <SelectValue placeholder="Select Your Country" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                    <SelectItem value="UK">United Kingdom</SelectItem>
-                    <SelectItem value="IN">India</SelectItem>
-                    <SelectItem value="AU">Australia</SelectItem>
-                    <SelectItem value="DE">Germany</SelectItem>
-                    <SelectItem value="FR">France</SelectItem>
-                    <SelectItem value="JP">Japan</SelectItem>
-                    <SelectItem value="BR">Brazil</SelectItem>
-                    <SelectItem value="NG">Nigeria</SelectItem>
-                    <SelectItem value="CN">China</SelectItem>
+                    <SelectItem value="us">United States</SelectItem>
+                    <SelectItem value="ca">Canada</SelectItem>
+                    <SelectItem value="uk">United Kingdom</SelectItem>
+                    <SelectItem value="in">India</SelectItem>
+                    <SelectItem value="au">Australia</SelectItem>
+                    <SelectItem value="de">Germany</SelectItem>
+                    <SelectItem value="fr">France</SelectItem>
+                    <SelectItem value="jp">Japan</SelectItem>
+                    <SelectItem value="br">Brazil</SelectItem>
+                    <SelectItem value="ng">Nigeria</SelectItem>
+                    <SelectItem value="cn">China</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="space-y-2">
-                <Label htmlFor="primaryLanguageID">Preferred Programming Language</Label>
-                <Select
-                  value={primaryLanguageID}
-                  onValueChange={setPrimaryLanguageID}
-                >
+                <Label htmlFor="primaryLanguageID">Preferred Language</Label>
+                <Select name="primaryLanguageID" defaultValue={userProfile?.primaryLanguageID}>
                   <SelectTrigger id="primaryLanguageID">
-                    <SelectValue placeholder="Select your preferred language" />
+                    <SelectValue placeholder="Select Language" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="js">JavaScript</SelectItem>
@@ -226,60 +273,42 @@ const ProfileEditTab: React.FC<ProfileEditTabProps> = ({ user }) => {
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="flex items-center space-x-2">
                 <Switch
                   id="muteNotifications"
-                  checked={muteNotifications}
-                  onCheckedChange={setMuteNotifications}
+                  name="muteNotifications"
+                  defaultChecked={userProfile?.muteNotifications}
                 />
                 <Label htmlFor="muteNotifications">Mute Notifications</Label>
               </div>
             </div>
           </CardContent>
         </Card>
-        
         <Card className="mt-6 border border-zinc-800 bg-zinc-900/40">
           <CardHeader>
             <CardTitle className="text-xl">Social Links</CardTitle>
-            <CardDescription>
-              Connect your social media accounts
-            </CardDescription>
+            <CardDescription>Connect Your Social Media</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="github">GitHub</Label>
-              <Input
-                id="github"
-                value={github}
-                onChange={(e) => setGithub(e.target.value)}
-                placeholder="https://github.com/username"
-              />
+              <Label htmlFor="github">Github</Label>
+              <Input id="github" name="github" defaultValue={userProfile?.socials?.github} />
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="twitter">Twitter</Label>
-              <Input
-                id="twitter"
-                value={twitter}
-                onChange={(e) => setTwitter(e.target.value)}
-                placeholder="https://twitter.com/username"
-              />
+              <Input id="twitter" name="twitter" defaultValue={userProfile?.socials?.twitter} />
             </div>
-            
             <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                value={linkedin}
-                onChange={(e) => setLinkedin(e.target.value)}
-                placeholder="https://linkedin.com/in/username"
-              />
+              <Label htmlFor="linkedin">Linkedin</Label>
+              <Input id="linkedin" name="linkedin" defaultValue={userProfile?.socials?.linkedin} />
             </div>
-            
             <div className="flex justify-end mt-6">
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save Changes
+              <Button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isUpdating}
+              >
+                {isUpdating ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </CardContent>

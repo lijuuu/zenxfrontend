@@ -6,11 +6,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ClearInactivityCardProps {
   className?: string;
+  referralLink?:string;
 }
 
-const ClearInactivityCard: React.FC<ClearInactivityCardProps> = ({ className }) => {
+const ClearInactivityCard: React.FC<ClearInactivityCardProps> = ({ className,referralLink = "https://zenx.com/ref/ZENX-I" }) => {
   const { toast } = useToast();
-  const referralLink = "https://zenx.com/ref/ZENX-I";
   
   const handleCopyShare = () => {
     navigator.clipboard.writeText(referralLink);

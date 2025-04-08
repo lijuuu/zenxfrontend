@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ChevronLeft, Loader2, RefreshCw, Check, AlertCircle } from "lucide-react";
+import SimpleSpinLoader from "@/components/ui/simplespinloader";
+import axiosInstance from "@/utils/axiosInstance";
 
 interface LanguagesViewProps {
   selectedProblem: any;
@@ -17,18 +19,58 @@ interface LanguagesViewProps {
   
     const onValidate = async () => {
       setIsValidating(true);
+      setValidationResult(null)
       try {
-        const res = await handleApiCall("get", "/validate", null, { problem_id: selectedProblem.problem_id });
-        setValidationResult({ success: res.success, message: res.message || (res.success ? "All checks passed" : "Validation failed"), error_type: res.error_type });
-      } catch {
-        setValidationResult({ success: false, message: "Validation failed", error_type: null });
+        const res = await axiosInstance.get("/problems/validate", {
+          headers: {
+            "X-requires-Auth": "true",
+            "content-type": "multipart/form-data",
+          },
+          params: {
+            problem_id: selectedProblem.problem_id 
+          }
+        });
+        console.log(JSON.stringify(res.data)) 
+        
+        if (res.data.success) {
+          setValidationResult({
+            success: res.data.success,
+            message: res.data.message || "All checks passed",
+            error_type: res.data.error_type
+          });
+        } else {
+          
+          setValidationResult({
+            success: false,
+            message: res.data.message || "Validation failed",
+            error_type: res.data.error_type
+          });
+        }
+      } catch (e: any) {
+        console.log(JSON.stringify(e))
+        
+        if (e.response && e.response.data && e.response.data.error) {
+          setValidationResult({
+            success: false,
+            message: e.response.data.error.message || "An error occurred during validation",
+            error_type: e.response.data.error.type
+          });
+        } else {
+          
+          setValidationResult({
+            success: false,
+            message: e.message || JSON.stringify(e),
+            error_type: null
+          });
+        }
       } finally {
         setIsValidating(false);
       }
     };
   
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 relative">
+        {/* {isValidating && <SimpleSpinLoader className="absolute inset-0 flex items-center justify-center bg-black/90 z-50"/>} */}
         <div className="flex items-center gap-6">
           <Button variant="outline" onClick={() => setView("list")} className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]">
             <ChevronLeft className="h-4 w-4 mr-2" /> Back
@@ -67,7 +109,7 @@ interface LanguagesViewProps {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => { if (validationResult.success) setView("list"); else if (validationResult.error_type?.includes("testcase")) setView("testcases"); else if (validationResult.error_type?.includes("language")) setView("languages"); }} className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]">{validationResult.success ? "Back to List" : "Fix Issues"}</Button>
+                {/* <Button variant="outline" onClick={() => { if (validationResult.success) setView("list"); else if (validationResult.error_type?.includes("testcase")) setView("testcases"); else if (validationResult.error_type?.includes("language")) setView("languages"); }} className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]">{validationResult.success ? "Back to List" : "Fix Issues"}</Button> */}
                 <Button variant="outline" onClick={() => setView("api")} className="border-gray-200 dark:border-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1F1F23]">View API Response</Button>
               </div>
             </CardContent>

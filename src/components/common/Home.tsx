@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,7 +73,7 @@ const Home = () => {
                 Become a Better Developer Through Challenges
               </h1>
               <p className="text-xl text-zinc-700 dark:text-zinc-300 mb-8 max-w-2xl mx-auto">
-                Face real-world coding problems, compete with others, and track your progress to accelerate your growth as a developer.
+                Start your coding journey with fun challenges designed for all skill levels, including beginners!
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button
@@ -122,7 +121,7 @@ const Home = () => {
                 </span>
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                Challenge your friends or find random opponents to test your skills in real-time coding battles.
+                Practice coding with friendly matches perfect for beginners and experienced coders alike.
               </p>
             </div>
 
@@ -147,7 +146,7 @@ const Home = () => {
                 Everything you need to <span className="text-green-500">excel</span>
               </h2>
               <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                Our platform provides all the tools necessary for tracking, analyzing, and improving your coding skills.
+                Start coding with beginner-friendly tools to learn, practice, and grow your skills.
               </p>
             </div>
             
@@ -160,7 +159,7 @@ const Home = () => {
                   </div>
                   <CardTitle className="text-xl">Real-world Problems</CardTitle>
                   <CardDescription className="text-base">
-                    Solve challenges based on actual industry problems that developers face.
+                    Learn coding with simple, practical challenges perfect for beginners.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -173,7 +172,7 @@ const Home = () => {
                   </div>
                   <CardTitle className="text-xl">Live Competition</CardTitle>
                   <CardDescription className="text-base">
-                    Compete with other developers in real-time coding battles and challenges.
+                    Practice with other beginners in fun, friendly coding matches.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -186,14 +185,13 @@ const Home = () => {
                   </div>
                   <CardTitle className="text-xl">Leaderboard</CardTitle>
                   <CardDescription className="text-base">
-                    Track your progress and see how you rank against other developers.
+                    See your progress and celebrate your coding wins as you learn.
                   </CardDescription>
                 </CardHeader>
               </Card>
             </div>
           </div>
         </section>
-
 
         {/* CTA Section */}
         <section className="py-16 bg-primary-color text-white relative overflow-hidden">
@@ -207,7 +205,7 @@ const Home = () => {
                   Ready to challenge yourself?
                 </h2>
                 <p className="text-lg text-green-50 mb-6">
-                  Join thousands of developers who are improving their skills through daily coding challenges.
+                  Join a welcoming community where beginners can learn coding step by step.
                 </p>
               </div>
 
@@ -244,7 +242,7 @@ const Home = () => {
                 Join our growing developer community
               </h2>
               <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                Connect with like-minded developers, share solutions, and learn together.
+                Meet friendly coders, ask questions, and start your coding adventure together.
               </p>
             </div>
             
@@ -257,7 +255,7 @@ const Home = () => {
                   </div>
                   <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">10,000+</CardTitle>
                   <CardDescription className="text-base">
-                    Active developers in our community
+                    Friendly coders welcoming beginners like you
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -270,7 +268,7 @@ const Home = () => {
                   </div>
                   <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">100+</CardTitle>
                   <CardDescription className="text-base">
-                    Coding challenges in various languages and difficulty levels
+                    Easy-to-learn challenges for new coders
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -283,7 +281,7 @@ const Home = () => {
                   </div>
                   <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">Open Source</CardTitle>
                   <CardDescription className="text-base">
-                    Contribute to our platform and help it grow
+                    Explore coding with our beginner-friendly platform
                   </CardDescription>
                 </CardHeader>
               </Card>

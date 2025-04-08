@@ -6,21 +6,6 @@ export const isAuthenticated = (): boolean => {
   return !!accessToken;
 };
 
-export const getStoredAuthData = () => {
-  try {
-    const serializedState = localStorage.getItem("auth");
-    if (serializedState === null) return {};
-    return JSON.parse(serializedState);
-  } catch (err) {
-    console.error("Failed to load state from localStorage", err);
-    return {};
-  }
-};
-
-export const getUserProfile = () => {
-  const authData = getStoredAuthData();
-  return authData.userProfile || null;
-};
 
 export const getFullName = (user: any) => {
   if (!user) return "User";

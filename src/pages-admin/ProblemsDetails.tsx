@@ -200,7 +200,7 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
   };
 
   const onDelete = async () => {
-    if (selectedProblem && window.confirm("Are you sure you want to delete this problem?")) {
+    if (selectedProblem && window.confirm("Are you sure you want to delete this problem. This cant be undone and will be deleted from the database as well.?")) {
       await handleApiCall("delete", "/", null, { problem_id: selectedProblem.problem_id });
       setSelectedProblem(null);
       setView("list");

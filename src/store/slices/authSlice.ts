@@ -114,26 +114,7 @@ export const getUser = createAsyncThunk<
     });
   }
 });
-
-export const updateProfileImage = createAsyncThunk<
-  { success: boolean; status: number; payload: { message: string; avatarURL: string } },
-  { avatarURL: string },
-  { rejectValue: { type?: string; message: string; code?: number } }
->("auth/updateProfileImage", async ({ avatarURL }, { rejectWithValue, dispatch }) => {
-  try {
-    const response = await axiosInstance.patch("/users/profile/image", { avatarURL });
-    dispatch(getUser());
-    return response.data;
-  } catch (error: any) {
-    const type = error.response?.data?.error?.type || "ERR_PROFILE_IMAGE_UPDATE_FAILED";
-    const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Failed to update profile image";
-    return rejectWithValue({
-      type,
-      message,
-      code: error.response?.status,
-    });
-  }
-});
+;
 
 export const loginUser = (credentials: { email?: string; password?: string; code?: string }) => async (dispatch: any): Promise<void> => {
   dispatch(setAuthLoading(true));
@@ -336,26 +317,6 @@ const authSlice = createSlice({
         Cookies.remove("refreshToken");
   
       })
-      .addCase(updateProfileImage.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.successMessage = null;
-      })
-      .addCase(
-        updateProfileImage.fulfilled,
-        (state, action: PayloadAction<{ success: boolean; status: number; payload: { message: string; avatarURL: string } }>) => {
-          state.loading = false;
-          state.successMessage = action.payload.payload.message;
-          if (state.userProfile) {
-            state.userProfile.avatarURL = action.payload.payload.avatarURL;
-          }
-    
-        }
-      )
-      .addCase(updateProfileImage.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
-        state.loading = false;
-        state.error = action.payload || { type: "ERR_UNKNOWN", message: "Unknown error" };
-      });
   },
 });
 

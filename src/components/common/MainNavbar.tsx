@@ -34,6 +34,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "@/store/slices/authSlice";
 import { isAuthenticated } from "@/utils/authUtils";
 import {clearAuthState} from "@/store/slices/authSlice"
+import { useGetUserProfile } from "@/services/useGetUserProfile";
+import { isPending } from "@reduxjs/toolkit";
+import SimpleSpinLoader from "../ui/simplespinloader";
 
 interface NavItem {
   name: string;
@@ -58,17 +61,12 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   const authFromCookie = isAuthenticated();
   const effectiveIsAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : authFromCookie;
 
-  // Get user profile from Redux store
-  const { userProfile } = useSelector((state: any) => state.auth) || {};
-
-  //console.log(userProfile)
-
-  useEffect(() => {
-    // Fetch user profile if authenticated and not already loaded
-    if (effectiveIsAuthenticated && !userProfile) {
-      dispatch(getUser() as any);
-    }
-  }, [effectiveIsAuthenticated, userProfile, dispatch]);
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isError: profileError,
+    error
+  } = useGetUserProfile();
 
   const navItems: NavItem[] = [
     { name: "Home", path: "/", icon: <Home className="h-4 w-4" />,requiresAuth:false },
@@ -114,14 +112,13 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     return 'U';
   };
 
-
   return (
     <header
       className={cn(
         "fixed top-0 left-0 right-0 h-16 z-50 transition-all duration-300 ease-in-out bg-zinc-900 border-b border-zinc-800"
       )}
     >
-      <div className="page-container h-full flex items-center justify-between z-10">
+      <div className="page-container h-full flex items-center justify-between z-10 position-relative">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2 mr-8">
             <span
@@ -178,7 +175,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                     <Avatar className="h-8 w-8">
                       <AvatarImage
                         src={userProfile.avatarURL || "https://i.pravatar.cc/300?img=1"}
-                        alt={userProfile.firstName || "User"}
+                        alt={userProfile?.firstName || "User"}
                       />
                       <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                     </Avatar>

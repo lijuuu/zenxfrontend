@@ -7,9 +7,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import StatsCard from '@/components/common/StatsCard';
 import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
 import ClearInactivityCard from '@/components/common/ClearInactivityCard';
-import { getUserProfile } from '@/api/userApi';
-import { getProblems } from '@/api/problemApi';
-import { getChallenges } from '@/api/challengeApi';
 import { getLeaderboard } from '@/api/leaderboardApi';
 import MainNavbar from '@/components/common/MainNavbar';
 import {useGetUserProfile} from "@/services/useGetUserProfile"
@@ -22,18 +19,6 @@ const Dashboard = () => {
     error
   } = useGetUserProfile();
 
-
-  // Fetch problem stats with React Query
-  const { data: problemStats } = useQuery({
-    queryKey: ['problemStats'],
-    queryFn: () => getProblems(),
-  });
-
-  // Fetch recent challenges with React Query
-  const { data: recentChallenges } = useQuery({
-    queryKey: ['recentChallenges'],
-    queryFn: () => getChallenges(),
-  });
 
   // Fetch top performers with React Query
   const { data: topPerformers } = useQuery({
@@ -87,27 +72,27 @@ const Dashboard = () => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Problems Solved"
-                  value={userProfile?.problemsSolved || 147}
-                  change="+3 this week"
+                  value={userProfile?.problemsSolved || 0}
+                  change="+0 this week"
                   icon={<Code className="h-4 w-4 text-green-400" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Streak"
-                  value={`${userProfile?.dayStreak || 26} days`}
+                  value={`${userProfile?.dayStreak || 0} days`}
                   icon={<Zap className="h-4 w-4 text-amber-400" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Global Rank"
-                  value={`#${userProfile?.ranking || 354}`}
-                  change="+12"
+                  value={`#${userProfile?.ranking || 0}`}
+                  change="0"
                   icon={<Trophy className="h-4 w-4 text-amber-500" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Rating"
-                  value={userProfile?.ranking || 354}
+                  value={userProfile?.ranking || 0}
                   change="+15"
                   icon={<Award className="h-4 w-4 text-blue-400" />}
                 />
@@ -160,7 +145,7 @@ const Dashboard = () => {
               </Card>
 
               {/* Clear Recent Inactivity */}
-              <ClearInactivityCard />
+              <ClearInactivityCard referralLink ={userProfile?.referralLink}/>
             </div>
 
             {/* Right Column - Activity & Leaderboard */}

@@ -1,6 +1,5 @@
-// User related types
 export interface UserProfile {
-  // Core identification fields
+  //core identification fields
   userID?: string;
   userName?: string;
   firstName?: string;
@@ -21,7 +20,7 @@ export interface UserProfile {
   };
   createdAt?: number;
   
-  // Additional UI fields
+  //additional UI fields
   joinedDate?: string;
   problemsSolved?: number;
   dayStreak?: number;
@@ -32,6 +31,9 @@ export interface UserProfile {
   following?: number;
   countryCode?: string;
   bio?: string;
+
+  //refer
+  referralLink?:string;
   
   // Stats, achievements, and other data
   stats?: {

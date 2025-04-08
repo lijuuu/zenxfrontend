@@ -27,17 +27,18 @@ const testCaseSchema = z.object({
     },
     "Input must be valid JSON (e.g., { \"nums\": [2,7,11,15], \"target\": 9 })"
   ),
-  expected: z.string().min(1, "Expected output is required").refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return Array.isArray(parsed) && parsed.length === 2 && parsed.every(num => Number.isInteger(num));
-      } catch {
-        return false;
-      }
-    },
-    "Expected must be a JSON array of two integers (e.g., [0,1])"
-  ),
+  expected: z.string().min(1, "Expected output is required")
+  // .refine(
+  //   (val) => {
+  //     try {
+  //       const parsed = JSON.parse(val);
+  //       return Array.isArray(parsed) && parsed.length === 2 && parsed.every(num => Number.isInteger(num));
+  //     } catch {
+  //       return false;
+  //     }
+  //   },
+  //   "Expected must be a JSON array of two integers (e.g., [0,1])"
+  // ),
 });
 
 // Schema for bulk upload
@@ -120,36 +121,51 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
 
   const onAddRun = async (data: TestCaseFormData) => {
     if (!selectedProblem) return setError("Please select or create a problem first.");
-    await handleApiCall("post", "/testcases", {
+    const response = await handleApiCall("post", "/testcases", {
       problem_id: selectedProblem.problem_id,
       testcases: { run: [{ input: data.input, expected: data.expected }], submit: [] },
     });
-    resetRun();
-    setActiveTab("existing");
-    toast.success("Run test case added successfully!");
+  
+    if (response?.success) {
+      resetRun();
+      setActiveTab("existing");
+      toast.success(response?.message || "Run test case added successfully!");
+    } else {
+      toast.error(response?.error?.message || "Failed to add run test case.");
+    }
   };
-
+  
   const onAddSubmit = async (data: TestCaseFormData) => {
     if (!selectedProblem) return setError("Please select or create a problem first.");
-    await handleApiCall("post", "/testcases", {
+    const response = await handleApiCall("post", "/testcases", {
       problem_id: selectedProblem.problem_id,
       testcases: { run: [], submit: [{ input: data.input, expected: data.expected }] },
     });
-    resetSubmit();
-    setActiveTab("existing");
-    toast.success("Submit test case added successfully!");
+  
+    if (response?.success) {
+      resetSubmit();
+      setActiveTab("existing");
+      toast.success(response?.message || "Submit test case added successfully!");
+    } else {
+      toast.error(response?.error?.message || "Failed to add submit test case.");
+    }
   };
-
+  
   const onRemove = async (testcaseId: string, isRun: boolean) => {
     if (!selectedProblem || !window.confirm("Are you sure you want to delete this test case?")) return;
-    await handleApiCall("delete", "/testcases/single", {
+    const response = await handleApiCall("delete", "/testcases/single", {
       problem_id: selectedProblem.problem_id,
       testcase_id: testcaseId,
       is_run_testcase: isRun,
     });
-    toast.success("Test case deleted successfully!");
+  
+    if (response?.success) {
+      toast.success(response?.message || "Test case deleted successfully!");
+    } else {
+      toast.error(response?.error?.message || "Failed to delete test case.");
+    }
   };
-
+  
   const onBulkDelete = async () => {
     if (
       !selectedProblem ||
@@ -157,7 +173,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
       !window.confirm("Are you sure you want to delete selected test cases?")
     )
       return;
-
+  
     const promises = Array.from(selectedTestCases).map((testcaseId) => {
       const isRun = selectedProblem.testcases?.run?.some(
         (tc: any) => (tc.id || tc.testcase_id) === testcaseId
@@ -168,22 +184,37 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
         is_run_testcase: isRun,
       });
     });
-
-    await Promise.all(promises);
+  
+    const responses = await Promise.all(promises);
+  
+    const successCount = responses.filter((res) => res?.success).length;
+    const errorCount = responses.length - successCount;
+  
+    if (successCount > 0) {
+      toast.success(`Deleted ${successCount} test cases successfully!`);
+    }
+    if (errorCount > 0) {
+      toast.error(`Failed to delete ${errorCount} test cases.`);
+    }
+  
     setSelectedTestCases(new Set());
-    toast.success(`Deleted ${selectedTestCases.size} test cases successfully!`);
   };
-
+  
   const onBulkUpload = async (data: { bulkJson: string }) => {
     if (!selectedProblem) return setError("Please select or create a problem first.");
     const parsedJson = JSON.parse(data.bulkJson);
-    await handleApiCall("post", "/testcases", {
+    const response = await handleApiCall("post", "/testcases", {
       problem_id: selectedProblem.problem_id,
       testcases: parsedJson,
     });
-    resetBulk();
-    setActiveTab("existing");
-    toast.success("Bulk test cases uploaded successfully!");
+  
+    if (response?.success) {
+      resetBulk();
+      setActiveTab("existing");
+      toast.success(response?.message || "Bulk test cases uploaded successfully!");
+    } else {
+      toast.error(response?.error?.message || "Failed to upload bulk test cases.");
+    }
   };
 
   const toggleTestCaseSelection = (testcaseId: string) => {
@@ -221,7 +252,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
     title: "Two Sum",
     testcases: {
       run: [
-        
+
       ],
       submit: [],
     },

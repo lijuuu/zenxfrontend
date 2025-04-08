@@ -86,9 +86,9 @@ const Timer: React.FC = () => {
   return (
     <motion.div
       className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-md shadow-md"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      // initial={{ opacity: 0 }}
+      // animate={{ opacity: 1 }}
+      // transition={{ duration: 0.3 }}
     >
       <div className="flex items-center gap-2 text-sm text-zinc-300">
         <Clock className="h-4 w-4 text-green-500" />
@@ -124,9 +124,9 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
   return (
     <motion.div
       className="p-4 overflow-y-auto h-full bg-zinc-900/70 border-r border-zinc-800 relative"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      // initial={{ opacity: 0, x: -20 }}
+      // animate={{ opacity: 1, x: 0 }}
+      // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="space-y-4 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -280,9 +280,9 @@ const Console: React.FC<ConsoleProps> = ({
   return (
     <motion.div
       className="h-full overflow-hidden flex flex-col bg-zinc-900 border-t border-zinc-800"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      // initial={{ opacity: 0, y: 20 }}
+      // animate={{ opacity: 1, y: 0 }}
+      // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2 bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -305,14 +305,14 @@ const Console: React.FC<ConsoleProps> = ({
             >
               Test Cases
             </Button>
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={() => setActiveTab('custom')}
               className={`px-2 py-1 h-7 rounded-r-md ${activeTab === 'custom' ? 'bg-green-600 text-white hover:bg-green-700' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
               Custom Tests
-            </Button>
+            </Button> */}
           </div>
         </div>
         <motion.button
@@ -545,6 +545,8 @@ const ZenXPlayground: React.FC = () => {
   const [customTestCases, setCustomTestCases] = useState<TestCase[]>([]);
   const [consoleTab, setConsoleTab] = useState<'output' | 'tests' | 'custom'>('tests');
   const isMobile = useIsMobile();
+  const [consoleSize, setConsoleSize] = useState(30)
+
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -619,13 +621,13 @@ const ZenXPlayground: React.FC = () => {
         }),
       });
 
-       type GenericResponse = {
+      type GenericResponse = {
         success: boolean;
         status: number;
         payload: ApiResponsePayload;
         error?: { errorType: string; message: string };
       };
-      
+
 
       const data: GenericResponse = await response.json();
 
@@ -661,6 +663,7 @@ const ZenXPlayground: React.FC = () => {
           `ExecutionResult: ${JSON.stringify(executionResult, null, 2)}`,
         ]);
         setExecutionResult(executionResult);
+        // console.log(executionResult)
 
         if (executionResult.overallPass) {
           toast.success(`${type === 'run' ? 'Run' : 'Submission'} Successful`, {
@@ -669,7 +672,7 @@ const ZenXPlayground: React.FC = () => {
           setConsoleTab('output');
         } else {
           toast[type === 'run' ? 'warning' : 'error'](
-            `${type === 'run' ? 'Run' : 'Submission'} ${type === 'run' ? 'Partially Successful' : 'Failed'}`,
+            `${type === 'run' ? 'Run' : 'Submission'} ${!executionResult.overallPass ? ' Successful' : 'Failed'}`,
             {
               description: `${executionResult.passedTestCases} of ${executionResult.totalTestCases} test cases passed.`,
             }
@@ -677,6 +680,7 @@ const ZenXPlayground: React.FC = () => {
           setConsoleTab('tests');
         }
       }
+      setConsoleSize(80)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Network error occurred';
       setOutput([`[Error] ${errorMsg}`]);
@@ -686,6 +690,7 @@ const ZenXPlayground: React.FC = () => {
         description: errorMsg,
       });
     } finally {
+      // setConsoleSize(80);
       setIsExecuting(false);
     }
   }, [code, problem, language]);
@@ -707,6 +712,8 @@ const ZenXPlayground: React.FC = () => {
     setCustomTestCases(prev => [...prev, { input, expected }]);
     toast.success('Custom Test Case Added', { description: 'Added to your test cases.' });
   };
+
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -741,21 +748,24 @@ const ZenXPlayground: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col pb-16">
+    <div className="min-h-screen bg-zinc-950 flex flex-col ">
       <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <ArrowLeft
             className="h-5 w-5 text-zinc-500 cursor-pointer hover:text-green-500 transition-colors"
-            onClick={() => window.location.href = '/problems'}
+            onClick={() => navigate("/problems")}
           />
-          <h1 className="text-sm sm:text-base text-zinc-200 font-medium truncate">
+          {/* <h1 className="text-sm sm:text-base text-zinc-200 font-medium truncate">
             {problem.title}
             <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full inline-block ${problem.difficulty === "Easy" ? "bg-green-600/20 text-green-400" :
               problem.difficulty === "Medium" ? "bg-yellow-600/20 text-yellow-400" : "bg-red-600/20 text-red-400"
               }`}>
               {problem.difficulty}
             </span>
-          </h1>
+          </h1> */}
+          <div className="hidden md:block">
+            <Timer />
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -769,9 +779,6 @@ const ZenXPlayground: React.FC = () => {
             ))}
           </select>
 
-          <div className="hidden md:block">
-            <Timer />
-          </div>
 
           <Button
             onClick={() => handleCodeExecution('run')}
@@ -829,7 +836,7 @@ const ZenXPlayground: React.FC = () => {
                 />
               </ResizablePanel>
               <ResizableHandle className="h-1.5 bg-zinc-800" />
-              <ResizablePanel defaultSize={30}>
+              <ResizablePanel defaultSize={50} minSize={10}>
                 <Console
                   output={output}
                   executionResult={executionResult}

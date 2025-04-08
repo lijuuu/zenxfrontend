@@ -20,7 +20,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-zinc-400 text-sm mb-4 max-w-xs">
-              Elevate your coding skills with our comprehensive platform designed for serious developers.
+              Elevate your coding skills with our comprehensive platform designed for developers.
             </p>
             <div className="flex items-center gap-4">
               <motion.a 

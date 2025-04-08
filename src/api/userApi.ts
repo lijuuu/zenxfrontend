@@ -66,7 +66,7 @@ export const getUserProfile = async (userID?: string): Promise<UserProfile> => {
 export const updateUserProfile = async (
   profileData: Partial<UserProfile>
 ): Promise<UserProfile> => {
-  const res = await axiosInstance.put(`/users/profile/update/${profileData.userID}`, profileData, {
+  const res = await axiosInstance.put(`/users/profile/update`, profileData, {
     headers: {
       'X-Requires-Auth': 'true', 
     },

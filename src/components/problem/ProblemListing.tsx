@@ -79,7 +79,6 @@ const fetchProblems = async () => {
   } catch (error) {
     console.error("Error fetching problems:", error);
     
-    const mockProb = mockProblems;
     
     // Map the mock data to match the Problem interface
     return mockProblems.map(p => ({
