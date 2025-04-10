@@ -48,7 +48,7 @@ const getStatusBadge = (status: Submission['status'], isFirst: boolean) => {
         <><Check className="h-3 w-3" /> Success</>,
         "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
       );
-    case 'FAILURE':
+    case 'FAILED':
       return baseBadge(
         <><X className="h-3 w-3" /> Failed</>,
         "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"

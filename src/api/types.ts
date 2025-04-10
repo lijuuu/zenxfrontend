@@ -283,7 +283,7 @@ export interface Submission {
   userId: string;
   problemId: string;
   submittedAt: string;
-  status: "SUCCESS" | "FAILURE" | "PENDING" | "PROCESSING";
+  status: "SUCCESS" | "FAILED" | "PENDING" | "PROCESSING";
   userCode: string;
   language: string;
   score: number;
