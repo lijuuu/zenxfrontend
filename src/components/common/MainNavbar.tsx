@@ -37,6 +37,7 @@ import {clearAuthState} from "@/store/slices/authSlice"
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { isPending } from "@reduxjs/toolkit";
 import SimpleSpinLoader from "../ui/simplespinloader";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
 
 interface NavItem {
   name: string;
@@ -57,10 +58,6 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Determine authentication from cookies or props
-  const authFromCookie = isAuthenticated();
-  const effectiveIsAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : authFromCookie;
-
   const {
     data: userProfile,
     isLoading: profileLoading,
@@ -74,20 +71,21 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     { name: "Profile", path: "/profile", icon: <User className="h-4 w-4" />, requiresAuth: true },
     { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" /> },
     { name: "Compiler", path: "/compiler", icon: <Terminal className="h-4 w-4" /> },
-    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true },
+    // { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true },
     { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" /> },
-    { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
+    // { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
     { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: true },
   ];
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.requiresAuth || (item.requiresAuth && effectiveIsAuthenticated)
+    (item) => !item.requiresAuth || (item.requiresAuth )
   );
-
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
+
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -96,12 +94,13 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     return location.pathname.startsWith(path);
   };
 
-  const handleLogout = () => {
+  const HandleLogout = () => {
+    // queryClient.invalidateQueries({ queryKey: ['userProfile', ""] });
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     localStorage.removeItem("auth");
     dispatch(clearAuthState())
-    navigate("/login");
+    window.location.href = "/login"
   };
 
   // Generate avatar fallback from user profile
@@ -162,7 +161,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
             <Search className="h-5 w-5" />
           </Button>
 
-          {effectiveIsAuthenticated && userProfile ? (
+          {userProfile ? (
             <>
               <Button variant="ghost" size="icon" aria-label="Notifications" className="text-zinc-400 hover:text-white relative">
                 <Bell className="h-5 w-5" />
@@ -212,7 +211,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={HandleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Logout</span>
                   </DropdownMenuItem>
@@ -252,7 +251,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
         )}
       >
         <nav className="py-6 px-4 space-y-1 min-h-screen overflow-y-auto">
-          {effectiveIsAuthenticated && userProfile && (
+          {userProfile && (
             <div className="p-4 mb-4 border-b border-zinc-800">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10">
@@ -298,12 +297,12 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
           })}
 
           <div className="pt-4 border-t border-zinc-800 mt-4">
-            {effectiveIsAuthenticated ? (
+            {userProfile?.isVerified ? (
               <Button
                 variant="ghost"
                 size="lg"
                 className="w-full justify-start gap-3 font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50"
-                onClick={handleLogout}
+                onClick={HandleLogout}
               >
                 <div className="flex items-center gap-3">
                   <LogOut className="h-4 w-4" />

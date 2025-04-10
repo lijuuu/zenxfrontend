@@ -6,6 +6,6 @@ export const useGetUserProfile = (userId: string = "") => {
     queryKey: ['userProfile', userId],
     queryFn: () => getUserProfile(userId),
     staleTime: 1000 * 60 * 5, 
-    refetchOnWindowFocus: true,
+    // refetchOnWindowFocus: true,
   });
 };

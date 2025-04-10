@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import * as monaco from 'monaco-editor';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import axiosInstance from '@/utils/axiosInstance';
+import { useGetUserProfile } from '@/services/useGetUserProfile';
 import {
   TestCase,
   TestCaseRunOnly,
@@ -86,9 +88,9 @@ const Timer: React.FC = () => {
   return (
     <motion.div
       className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-md shadow-md"
-      // initial={{ opacity: 0 }}
-      // animate={{ opacity: 1 }}
-      // transition={{ duration: 0.3 }}
+    // initial={{ opacity: 0 }}
+    // animate={{ opacity: 1 }}
+    // transition={{ duration: 0.3 }}
     >
       <div className="flex items-center gap-2 text-sm text-zinc-300">
         <Clock className="h-4 w-4 text-green-500" />
@@ -124,9 +126,9 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
   return (
     <motion.div
       className="p-4 overflow-y-auto h-full bg-zinc-900/70 border-r border-zinc-800 relative"
-      // initial={{ opacity: 0, x: -20 }}
-      // animate={{ opacity: 1, x: 0 }}
-      // transition={{ duration: 0.3, ease: "easeOut" }}
+    // initial={{ opacity: 0, x: -20 }}
+    // animate={{ opacity: 1, x: 0 }}
+    // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="space-y-4 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -280,9 +282,9 @@ const Console: React.FC<ConsoleProps> = ({
   return (
     <motion.div
       className="h-full overflow-hidden flex flex-col bg-zinc-900 border-t border-zinc-800"
-      // initial={{ opacity: 0, y: 20 }}
-      // animate={{ opacity: 1, y: 0 }}
-      // transition={{ duration: 0.3, ease: "easeOut" }}
+    // initial={{ opacity: 0, y: 20 }}
+    // animate={{ opacity: 1, y: 0 }}
+    // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2 bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -602,6 +604,8 @@ const ZenXPlayground: React.FC = () => {
     }
   }, [code, problemId, language]);
 
+    const {data: userProfile} = useGetUserProfile();
+
   const handleCodeExecution = useCallback(async (type: string) => {
     if (!problem) return;
 
@@ -609,17 +613,35 @@ const ZenXPlayground: React.FC = () => {
     setOutput([]);
     setExecutionResult(null);
 
+    alert(JSON.stringify(userProfile))
+
     try {
-      const response = await fetch(`${ENGINE_BASE_URL}/problems/execute`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const response = await axiosInstance.post(
+        "/problems/execute",
+        {
           problem_id: problem.problem_id,
           language: language,
           user_code: code,
-          is_run_testcase: type === 'run',
-        }),
-      });
+          is_run_testcase: type === "run",
+          user_id: userProfile?.userID
+        },
+        {
+          headers: {
+            "X-Requires-Auth": "true",
+          },
+        }
+      );
+
+      // const response = await fetch(`${ENGINE_BASE_URL}/problems/execute`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     problem_id: problem.problem_id,
+      //     language: language,
+      //     user_code: code,
+      //     is_run_testcase: type === 'run',
+      //   }),
+      // });
 
       type GenericResponse = {
         success: boolean;
@@ -629,7 +651,7 @@ const ZenXPlayground: React.FC = () => {
       };
 
 
-      const data: GenericResponse = await response.json();
+      const data: GenericResponse = response.data;
 
       if (!data.success || !data.payload) {
         const errorMessage = data.error ? `${data.error.errorType}: ${data.error.message}` : 'Unknown error occurred';

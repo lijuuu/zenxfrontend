@@ -278,36 +278,18 @@ export interface RegisterData {
   fullName: string;
 }
 
-// Submission related types
 export interface Submission {
   id: string;
-  problemId: string;
-  problemTitle: string;
   userId: string;
+  problemId: string;
+  submittedAt: string;
+  status: "SUCCESS" | "FAILURE" | "PENDING" | "PROCESSING";
+  userCode: string;
   language: string;
-  code: string;
-  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Memory Limit Exceeded' | 'Runtime Error' | 'Compilation Error' | 'Processing';
-  runtime?: string;
-  memory?: string;
-  timestamp: string;
-  submittedAt?: string;
-  testCases?: {
-    passed: number;
-    total: number;
-    results?: {
-      input: string;
-      expectedOutput: string;
-      actualOutput?: string;
-      passed: boolean;
-      error?: string;
-    }[];
-  };
-  difficulty?: string;
-  problem?: {
-    id: string;
-    title: string;
-    difficulty: string;
-  };
+  score: number;
+  difficulty: "E" | "M" | "H" ;
+  isFirst: boolean;
+  title: string;
 }
 
 // Compiler related types
