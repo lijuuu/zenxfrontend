@@ -8,6 +8,7 @@ import { AlertCircle, LockIcon, ShieldAlert, EyeIcon, EyeOffIcon } from 'lucide-
 import { toast } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance';
 import { UserProfile } from '@/store/slices/authSlice';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 interface TwoFactorAuthTabProps {
   userProfile: UserProfile;
@@ -15,11 +16,13 @@ interface TwoFactorAuthTabProps {
 
 const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
   const [isEnabled, setIsEnabled] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
   useEffect(() => {
@@ -56,13 +59,46 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       if (response.data.success) {
         setQrCode(response.data.payload.image || null);
         setSecret(response.data.payload.secret || null);
-        toast.success('QR code generated successfully');
+        toast.success(response.data.payload.message || 'QR code generated successfully');
       }
     } catch (error: any) {
       console.error('Error generating QR code:', error);
       toast.error(error.response?.data?.error?.message || 'Failed to generate QR code');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleVerify2FA = async () => {
+    if (!verifyCode) {
+      toast.error('Please enter the verification code');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const response = await axiosInstance.post('/users/security/2fa/verify', { 
+        otp: verifyCode 
+      });
+      
+      if (response.data.success) {
+        if (response.data.payload.verified) {
+          toast.success(response.data.payload.message || 'Two-factor authentication verified successfully');
+          setIsVerified(true);
+          setIsEnabled(true);
+          setQrCode(null);
+          setSecret(null);
+          checkTwoFactorStatus();
+        } else {
+          toast.error(response.data.payload.message || 'Verification failed');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error verifying 2FA:', error);
+      toast.error(error.response?.data?.error?.message || 'Failed to verify two-factor authentication');
+    } finally {
+      setLoading(false);
+      setVerifyCode('');
     }
   };
   
@@ -79,18 +115,22 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
     
     try {
       setLoading(true);
-      const response = await axiosInstance.post('/users/security/2fa/disable', { 
-        password,
-        code: twoFactorCode
+      const response = await axiosInstance.delete('/users/security/2fa/setup', { 
+        data: {
+          password,
+          otp: twoFactorCode
+        }
       });
       
       if (response.data.success) {
-        toast.success('Two-factor authentication disabled successfully');
+        toast.success(response.data.payload.message || 'Two-factor authentication disabled successfully');
         setIsEnabled(false);
+        setIsVerified(false);
         setQrCode(null);
         setSecret(null);
         setPassword('');
         setTwoFactorCode('');
+        checkTwoFactorStatus();
       }
     } catch (error: any) {
       console.error('Error disabling 2FA:', error);
@@ -201,6 +241,32 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                         Please scan this QR code with your authentication app. For security reasons, it will only be shown once.
                       </p>
                     </div>
+                    
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="verify-code">Verification Code</Label>
+                        <p className="text-sm text-zinc-400">
+                          Enter the 6-digit code from your authentication app to verify setup
+                        </p>
+                        <Input
+                          id="verify-code"
+                          type="text"
+                          value={verifyCode}
+                          onChange={(e) => setVerifyCode(e.target.value)}
+                          placeholder="Enter the 6-digit code"
+                          maxLength={6}
+                          className="text-center font-mono text-lg"
+                        />
+                      </div>
+                      
+                      <Button
+                        onClick={handleVerify2FA}
+                        className="w-full"
+                        disabled={loading || !verifyCode || verifyCode.length !== 6}
+                      >
+                        {loading ? 'Verifying...' : 'Verify and Enable 2FA'}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -248,6 +314,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                       onChange={(e) => setTwoFactorCode(e.target.value)}
                       placeholder="Enter the 6-digit code"
                       maxLength={6}
+                      className="text-center font-mono text-lg"
                     />
                   </div>
                   
@@ -255,7 +322,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                     onClick={handleDisable2FA}
                     variant="destructive"
                     className="w-full"
-                    disabled={loading || !password || !twoFactorCode}
+                    disabled={loading || !password || !twoFactorCode || twoFactorCode.length !== 6}
                   >
                     {loading ? 'Disabling...' : 'Disable Two-Factor Authentication'}
                   </Button>

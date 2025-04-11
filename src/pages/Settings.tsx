@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainNavbar from '@/components/common/MainNavbar';
-import {  useAppSelector } from '@/hooks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfileEditTab from '@/components/settings/ProfileEditTab';
 import TwoFactorAuthTab from '@/components/settings/TwoFactorAuthTab';
+import PasswordChangeTab from '@/components/settings/PasswordChangeTab';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
 import { useGetUserProfile } from '@/services/useGetUserProfile';
@@ -74,6 +74,9 @@ const Settings = () => {
                 <TabsTrigger value="security" className="justify-start">
                   Security & 2FA
                 </TabsTrigger>
+                <TabsTrigger value="password" className="justify-start">
+                  Password
+                </TabsTrigger>
                 <TabsTrigger value="notifications" className="justify-start">
                   Notifications
                 </TabsTrigger>
@@ -107,6 +110,10 @@ const Settings = () => {
                 
                 <TabsContent value="security" className="space-y-6">
                   <TwoFactorAuthTab userProfile={userProfile} />
+                </TabsContent>
+                
+                <TabsContent value="password" className="space-y-6">
+                  <PasswordChangeTab />
                 </TabsContent>
                 
                 <TabsContent value="notifications" className="space-y-6">
