@@ -34,7 +34,11 @@ const passwordChangeSchema = z.object({
 
 type PasswordChangeFormValues = z.infer<typeof passwordChangeSchema>;
 
-const PasswordChangeTab = () => {
+interface PassWordChangeProps{
+  email:string
+}
+
+const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
   const [loading, setLoading] = React.useState(false);
   const [showOldPassword, setShowOldPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
@@ -60,7 +64,7 @@ const PasswordChangeTab = () => {
     try {
       setLoading(true);
       // Using the same endpoint as TwoFactorAuthTab
-      const response = await axiosInstance.get(`/auth/2fa/status`);
+      const response = await axiosInstance.get(`/auth/2fa/status?email=${email}`);
       // If successful, the user is likely not a Google login user
       if (response.data.success) {
         setIsGoogleUser(false);

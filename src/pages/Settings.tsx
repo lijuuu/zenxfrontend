@@ -113,7 +113,7 @@ const Settings = () => {
                 </TabsContent>
                 
                 <TabsContent value="password" className="space-y-6">
-                  <PasswordChangeTab />
+                  <PasswordChangeTab email={userProfile?.email} />
                 </TabsContent>
                 
                 <TabsContent value="notifications" className="space-y-6">
