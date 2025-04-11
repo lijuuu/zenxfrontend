@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { User } from '@/api/types';
+import { UserProfile } from '@/api/types';
 
 interface UserSearchProps {
-  onSelectUser: (user: User) => void;
+  onSelectUser: (user: UserProfile) => void;
 }
 
 const UserSearch: React.FC<UserSearchProps> = ({ onSelectUser }) => {

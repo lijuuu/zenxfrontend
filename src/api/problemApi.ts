@@ -1,4 +1,3 @@
-
 import { mockProblems, mockSubmissions, twoSumProblem } from './mockData';
 import { Problem, Submission, CompileRequest, CompileResponse } from './types';
 
@@ -64,35 +63,42 @@ export const getSubmissions = async (problemId?: string): Promise<Submission[]> 
       filteredSubmissions = filteredSubmissions.filter(s => s.problemId === problemId);
     }
     
-    // Ensure all submissions have properly typed status
-    const typedSubmissions = filteredSubmissions.map(submission => ({
-      ...submission,
-      status: submission.status as Submission['status']
+    // Map the mock submissions to match the Submission type
+    const typedSubmissions: Submission[] = filteredSubmissions.map(submission => ({
+      id: submission.id,
+      userId: submission.userId,
+      problemId: submission.problemId,
+      submittedAt: submission.timestamp || new Date().toISOString(),
+      status: submission.status === "Accepted" ? "SUCCESS" : 
+              submission.status === "Wrong Answer" ? "FAILED" :
+              submission.status === "Time Limit Exceeded" || submission.status === "Memory Limit Exceeded" ? "PROCESSING" : "PENDING",
+      userCode: submission.code,
+      language: submission.language,
+      score: Math.floor(Math.random() * 100),
+      difficulty: submission.difficulty === "Easy" ? "E" : submission.difficulty === "Medium" ? "M" : "H",
+      isFirst: Math.random() > 0.7,
+      title: submission.problemTitle || "Problem Title"
     }));
     
     setTimeout(() => resolve(typedSubmissions), 500);
   });
 };
 
-export const submitSolution = async (submission: Omit<Submission, 'id' | 'timestamp' | 'status' | 'runtime' | 'memory' | 'testCases'>): Promise<Submission> => {
+export const submitSolution = async (submission: Omit<Submission, 'id' | 'submittedAt' | 'status' | 'score' | 'isFirst'>): Promise<Submission> => {
   return new Promise(resolve => {
     // Simulate backend validation and testing
     const problem = mockProblems.find(p => p.id === submission.problemId);
     const isCorrect = Math.random() > 0.3; // 70% chance of success
     
-    const status: Submission['status'] = isCorrect ? "Accepted" : "Wrong Answer";
+    const status: Submission['status'] = isCorrect ? "SUCCESS" : "FAILED";
     
     const newSubmission: Submission = {
       id: `s${Date.now()}`,
       ...submission,
+      submittedAt: new Date().toISOString(),
       status,
-      runtime: isCorrect ? `${Math.floor(Math.random() * 100 + 50)} ms` : undefined,
-      memory: isCorrect ? `${(Math.random() * 50 + 10).toFixed(1)} MB` : undefined,
-      timestamp: new Date().toISOString(),
-      testCases: {
-        passed: isCorrect ? problem?.examples.length || 0 : Math.floor(Math.random() * (problem?.examples.length || 1)),
-        total: problem?.examples.length || 0
-      }
+      score: isCorrect ? Math.floor(Math.random() * 50) + 10 : 0,
+      isFirst: Math.random() > 0.8,
     };
     
     setTimeout(() => resolve(newSubmission), 1500);
@@ -221,4 +227,3 @@ export const executeCode = async (
     }, 1500);
   });
 };
-
