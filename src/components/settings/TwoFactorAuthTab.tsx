@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, LockIcon, ShieldAlert, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { AlertCircle, LockIcon, ShieldAlert, EyeIcon, EyeOffIcon, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance';
 import { UserProfile } from '@/store/slices/authSlice';
@@ -24,6 +23,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   
   useEffect(() => {
     // Check if 2FA is enabled
@@ -39,8 +39,13 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       if (response.data.success) {
         setIsEnabled(response.data.payload.isEnabled);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking 2FA status:', error);
+      // Check if this is a Google login user
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO2FA") {
+        setIsGoogleUser(true);
+        toast.error("Two-factor authentication is not available for Google login accounts");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,7 +68,12 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       }
     } catch (error: any) {
       console.error('Error generating QR code:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to generate QR code');
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO2FA") {
+        setIsGoogleUser(true);
+        toast.error("Two-factor authentication is not available for Google login accounts");
+      } else {
+        toast.error(error.response?.data?.error?.message || 'Failed to generate QR code');
+      }
     } finally {
       setLoading(false);
     }
@@ -95,7 +105,12 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       }
     } catch (error: any) {
       console.error('Error verifying 2FA:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to verify two-factor authentication');
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO2FA") {
+        setIsGoogleUser(true);
+        toast.error("Two-factor authentication is not available for Google login accounts");
+      } else {
+        toast.error(error.response?.data?.error?.message || 'Failed to verify two-factor authentication');
+      }
     } finally {
       setLoading(false);
       setVerifyCode('');
@@ -134,7 +149,12 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       }
     } catch (error: any) {
       console.error('Error disabling 2FA:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to disable two-factor authentication');
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO2FA") {
+        setIsGoogleUser(true);
+        toast.error("Two-factor authentication is not available for Google login accounts");
+      } else {
+        toast.error(error.response?.data?.error?.message || 'Failed to disable two-factor authentication');
+      }
     } finally {
       setLoading(false);
     }
@@ -143,6 +163,46 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+  
+  // If user is a Google login user, show a notification instead of the 2FA settings
+  if (isGoogleUser) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-zinc-800 bg-zinc-900/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              Two-Factor Authentication (2FA)
+            </CardTitle>
+            <CardDescription>
+              Additional security for your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <Shield className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-amber-400">Two-Factor Authentication Not Available</h3>
+                <p className="text-sm text-zinc-400 mt-1">
+                  Two-factor authentication is not available for accounts created using Google login. 
+                  Your Google account already has its own security features like 2FA.
+                </p>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border border-zinc-800 p-4 bg-zinc-900/60">
+              <h3 className="font-medium mb-2">Security Recommendations</h3>
+              <ul className="text-sm text-zinc-400 space-y-2">
+                <li>• Ensure your Google account has 2FA enabled</li>
+                <li>• Use a strong, unique password for your Google account</li>
+                <li>• Regularly check your Google account's security settings</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
