@@ -102,7 +102,7 @@ const Settings = () => {
             >
               <div className="space-y-6">
                 <TabsContent value="profile" className="space-y-6">
-                  <ProfileEditTab user={userProfile} />
+                  <ProfileEditTab />
                 </TabsContent>
                 
                 <TabsContent value="security" className="space-y-6">
