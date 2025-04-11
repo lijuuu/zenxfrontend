@@ -52,25 +52,25 @@ const PasswordChangeTab = () => {
   });
 
   React.useEffect(() => {
-    // Check if user is a Google login user
-    checkAuthType();
+    // Check if user is a Google login user using the 2FA status endpoint
+    checkTwoFactorStatus();
   }, []);
 
-  const checkAuthType = async () => {
+  const checkTwoFactorStatus = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/users/profile/auth-type');
+      // Using the same endpoint as TwoFactorAuthTab
+      const response = await axiosInstance.get(`/auth/2fa/status`);
+      // If successful, the user is likely not a Google login user
       if (response.data.success) {
-        // Set flag if user is a Google login user
-        if (response.data.payload.authType === 'google') {
-          setIsGoogleUser(true);
-        }
+        setIsGoogleUser(false);
       }
     } catch (error: any) {
-      console.error('Error checking auth type:', error);
-      // Check if this is a Google login user based on error
-      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO_PASSWORD") {
+      console.error('Error checking 2FA status:', error);
+      // Check if this is a Google login user based on ERR_GOOGLELOGIN_NO2FA error type
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO2FA") {
         setIsGoogleUser(true);
+        console.log("Google user detected, password change not available");
       }
     } finally {
       setLoading(false);
@@ -98,7 +98,7 @@ const PasswordChangeTab = () => {
     } catch (error: any) {
       console.error('Error changing password:', error);
       // Check if this is a Google login user based on error
-      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO_PASSWORD") {
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO2FA") {
         setIsGoogleUser(true);
         toast.error("Password change is not available for Google login accounts");
       } else {
