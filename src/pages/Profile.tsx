@@ -53,7 +53,7 @@ const Profile = () => {
     loadChallenges();
   }, [profile, toast]);
 
-  console.log("profile ",profile)
+  // console.log("profile ",profile)
   // Count private and public challenges
   const privateChallenges = challenges.filter(c => c.isPrivate).length;
   const publicChallenges = challenges.filter(c => !c.isPrivate).length;

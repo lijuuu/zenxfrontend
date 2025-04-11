@@ -1,38 +1,28 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser, clearAuthState, setAuthLoading, resendEmail } from "@/store/slices/authSlice";
+import { loginUser, clearAuthState, setAuthLoading } from "@/store/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import Loader1 from "@/components/ui/loader1";
-import { handleError, handleInfo } from "@/components/sub/ErrorToast";
+import { handleInfo } from "@/components/sub/ErrorToast";
 import MainNavbar from "@/components/common/MainNavbar";
-import axios from "axios";
-import SimpleSpinLoader from "@/components/ui/simplespinloader"
+import axiosInstance from "@/utils/axiosInstance";
+import SimpleSpinLoader from "@/components/ui/simplespinloader";
 
+// loader overlay for loading state
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
     <SimpleSpinLoader className="w-12 h-12 text-green-500" />
-    {/* <div className="text-white text-md opacity-80 ">
-      Logging in...
-    </div> */}
-    {/* <button
-      onClick={onCancel}
-      className="text-gray-400 text-sm mt-4 underline hover:text-green-500 transition-colors duration-200"
-    >
-      Cancel
-    </button> */}
   </div>
 );
 
-// --- LoginForm Component ---
+// login form component
 function LoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +30,7 @@ function LoginForm() {
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
+  // login schema with zod validation
   const loginSchema = React.useMemo(
     () =>
       z.object({
@@ -72,51 +63,64 @@ function LoginForm() {
 
   const { error, loading, userProfile, successMessage, isAuthenticated } = useSelector((state: any) => state.auth);
 
-  // Watch the email field from the form
+  // watch email field
   const formEmail = watch("email");
 
+  // handle email login submission
   const onSubmit = (data: LoginFormData) => {
-
-    dispatch(loginUser({
-      email: data.email,
-      password: data.password,
-      code: data.code
-    }) as any);
+    dispatch(
+      loginUser({
+        email: data.email,
+        password: data.password,
+        code: data.code,
+      }) as any
+    );
   };
 
-  // Single useEffect for auth state and navigation
-  useEffect(() => {
-    // //console.log("useEffect triggered");
-    // //console.log("isAuthenticated:", isAuthenticated);
-    // //console.log("userProfile:", userProfile);
-    // //console.log("loading:", loading);
-    // //console.log("error:", error);
+  // handle google login
+  const handleGoogleLogin = async () => {
+    try {
+      dispatch(setAuthLoading(true));
+      // check for existing session
+      const accessToken = Cookies.get("accessToken");
+      if (accessToken) {
+        toast.error("You are already logged in. Please log out to use Google login.");
+        dispatch(setAuthLoading(false));
+        return;
+      }
+      // initiate google oauth
+      const response = await axiosInstance.get("/auth/google/login");
+      window.location.href = response.data.payload.url;
+    } catch (err: any) {
+      dispatch(setAuthLoading(false));
+      const errorMessage = err.response?.data?.error?.message || "Failed to initiate Google login";
+      toast.error(errorMessage);
+      dispatch(clearAuthState());
+    }
+  };
 
-    const accessToken = Cookies.get("accessToken")
+  // handle auth state and navigation
+  useEffect(() => {
+    const accessToken = Cookies.get("accessToken");
 
     if (userProfile?.isVerified && accessToken) {
-      // //console.log("User is authenticated and verified. Navigating to /dashboard...");
       navigate("/dashboard");
       toast.success(successMessage || "Login successful!");
     } else if (error) {
-      //console.log("Error detected:", error);
-
       if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
-        //console.log("User is not verified. Navigating to /verify-info...");
         Cookies.set("emailtobeverified", formEmail);
         navigate("/verify-info");
         handleInfo(error);
+      } else if (error?.type === "ERR_LOGIN_METHOD_CONFLICT") {
+        toast.error(error.message || "Account exists with a different login method. Try another method.");
       } else {
-        //console.log("An unknown error occurred:", error.message);
         toast.error(error.message || "An error occurred");
       }
-
-      //console.log("Clearing auth state...");
       dispatch(clearAuthState());
     }
   }, [isAuthenticated, userProfile, loading, error, navigate, successMessage, dispatch, formEmail]);
 
-  // Check for existing session on mount
+  // check for existing session on mount
   useEffect(() => {
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
@@ -125,10 +129,14 @@ function LoginForm() {
     }
   }, [navigate]);
 
+  // check 2fa status
   useEffect(() => {
     if (formEmail && formEmail.includes("@") && formEmail.includes(".")) {
-      axios
-        .get(`http://localhost:7000/api/v1/auth/2fa/status?email=${formEmail}`)
+      axiosInstance
+        .get(`/auth/2fa/status`, {
+          params: { email: formEmail },
+          headers: { "X-Requires-Auth": "false" },
+        })
         .then((res: any) => {
           setTwoFactorEnabled(res.data.payload.isEnabled);
         })
@@ -139,6 +147,46 @@ function LoginForm() {
       setTwoFactorEnabled(false);
     }
   }, [formEmail]);
+
+  // handle URL params for OAuth
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const success = urlParams.get('success');
+    const type = urlParams.get('type');
+    const message = urlParams.get('message');
+    const details = urlParams.get('details');
+
+    if (success === 'false' && message) {
+      setTimeout(() => {
+        toast.error(message, {
+          description: details || type,
+          duration: 5000,
+        });
+      }, 0); // Queue toast for next event loop
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const accessToken = urlParams.get('accessToken');
+    const refreshToken = urlParams.get('refreshToken');
+
+    if (accessToken && refreshToken) {
+      Cookies.set('accessToken', accessToken, {
+        expires: 1,
+        secure: true,
+        sameSite: 'Strict',
+      });
+
+      Cookies.set('refreshToken', refreshToken, {
+        expires: 7,
+        secure: true,
+        sameSite: 'Strict',
+      });
+
+      window.history.replaceState({}, document.title, window.location.pathname);
+      navigate('/dashboard');
+      toast.success('logged in successfully!');
+    }
+  }, [navigate, location]);
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
@@ -221,15 +269,18 @@ function LoginForm() {
             <div className="mt-4 space-y-2">
               <Button
                 type="button"
+                onClick={handleGoogleLogin}
                 className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
+                disabled={loading}
               >
-                Sign up with Google
+                Login with Google
               </Button>
               <Button
                 type="button"
                 className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
+                disabled={loading}
               >
-                Sign up with Github
+                Login with Github
               </Button>
             </div>
 
