@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { KeyRound, EyeIcon, EyeOffIcon, AlertCircle } from 'lucide-react';
+import { KeyRound, EyeIcon, EyeOffIcon, AlertCircle, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance';
 import { z } from 'zod';
@@ -39,6 +39,7 @@ const PasswordChangeTab = () => {
   const [showOldPassword, setShowOldPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [isGoogleUser, setIsGoogleUser] = React.useState(false);
   
   // Initialize form with react-hook-form and zod validation
   const form = useForm<PasswordChangeFormValues>({
@@ -49,6 +50,32 @@ const PasswordChangeTab = () => {
       confirmPassword: '',
     },
   });
+
+  React.useEffect(() => {
+    // Check if user is a Google login user
+    checkAuthType();
+  }, []);
+
+  const checkAuthType = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/users/profile/auth-type');
+      if (response.data.success) {
+        // Set flag if user is a Google login user
+        if (response.data.payload.authType === 'google') {
+          setIsGoogleUser(true);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error checking auth type:', error);
+      // Check if this is a Google login user based on error
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO_PASSWORD") {
+        setIsGoogleUser(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChangePassword = async (values: PasswordChangeFormValues) => {
     try {
@@ -70,11 +97,58 @@ const PasswordChangeTab = () => {
       }
     } catch (error: any) {
       console.error('Error changing password:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to change password');
+      // Check if this is a Google login user based on error
+      if (error.response?.data?.error?.type === "ERR_GOOGLELOGIN_NO_PASSWORD") {
+        setIsGoogleUser(true);
+        toast.error("Password change is not available for Google login accounts");
+      } else {
+        toast.error(error.response?.data?.error?.message || 'Failed to change password');
+      }
     } finally {
       setLoading(false);
     }
   };
+  
+  // If user is a Google login user, show a notification instead of the password change form
+  if (isGoogleUser) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-zinc-800 bg-zinc-900/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-amber-500" />
+              Password Settings
+            </CardTitle>
+            <CardDescription>
+              Manage your account password settings
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <Shield className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-amber-400">Password Change Not Available</h3>
+                <p className="text-sm text-zinc-400 mt-1">
+                  Password change is not available for accounts created using Google login. 
+                  Your password is managed through your Google account.
+                </p>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border border-zinc-800 p-4 bg-zinc-900/60">
+              <h3 className="font-medium mb-2">Account Security Recommendations</h3>
+              <ul className="text-sm text-zinc-400 space-y-2">
+                <li>• Ensure your Google account has a strong, unique password</li>
+                <li>• Enable two-factor authentication on your Google account</li>
+                <li>• Regularly review your Google account's security settings</li>
+                <li>• Be cautious of phishing attempts targeting your Google account</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
