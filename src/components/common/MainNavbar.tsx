@@ -100,7 +100,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     Cookies.remove("refreshToken");
     localStorage.removeItem("auth");
     dispatch(clearAuthState())
-    window.location.href = "/login"
+    // window.location.href = "/login"
   };
 
   // Generate avatar fallback from user profile
