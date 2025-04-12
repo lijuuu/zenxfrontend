@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { PenSquare, Save, Crop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +17,16 @@ import SimpleSpinLoader from "../ui/simplespinloader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Cropper from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
+import axiosInstance from "@/utils/axiosInstance";
+import { debounce } from "lodash";
 
-// validation schema
+// Validation schema
 const profileSchema = z.object({
-  userName: z.string().min(3).max(20),
+  userName: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be less than 20 characters")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores and hyphens"),
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
   bio: z.string().max(160).optional(),
@@ -32,66 +38,99 @@ const ProfileEditTab: React.FC = () => {
   const { mutate: updateProfileImage, isPending: isUpdatingImage } = useUpdateProfileImage(userProfile?.userID);
   const queryClient = useQueryClient();
 
-  const [usernameCheck, setUsernameCheck] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean>(true);
+  const [userName, setUserName] = useState<string>(userProfile?.userName || "");
 
-  // handle username change
+  // Debounced username check
+  const checkUsernameAvailability = useCallback(
+    debounce(async (username: string) => {
+      if (!username || username === userProfile?.userName) {
+        setUsernameAvailable(true);
+        return;
+      }
+
+      try {
+        const result = profileSchema.shape.userName.safeParse(username);
+        if (!result.success) {
+          setUsernameAvailable(false);
+          return;
+        }
+
+        const response = await axiosInstance.get("/users/username/available", {
+          params: { username },
+          headers: { "X-Requires-Auth": "false" },
+        });
+        setUsernameAvailable(response.data.payload.available);
+      } catch (error) {
+        setUsernameAvailable(false);
+      }
+    }, 500),
+    [userProfile?.userName]
+  );
+
+  // Handle username change with debouncing
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsernameCheck(true);
+    const username = e.target.value;
+    setUserName(username);
+    checkUsernameAvailability(username);
   };
 
-  // handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const profileData = {
-      userID: userProfile?.userID,
-      userName: formData.get("userName") as string,
-      firstName: formData.get("firstName") as string,
-      lastName: formData.get("lastName") as string,
-      country: formData.get("country") as string,
-      primaryLanguageID: formData.get("primaryLanguageID") as string,
-      muteNotifications: formData.get("muteNotifications") === "on",
-      bio: formData.get("bio") as string,
-      socials: {
-        github: formData.get("github") as string,
-        twitter: formData.get("twitter") as string,
-        linkedin: formData.get("linkedin") as string,
-      },
-    };
+  // Memoized form submission handler
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const formData = new FormData(e.currentTarget);
+      const profileData = {
+        userID: userProfile?.userID,
+        userName: formData.get("userName") as string,
+        firstName: formData.get("firstName") as string,
+        lastName: formData.get("lastName") as string,
+        country: formData.get("country") as string,
+        primaryLanguageID: formData.get("primaryLanguageID") as string,
+        muteNotifications: formData.get("muteNotifications") === "on",
+        bio: formData.get("bio") as string,
+        socials: {
+          github: formData.get("github") as string,
+          twitter: formData.get("twitter") as string,
+          linkedin: formData.get("linkedin") as string,
+        },
+      };
 
-    const validation = profileSchema.safeParse({
-      userName: profileData.userName,
-      firstName: profileData.firstName,
-      lastName: profileData.lastName,
-      bio: profileData.bio,
-    });
+      const validation = profileSchema.safeParse({
+        userName: profileData.userName,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        bio: profileData.bio,
+      });
 
-    if (validation.success) {
-      updateUser(profileData);
-    }
-  };
+      if (validation.success && usernameAvailable) {
+        updateUser(profileData);
+      }
+    },
+    [updateUser, userProfile?.userID, usernameAvailable]
+  );
 
-  // handle image selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Memoized image change handler
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => setImageSrc(reader.result as string);
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  // handle crop completion
+  // Memoized crop completion handler
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  // crop and upload image
+  // Memoized crop and upload handler
   const handleCropAndUpload = useCallback(async () => {
     if (!imageSrc || !croppedAreaPixels || !userProfile?.userID) return;
 
@@ -122,27 +161,39 @@ const ProfileEditTab: React.FC = () => {
       croppedAreaPixels.height
     );
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const croppedFile = new File([blob], "avatar.jpg", { type: "image/jpeg" });
-        setIsDialogOpen(false); 
-        updateProfileImage(croppedFile, {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["userProfile",""] });
-          },
-        });
-      }
-    }, "image/jpeg", 0.9);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          const croppedFile = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+          setIsDialogOpen(false);
+          updateProfileImage(croppedFile, {
+            onSuccess: () => {
+              queryClient.invalidateQueries({
+                queryKey: ["userProfile"], 
+              });
+            },
+          });
+        }
+      },
+      "image/jpeg",
+      0.9
+    );
   }, [imageSrc, croppedAreaPixels, updateProfileImage, userProfile?.userID, queryClient]);
 
-  // get avatar initials
-  const getInitials = () => {
+  // Memoized initials generator
+  const getInitials = useMemo(() => {
     if (userProfile?.firstName && userProfile?.lastName)
       return `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase();
-    if (userProfile?.userName)
-      return userProfile.userName[0].toUpperCase();
+    if (userProfile?.userName) return userProfile.userName[0].toUpperCase();
     return "U";
-  };
+  }, [userProfile?.firstName, userProfile?.lastName, userProfile?.userName]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      checkUsernameAvailability.cancel();
+    };
+  }, [checkUsernameAvailability]);
 
   if (isLoading) return <div className="text-center py-8">Loading...</div>;
   if (error) return <div className="text-center py-8">Error Loading Profile</div>;
@@ -165,7 +216,7 @@ const ProfileEditTab: React.FC = () => {
               <div className="md:w-1/3 flex flex-col items-center space-y-4">
                 <Avatar className="w-24 h-24">
                   <AvatarImage src={userProfile?.avatarURL || userProfile?.profileImage} />
-                  <AvatarFallback className="bg-green-900/30 text-green-500">{getInitials()}</AvatarFallback>
+                  <AvatarFallback className="bg-green-900/30 text-green-500">{getInitials}</AvatarFallback>
                 </Avatar>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
@@ -207,11 +258,11 @@ const ProfileEditTab: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" name="firstName" defaultValue={userProfile?.firstName} />
+                    <Input id="firstName" name="firstName" defaultValue={userProfile?.firstName || ""} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" name="lastName" defaultValue={userProfile?.lastName} />
+                    <Input id="lastName" name="lastName" defaultValue={userProfile?.lastName || ""} />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -219,21 +270,29 @@ const ProfileEditTab: React.FC = () => {
                   <Input
                     id="userName"
                     name="userName"
-                    defaultValue={userProfile?.userName}
+                    value={userName}
                     onChange={handleUsernameChange}
+                    className={`${
+                      !usernameAvailable && userProfile?.userName !== userName ? "border-red-500" : ""
+                    }`}
                   />
-                  {usernameCheck && <span className="text-sm text-green-500">Checking...</span>}
+                  {!usernameAvailable && userProfile?.userName !== userName && (
+                    <span className="text-sm text-red-500">Username is not available</span>
+                  )}
+                  {usernameAvailable && userProfile?.userName !== userName && (
+                    <span className="text-sm text-green-500">Username is available</span>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea id="bio" name="bio" defaultValue={userProfile?.bio} rows={4} />
+                  <Textarea id="bio" name="bio" defaultValue={userProfile?.bio || ""} rows={4} />
                 </div>
               </div>
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
-                <Select name="country" defaultValue={userProfile?.country}>
+                <Select name="country" defaultValue={userProfile?.country || ""}>
                   <SelectTrigger id="country">
                     <SelectValue placeholder="Select Your Country" />
                   </SelectTrigger>
@@ -254,7 +313,7 @@ const ProfileEditTab: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="primaryLanguageID">Preferred Language</Label>
-                <Select name="primaryLanguageID" defaultValue={userProfile?.primaryLanguageID}>
+                <Select name="primaryLanguageID" defaultValue={userProfile?.primaryLanguageID || ""}>
                   <SelectTrigger id="primaryLanguageID">
                     <SelectValue placeholder="Select Language" />
                   </SelectTrigger>
@@ -277,7 +336,7 @@ const ProfileEditTab: React.FC = () => {
                 <Switch
                   id="muteNotifications"
                   name="muteNotifications"
-                  defaultChecked={userProfile?.muteNotifications}
+                  defaultChecked={userProfile?.muteNotifications || false}
                 />
                 <Label htmlFor="muteNotifications">Mute Notifications</Label>
               </div>
@@ -292,21 +351,21 @@ const ProfileEditTab: React.FC = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="github">Github</Label>
-              <Input id="github" name="github" defaultValue={userProfile?.socials?.github} />
+              <Input id="github" name="github" defaultValue={userProfile?.socials?.github || ""} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="twitter">Twitter</Label>
-              <Input id="twitter" name="twitter" defaultValue={userProfile?.socials?.twitter} />
+              <Input id="twitter" name="twitter" defaultValue={userProfile?.socials?.twitter || ""} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="linkedin">Linkedin</Label>
-              <Input id="linkedin" name="linkedin" defaultValue={userProfile?.socials?.linkedin} />
+              <Input id="linkedin" name="linkedin" defaultValue={userProfile?.socials?.linkedin || ""} />
             </div>
             <div className="flex justify-end mt-6">
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700"
-                disabled={isUpdating}
+                disabled={isUpdating || !usernameAvailable}
               >
                 {isUpdating ? "Saving..." : "Save Changes"}
               </Button>
