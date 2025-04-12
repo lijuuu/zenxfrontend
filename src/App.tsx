@@ -5,7 +5,6 @@ import { Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Leaderboard from "./pages/Leaderboard";
@@ -90,7 +89,6 @@ const App = () => {
           <AppContent />
         </TooltipProvider>
       </Provider>
-      <ReactQueryDevtools initialIsOpen={false} /> {/* Optional devtools */}
     </QueryClientProvider>
   );
 };
