@@ -33,7 +33,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "@/store/slices/authSlice";
 import { isAuthenticated } from "@/utils/authUtils";
-import {clearAuthState} from "@/store/slices/authSlice"
+import { clearAuthState } from "@/store/slices/authSlice"
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { isPending } from "@reduxjs/toolkit";
 import SimpleSpinLoader from "../ui/simplespinloader";
@@ -66,21 +66,20 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   } = useGetUserProfile();
 
   const navItems: NavItem[] = [
-    { name: "Home", path: "/", icon: <Home className="h-4 w-4" />,requiresAuth:false },
-    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, requiresAuth: true },
-    { name: "Profile", path: "/profile", icon: <User className="h-4 w-4" />, requiresAuth: true },
-    { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" /> },
-    { name: "Compiler", path: "/compiler", icon: <Terminal className="h-4 w-4" /> },
-    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true },
-    { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" /> },
-    { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
-    { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: true },
+    { name: "Home", path: "/", icon: <Home className="h-4 w-4" />, requiresAuth: false },
+    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, requiresAuth: false },
+    { name: "Profile", path: "/profile", icon: <User className="h-4 w-4" />, requiresAuth: false },
+    { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" />, requiresAuth: false },
+    { name: "Compiler", path: "/compiler", icon: <Terminal className="h-4 w-4" />, requiresAuth: false },
+    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, requiresAuth: false, isHighlighted: true },
+    { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" />, requiresAuth: false },
+    { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: false },
+    { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: false },
   ];
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.requiresAuth || (item.requiresAuth )
+    (item) => !item.requiresAuth || (item.requiresAuth)
   );
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -100,7 +99,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     Cookies.remove("refreshToken");
     localStorage.removeItem("auth");
     dispatch(clearAuthState())
-    // window.location.href = "/login"
+    window.location.href = "/login"
   };
 
   // Generate avatar fallback from user profile
