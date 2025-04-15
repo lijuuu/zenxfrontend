@@ -87,7 +87,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
       <div className="flex flex-col items-center md:items-start">
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-            <AvatarImage src={profile.profileImage || profile.avatarURL} alt={profile.firstName + ' ' + profile.lastName} />
+            <AvatarImage src={profile?.profileImage || profile.avatarURL} alt={profile.firstName + ' ' + profile.lastName} />
             <AvatarFallback className="text-xl font-bold">
               {getInitials()}
             </AvatarFallback>

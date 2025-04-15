@@ -613,7 +613,7 @@ const ZenXPlayground: React.FC = () => {
     setOutput([]);
     setExecutionResult(null);
 
-    alert(JSON.stringify(userProfile))
+    // alert(JSON.stringify(userProfile))
 
     try {
       const response = await axiosInstance.post(

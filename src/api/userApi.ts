@@ -58,6 +58,8 @@ export const getUserProfile = async (userID?: string): Promise<UserProfile> => {
     },
   });
 
+  localStorage.setItem("userid",res.data.payload.userProfile?.userID)
+
   // console.log("triggered api getUserProfile, ", res.data);
   return res.data.payload.userProfile;
 };
