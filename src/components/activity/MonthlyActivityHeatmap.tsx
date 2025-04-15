@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { format, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, getDay, getDaysInMonth } from 'date-fns';
+import { format, parseISO, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths, isSameMonth, addDays, subDays } from 'date-fns';
 import { Activity } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
 
 type ActivityDay = {
   date: string;
@@ -16,78 +17,82 @@ interface MonthlyActivityHeatmapProps {
   className?: string;
   showTitle?: boolean;
   compact?: boolean;
+  userID?: string;
 }
 
-const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
-  data,
-  className = "",
-  showTitle = true,
-  compact = false
-}) => {
+const useFetchMonthData = (userID: string, initialDate: Date) => {
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [activityData, setActivityData] = useState<ActivityDay[]>([]);
-  const [hoveredDay, setHoveredDay] = useState<ActivityDay | null>(null);
-  const isMobile = useIsMobile();
+
+  const currentMonth = useMonthlyActivity(userID, selectedDate.getMonth() + 1, selectedDate.getFullYear());
 
   useEffect(() => {
-    // Get current month and its days
-    const today = new Date();
-    const start = startOfMonth(today);
-    const end = endOfMonth(today);
-
-    // Generate array of days for the current month
-    const days = eachDayOfInterval({ start, end });
-
-    if (!data) {
-      const generatedData: ActivityDay[] = days.map(day => {
-        const isActive = Math.random() > 0.3; // 70% chance of being active
-        const count = isActive ? Math.floor(Math.random() * 10) + 1 : 0;
-        return {
-          date: format(day, 'yyyy-MM-dd'),
-          count,
-          isActive
-        };
-      });
-      setActivityData(generatedData);
-    } else {
-      setActivityData(data);
+    if (currentMonth.data) {
+      const normalizeData = (data: any) => {
+        return data.map(day => ({
+          date: day.date,
+          count: day.count || 0,
+          isActive: day.isActive || false,
+        }));
+      };
+      const normalizedData = normalizeData(currentMonth?.data || []);
+      setActivityData(normalizedData);
     }
-  }, [data]);
+  }, [currentMonth.data]);
 
-  // Create dynamic grid for the month
+  const setNewDate = (date: Date) => setSelectedDate(date);
+
+  return { activityData, setNewDate, selectedDate, isLoading: currentMonth.isLoading, isError: currentMonth.isError, error: currentMonth.error };
+};
+
+const SkeletonGrid = ({ weeksNeeded }: { weeksNeeded: number }) => {
+  const circleSize = 'w-10 h-10';
+  const gap = 'gap-1';
+  return (
+    <div className={`grid grid-cols-7 ${gap} justify-items-center`}>
+      {Array.from({ length: weeksNeeded }).map((_, weekIndex) =>
+        Array.from({ length: 7 }).map((_, dayIndex) => (
+          <div
+            key={`skeleton-${weekIndex}-${dayIndex}`}
+            className={`${circleSize} rounded-full bg-gray-700 animate-pulse`}
+          />
+        ))
+      )}
+    </div>
+  );
+};
+
+const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
+  data: propData,
+  className = "",
+  showTitle = true,
+  compact = false,
+  userID = "03e40494-92b1-4d3d-bcdf-a9cad80c5993"
+}) => {
+  const [hoveredDay, setHoveredDay] = useState<ActivityDay | null>(null);
+  const isMobile = useIsMobile();
+  const { activityData, setNewDate, selectedDate, isLoading, isError, error } = useFetchMonthData(userID, new Date());
+
   const createDynamicGrid = () => {
-    const today = new Date();
-    const start = startOfMonth(today);
-    const daysInMonth = getDaysInMonth(today);
-    const firstDayOfMonth = getDay(start); // 0 (Sun) to 6 (Sat)
+    const start = startOfMonth(selectedDate);
+    const daysInMonth = getDaysInMonth(selectedDate);
+    const firstDayOfMonth = getDay(start);
+    const weeksNeeded = Math.ceil((daysInMonth + firstDayOfMonth) / 7);
 
-    // Calculate total slots and weeks needed
-    const totalSlots = daysInMonth + firstDayOfMonth;
-    const weeksNeeded = Math.ceil(totalSlots / 7);
+    const grid = Array(weeksNeeded).fill(null).map(() => Array(7).fill(null));
+    const dateToData = new Map(activityData.map(d => [d.date, d]));
 
-    // Initialize grid with null values
-    const grid: (ActivityDay | null)[][] = Array(weeksNeeded)
-      .fill(null)
-      .map(() => Array(7).fill(null));
+    let currentDate = subDays(start, firstDayOfMonth);
 
-    // Fill empty slots before the first day with null (to be gray)
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      grid[0][i] = null;
-    }
-
-    // Populate the grid with activity data
-    let dayIndex = 0;
     for (let week = 0; week < weeksNeeded; week++) {
       for (let day = 0; day < 7; day++) {
-        const currentPosition = week * 7 + day;
-        if (currentPosition < firstDayOfMonth || dayIndex >= activityData.length) {
-          // Fill remaining slots with null (to be gray)
-          if (currentPosition >= firstDayOfMonth) {
-            grid[week][day] = null;
-          }
-          continue;
+        const dateStr = format(currentDate, 'yyyy-MM-dd');
+        if (isSameMonth(currentDate, start)) {
+          grid[week][day] = dateToData.get(dateStr) || { date: dateStr, count: 0, isActive: false };
+        } else {
+          grid[week][day] = null;
         }
-        grid[week][day] = activityData[dayIndex];
-        dayIndex++;
+        currentDate = addDays(currentDate, 1);
       }
     }
 
@@ -97,9 +102,48 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   const grid = createDynamicGrid();
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Circle size and gap settings
-  const circleSize = 'w-10 h-10'; // Reduced size to accommodate gaps
-  const gap = 'gap-1'; // Equal X and Y gaps between circles
+  const circleSize = 'w-10 h-10';
+  const gap = 'gap-1';
+
+  const weeksNeeded = Math.ceil((getDaysInMonth(selectedDate) + getDay(startOfMonth(selectedDate))) / 7);
+
+  if (isLoading) {
+    return (
+      <Card className={`bg-black border-zinc-800/50 ${className}`}>
+        {showTitle && (
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5 text-green-500" />
+              Monthly Activity
+            </CardTitle>
+          </CardHeader>
+        )}
+        <CardContent className={compact ? "p-3" : "p-4"}>
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center mb-2">
+              <button className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700">Previous</button>
+              <span className="text-sm text-zinc-400">{format(selectedDate, 'MMMM yyyy')}</span>
+              <button className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700">Next</button>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-full">
+                <div className={`grid grid-cols-7 ${gap} mb-2 justify-items-center`}>
+                  {daysOfWeek.map((day, i) => (
+                    <div key={day} className="text-xs text-zinc-500">
+                      {isMobile ? day.charAt(0) : day}
+                    </div>
+                  ))}
+                </div>
+                <SkeletonGrid weeksNeeded={weeksNeeded} />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) return <div>Error: {error?.message}</div>;
 
   return (
     <Card className={`bg-black border-zinc-800/50 ${className}`}>
@@ -113,6 +157,23 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
       )}
       <CardContent className={compact ? "p-3" : "p-4"}>
         <div className="flex flex-col">
+          <div className="flex justify-between items-center mb-2">
+            <button
+              onClick={() => setNewDate(subMonths(selectedDate, 1))}
+              className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-zinc-400">
+              {format(selectedDate, 'MMMM yyyy')}
+            </span>
+            <button
+              onClick={() => setNewDate(addMonths(selectedDate, 1))}
+              className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700"
+            >
+              Next
+            </button>
+          </div>
           <div className="flex justify-center">
             <div className="w-full">
               <div className={`grid grid-cols-7 ${gap} mb-2 justify-items-center`}>
@@ -127,7 +188,6 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
                 <div className={`grid grid-cols-7 ${gap} justify-items-center`}>
                   {grid.map((week, weekIndex) =>
                     week.map((day, dayIndex) => {
-                      // Empty slots (before/after month) are gray
                       if (!day) {
                         return (
                           <div

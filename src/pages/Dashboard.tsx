@@ -151,7 +151,7 @@ const Dashboard = () => {
             {/* Right Column - Activity & Leaderboard */}
             <div className="space-y-6">
               {/* Monthly Activity Heatmap */}
-              <MonthlyActivityHeatmap />
+              <MonthlyActivityHeatmap userID={userProfile?.userID}/>
 
               {/* Leaderboard Preview */}
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
