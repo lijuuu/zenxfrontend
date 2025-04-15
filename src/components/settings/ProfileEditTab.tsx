@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { PenSquare, Save, Crop } from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { PenSquare, Save, Crop, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { useUpdateUserProfile } from "@/services/useUpdateUserProfile";
 import { useUpdateProfileImage } from "@/services/useUpdateProfileImage";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import axiosInstance from "@/utils/axiosInstance";
 import SimpleSpinLoader from "../ui/simplespinloader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Cropper from "react-easy-crop";
@@ -20,11 +21,26 @@ import "react-easy-crop/react-easy-crop.css";
 
 // validation schema
 const profileSchema = z.object({
-  userName: z.string().min(3).max(20),
+  userName: z.string()
+    .min(3, "username must be at least 3 characters")
+    .max(20, "username must be at most 20 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "username can only contain letters, numbers, and underscores"),
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
   bio: z.string().max(160).optional(),
 });
+
+// debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 const ProfileEditTab: React.FC = () => {
   const { data: userProfile, isLoading, error } = useGetUserProfile();
@@ -32,21 +48,89 @@ const ProfileEditTab: React.FC = () => {
   const { mutate: updateProfileImage, isPending: isUpdatingImage } = useUpdateProfileImage(userProfile?.userID);
   const queryClient = useQueryClient();
 
-  const [usernameCheck, setUsernameCheck] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "not_available">("idle");
+  const [usernameError, setUsernameError] = useState<string>("");
+  const [suggestedUsernames, setSuggestedUsernames] = useState<string[]>([]);
+  const [currentUsername, setCurrentUsername] = useState<string>("");
+  const debouncedUsername = useDebounce(currentUsername, 500);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // set initial username
+  useEffect(() => {
+    if (userProfile?.userName) {
+      setCurrentUsername(userProfile.userName);
+    }
+  }, [userProfile?.userName]);
+
+  // check username availability
+  useEffect(() => {
+    if (debouncedUsername === userProfile?.userName || debouncedUsername === "") {
+      setUsernameStatus("idle");
+      setUsernameError("");
+      setSuggestedUsernames([]);
+      return;
+    }
+
+    const validate = profileSchema.shape.userName.safeParse(debouncedUsername);
+    if (!validate.success) {
+      setUsernameError(validate.error.errors[0].message);
+      setUsernameStatus("idle");
+      setSuggestedUsernames([]);
+      return;
+    }
+
+    setUsernameStatus("checking");
+    setUsernameError("");
+
+    axiosInstance
+      .get("/users/username/available", {
+        params: { username: debouncedUsername },
+        headers: { "x-requires-auth": false },
+      })
+      .then((res) => {
+        const data: { success: boolean; payload: { available: boolean } } = res.data;
+        if (data.payload.available) {
+          setUsernameStatus("available");
+          setSuggestedUsernames([]);
+        } else {
+          setUsernameStatus("not_available");
+          setSuggestedUsernames([
+            `${debouncedUsername}${Math.floor(Math.random() * 100)}`,
+            `${debouncedUsername}_x`,
+            `${debouncedUsername}${Math.floor(Math.random() * 10)}`,
+          ]);
+        }
+      })
+      .catch(() => {
+        setUsernameError("failed to check username");
+        setUsernameStatus("idle");
+        setSuggestedUsernames([]);
+      });
+  }, [debouncedUsername, userProfile?.userName]);
+
   // handle username change
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsernameCheck(true);
+    setCurrentUsername(e.target.value);
+  };
+
+  // handle suggestion click
+  const handleSuggestionClick = (suggestion: string) => {
+    setCurrentUsername(suggestion);
+    setUsernameError("");
   };
 
   // handle form submission
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (usernameStatus !== "available" && currentUsername !== userProfile?.userName) {
+      setUsernameError("please choose an available username");
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
     const profileData = {
       userID: userProfile?.userID,
@@ -125,10 +209,10 @@ const ProfileEditTab: React.FC = () => {
     canvas.toBlob((blob) => {
       if (blob) {
         const croppedFile = new File([blob], "avatar.jpg", { type: "image/jpeg" });
-        setIsDialogOpen(false); 
+        setIsDialogOpen(false);
         updateProfileImage(croppedFile, {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["userProfile",""] });
+            queryClient.invalidateQueries({ queryKey: ["userProfile"] });
           },
         });
       }
@@ -219,10 +303,43 @@ const ProfileEditTab: React.FC = () => {
                   <Input
                     id="userName"
                     name="userName"
-                    defaultValue={userProfile?.userName}
+                    value={currentUsername}
                     onChange={handleUsernameChange}
+                    className={usernameError ? "border-red-500" : ""}
                   />
-                  {usernameCheck && <span className="text-sm text-green-500">Checking...</span>}
+                  <div className="space-y-2">
+                    {usernameStatus === "checking" && (
+                      <span className="text-sm text-gray-400 flex items-center">
+                        <SimpleSpinLoader className="h-4 w-4 mr-1" /> checking...
+                      </span>
+                    )}
+                    {usernameStatus === "available" && (
+                      <span className="text-sm text-green-500 font-medium">available</span>
+                    )}
+                    {usernameStatus === "not_available" && (
+                      <div className="space-y-2">
+                        <span className="text-sm text-red-500 font-medium">not available</span>
+                        <div className="flex flex-wrap gap-2 p-2 bg-zinc-800/50 rounded-md">
+                          {suggestedUsernames.map((suggestion) => (
+                            <Button
+                              key={suggestion}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              className="bg-zinc-700/50 text-green-400 hover:bg-green-600 hover:text-white transition-colors"
+                            >
+                              {suggestion}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {usernameError && (
+                      <span className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" /> {usernameError}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
@@ -306,7 +423,7 @@ const ProfileEditTab: React.FC = () => {
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700"
-                disabled={isUpdating}
+                disabled={isUpdating || (currentUsername !== userProfile?.userName && usernameStatus !== "available")}
               >
                 {isUpdating ? "Saving..." : "Save Changes"}
               </Button>
