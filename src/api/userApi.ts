@@ -75,3 +75,30 @@ export const updateUserProfile = async (
   });
   return res.data;
 };
+
+export interface SearchUsersResponse {
+  users: UserProfile[];
+  totalCount: number;
+  nextPageToken?: string;
+  message?: string;
+}
+
+export const searchUsers = async (
+  query: string,
+  pageToken?: string,
+  limit: number = 10
+): Promise<SearchUsersResponse> => {
+  let url = `/users/search?query=${encodeURIComponent(query)}&limit=${limit}`;
+  
+  if (pageToken) {
+    url += `&pageToken=${encodeURIComponent(pageToken)}`;
+  }
+  
+  const res = await axiosInstance.get(url, {
+    headers: {
+      'X-Requires-Auth': 'true',
+    },
+  });
+
+  return res.data.payload;
+};

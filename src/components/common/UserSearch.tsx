@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Search, User, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { searchUsers } from "@/api/challengeApi";
+import { searchUsers } from "@/api/userApi";
 import { UserProfile as UserType } from "@/api/types";
 
 interface UserSearchProps {
@@ -22,6 +22,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
   const [results, setResults] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [nextPageToken, setNextPageToken] = useState<string | undefined>();
+  const [totalCount, setTotalCount] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -35,7 +37,9 @@ const UserSearch: React.FC<UserSearchProps> = ({
       setLoading(true);
       try {
         const data = await searchUsers(query);
-        setResults(data);
+        setResults(data.users);
+        setNextPageToken(data.nextPageToken);
+        setTotalCount(data.totalCount);
       } catch (error) {
         console.error("Search error:", error);
       } finally {
@@ -74,6 +78,41 @@ const UserSearch: React.FC<UserSearchProps> = ({
     inputRef.current?.focus();
   };
   
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && query.trim().length >= 2) {
+      const performSearch = async () => {
+        setLoading(true);
+        try {
+          const data = await searchUsers(query);
+          setResults(data.users);
+          setNextPageToken(data.nextPageToken);
+          setTotalCount(data.totalCount);
+        } catch (error) {
+          console.error("Search error:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      performSearch();
+    }
+  };
+  
+  const loadMore = async () => {
+    if (!nextPageToken || loading) return;
+    
+    setLoading(true);
+    try {
+      const data = await searchUsers(query, nextPageToken);
+      setResults(prev => [...prev, ...data.users]);
+      setNextPageToken(data.nextPageToken);
+    } catch (error) {
+      console.error("Load more error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return (
     <div ref={searchRef} className={`relative ${className}`}>
       <div className="relative">
@@ -85,6 +124,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
           placeholder="Search users..."
           className="pl-10 pr-10"
           onFocus={() => setFocused(true)}
+          onKeyDown={handleKeyDown}
         />
         {query && (
           <Button
@@ -100,7 +140,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
       
       {focused && (query.trim().length >= 2 || results.length > 0) && (
         <div className="absolute z-10 top-full mt-1 w-full bg-white dark:bg-zinc-900 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-          {loading ? (
+          {loading && results.length === 0 ? (
             <div className="flex items-center justify-center p-4">
               <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
             </div>
@@ -123,7 +163,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{user.firstName}</div>
+                    <div className="font-medium truncate">{user.firstName} {user.lastName}</div>
                     <div className="text-sm text-zinc-500 truncate">@{user.userName}</div>
                   </div>
                   {withLink && (
@@ -137,6 +177,24 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   )}
                 </div>
               ))}
+              
+              {nextPageToken && (
+                <div className="p-2 flex justify-center border-t border-zinc-200 dark:border-zinc-800">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadMore}
+                    disabled={loading}
+                    className="text-sm text-zinc-600 dark:text-zinc-400 w-full"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "See more results"
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           ) : query.trim().length >= 2 ? (
             <div className="p-4 text-center text-zinc-500">
