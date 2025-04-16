@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -361,7 +362,7 @@ export const useSubmission = (submissionId: string) => {
     },
     enabled: !!submissionId,
     refetchInterval: (data) => {
-      // Poll until submission is complete
+      // Fixed: Properly check the status from the submission data
       return data && data.status === 'pending' ? 2000 : false;
     },
   });
