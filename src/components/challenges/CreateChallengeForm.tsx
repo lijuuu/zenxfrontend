@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { createChallenge } from "@/api/challengeApi";
 import { Challenge, UserProfile } from "@/api/types";
+import { useProblemList, Problem } from "@/services/useProblemList";
 import {
   FileCode,
   Lock,
@@ -53,7 +53,8 @@ import {
   CheckCircle,
   User,
   ChevronsUpDown,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import UserSearch from "./UserSearch";
 import { searchUsers } from "@/api/challengeApi";
@@ -92,23 +93,23 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   const [activeTab, setActiveTab] = useState("basic");
   const [accessCode, setAccessCode] = useState("");
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
-  const [problems, setProblems] = useState([
-    { id: "p1", title: "Two Sum", difficulty: "Easy" },
-    { id: "p2", title: "Valid Parentheses", difficulty: "Easy" },
-    { id: "p3", title: "Merge Two Sorted Lists", difficulty: "Easy" },
-    { id: "p4", title: "LRU Cache", difficulty: "Medium" },
-    { id: "p5", title: "Longest Substring", difficulty: "Medium" },
-    { id: "p6", title: "Binary Tree Level Order Traversal", difficulty: "Medium" },
-    { id: "p7", title: "Reverse Linked List", difficulty: "Easy" },
-    { id: "p8", title: "Trapping Rain Water", difficulty: "Hard" },
-    { id: "p9", title: "Word Search II", difficulty: "Hard" },
-  ]);
-  const [selectedFriends, setSelectedFriends] = useState<FriendItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [problemSearchQuery, setProblemSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<FriendItem[]>([]);
   const { toast } = useToast();
+  
+  // Use our new hook to get problems
+  const { data: problems, isLoading: isLoadingProblems } = useProblemList();
+  
+  // Filter problems based on search query
+  const filteredProblems = problems ? problems.filter(problem => 
+    problemSearchQuery === "" || 
+    problem.title.toLowerCase().includes(problemSearchQuery.toLowerCase()) ||
+    problem.tags.some(tag => tag.toLowerCase().includes(problemSearchQuery.toLowerCase()))
+  ) : [];
 
   // Mock friends
   const friends: UserProfile[] = [
@@ -505,59 +506,88 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
               </TabsContent>
 
               <TabsContent value="problems" className="space-y-4 pt-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium">Select Problems</h3>
                   <Badge variant="outline">
                     Selected: {selectedProblems.length}
                   </Badge>
                 </div>
 
-                <ScrollArea className="h-[300px] pr-4">
-                  <div className="space-y-2">
-                    {problems.map((problem) => (
-                      <Card
-                        key={problem.id}
-                        className={cn(
-                          "cursor-pointer transition-colors",
-                          selectedProblems.includes(problem.id)
-                            ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5"
-                            : "hover:bg-accent/5"
-                        )}
-                        onClick={() => toggleProblem(problem.id)}
-                      >
-                        <CardContent className="p-3 flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">{problem.title}</h4>
-                            <div className="flex items-center gap-1 mt-1">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-xs",
-                                  problem.difficulty === "Easy"
-                                    ? "bg-green-100/50 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800/50"
-                                    : problem.difficulty === "Medium"
-                                    ? "bg-amber-100/50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800/50"
-                                    : "bg-red-100/50 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800/50"
-                                )}
-                              >
-                                {problem.difficulty}
-                              </Badge>
-                            </div>
-                          </div>
-                          {selectedProblems.includes(problem.id) ? (
-                            <div className="h-6 w-6 rounded-full flex items-center justify-center bg-[hsl(var(--accent-green))]">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          ) : (
-                            <div className="h-6 w-6 rounded-full flex items-center justify-center border border-dashed border-muted-foreground">
-                              <Plus className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
+                <div className="mb-4">
+                  <Input
+                    placeholder="Search problems by title or tag..."
+                    value={problemSearchQuery}
+                    onChange={(e) => setProblemSearchQuery(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+
+                {isLoadingProblems ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-2">Loading problems...</span>
                   </div>
-                </ScrollArea>
+                ) : (
+                  <ScrollArea className="h-[300px] pr-4">
+                    <div className="space-y-2">
+                      {filteredProblems.map((problem) => (
+                        <Card
+                          key={problem.problem_id}
+                          className={cn(
+                            "cursor-pointer transition-colors",
+                            selectedProblems.includes(problem.problem_id)
+                              ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5"
+                              : "hover:bg-accent/5"
+                          )}
+                          onClick={() => toggleProblem(problem.problem_id)}
+                        >
+                          <CardContent className="p-3 flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{problem.title}</h4>
+                              <div className="flex items-center gap-1 mt-1">
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-xs",
+                                    problem.difficulty.toLowerCase() === "easy"
+                                      ? "bg-green-100/50 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800/50"
+                                      : problem.difficulty.toLowerCase() === "medium"
+                                      ? "bg-amber-100/50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800/50"
+                                      : "bg-red-100/50 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800/50"
+                                  )}
+                                >
+                                  {problem.difficulty}
+                                </Badge>
+                                {problem.tags.slice(0, 3).map((tag, index) => (
+                                  <Badge key={index} variant="outline" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            {selectedProblems.includes(problem.problem_id) ? (
+                              <div className="h-6 w-6 rounded-full flex items-center justify-center bg-[hsl(var(--accent-green))]">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                            ) : (
+                              <div className="h-6 w-6 rounded-full flex items-center justify-center border border-dashed border-muted-foreground">
+                                <Plus className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                      {filteredProblems.length === 0 && problemSearchQuery && (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <AlertCircle className="h-8 w-8 mb-2 opacity-40" />
+                          <p>No problems match your search</p>
+                          <p className="text-xs text-muted-foreground">Try a different search term</p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                )}
 
                 {selectedProblems.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-4 text-center text-muted-foreground">
