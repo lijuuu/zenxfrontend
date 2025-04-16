@@ -45,6 +45,7 @@ const Leaderboard = () => {
     // Scroll to top on component mount
     window.scrollTo(0, 0);
   }, []);
+  
 
   const refreshLeaderboard = () => {
     refetch();
@@ -53,6 +54,7 @@ const Leaderboard = () => {
       description: "The latest rankings have been loaded.",
     });
   };
+  
 
   const RankBadge = ({ rank }: { rank: number }) => {
     if (rank === 1) {

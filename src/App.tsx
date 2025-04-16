@@ -23,7 +23,7 @@ import SignupForm from "./pages/Auth/Register/RegisterPage";
 import VerifyInfo from "./pages/Auth/VerifyInfo"
 import QuickMatch from "./components/challenges/QuickMatch";
 import AdminDashboard from "./pages-admin/AdminDashboard";
-import MinimalChallenges from "./pages/MinimalChallenges";
+import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
 
 // Create a client
@@ -54,8 +54,8 @@ const AppContent = () => {
         <Route path="/problems" element={<Problems />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:userId" element={<Profile />} />
-        <Route path="/challenges" element={<Challenges />} />
-        <Route path="/challenges2" element={<MinimalChallenges />} />
+        <Route path="/challenges" element={<MinimalChallenge />} />
+        <Route path="/challenges2" element={<Challenges />} />
         <Route path="/quick-match" element={<QuickMatch />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
