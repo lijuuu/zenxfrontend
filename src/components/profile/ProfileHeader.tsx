@@ -9,7 +9,6 @@ import {
   UserMinus,
   Loader2,
   CalendarDays,
-  ChevronRight
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,9 +25,10 @@ import { useSelector } from "react-redux";
 interface ProfileHeaderProps {
   profile: UserProfile;
   userID?: string;
+  showStats?: boolean;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true }) => {
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -190,17 +190,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
         </div>
       </div>
 
-      <div className="md:ml-auto flex items-center gap-4 mt-4 md:mt-0 justify-center">
-        <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg min-w-[100px]">
-          <span className="text-2xl font-bold">{profile.problemsSolved || 0}</span>
-          <span className="text-sm text-muted-foreground">Problems</span>
-        </div>
+      {showStats && (
+        <div className="md:ml-auto flex items-center gap-4 mt-4 md:mt-0 justify-center">
+          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg min-w-[100px]">
+            <span className="text-2xl font-bold">{profile.problemsSolved || 0}</span>
+            <span className="text-sm text-muted-foreground">Problems</span>
+          </div>
 
-        <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg min-w-[100px]">
-          <span className="text-2xl font-bold">{profile.dayStreak || 0}</span>
-          <span className="text-sm text-muted-foreground">Day Streak</span>
+          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg min-w-[100px]">
+            <span className="text-2xl font-bold">{profile.dayStreak || 0}</span>
+            <span className="text-sm text-muted-foreground">Day Streak</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

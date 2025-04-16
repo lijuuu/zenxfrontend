@@ -6,14 +6,12 @@ import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getUserChallenges } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
-import ProfileStats from "@/components/profile/ProfileStats";
 import ChallengesList from "@/components/profile/ChallengesList";
 import MonthlyActivityHeatmap from "@/components/activity/MonthlyActivityHeatmap";
 import ProblemsSolvedChart from "@/components/profile/ProblemsSolvedChart";
@@ -39,7 +37,7 @@ const Profile = () => {
     error
   } = useGetUserProfile(userID);
 
-  // Fetch leaderboard data for this user
+  // Fetch leaderboard data for this user on component mount
   const { data: leaderboardData } = useLeaderboard(profile?.userID);
 
   useEffect(() => {
@@ -86,10 +84,6 @@ const Profile = () => {
                 <div className="h-40 animate-pulse bg-zinc-800 rounded-md"></div>
                 <div className="h-40 animate-pulse bg-zinc-800 rounded-md"></div>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="h-64 animate-pulse bg-zinc-800 rounded-md"></div>
-                <div className="h-64 animate-pulse bg-zinc-800 rounded-md"></div>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -127,15 +121,14 @@ const Profile = () => {
       <main className="pt-20 pb-8">
         <div className="page-container">
           <div className="w-full max-w-6xl mx-auto">
-            {/* Profile Overview */}
+            {/* Profile Overview - Removed duplicate stats */}
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardContent className="p-6">
-                {/* Profile Header Section */}
-                <ProfileHeader profile={profile} userID={userID} />
+                <ProfileHeader profile={profile} userID={userID} showStats={false} />
               </CardContent>
             </Card>
 
-            {/* Stats Cards - Similar to Dashboard */}
+            {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <StatsCard
                 className="hover:scale-105 transition-transform duration-200 ease-in-out"
@@ -167,7 +160,7 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Monthly Activity Heatmap - Interactive mode */}
+            {/* Monthly Activity Heatmap - Smaller size with interactive mode */}
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -183,45 +176,61 @@ const Profile = () => {
                   showTitle={false} 
                   staticMode={false} 
                   variant="profile" 
+                  compact={true}
                 />
               </CardContent>
             </Card>
 
-            {/* Activity & Challenges Section */}
+            {/* Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column - Problems Solved */}
+              {/* Left Column - Problems Solved and Recent Submissions */}
               <div className="lg:col-span-8 space-y-6">
-                <Tabs defaultValue="problems" className="w-full">
-                  <TabsList className="w-full justify-start bg-zinc-800 border-zinc-700">
-                    <TabsTrigger value="problems" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">Problems Solved</TabsTrigger>
-                    <TabsTrigger value="submissions" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">Recent Submissions</TabsTrigger>
-                    <TabsTrigger value="achievements" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">Achievements</TabsTrigger>
-                  </TabsList>
+                {/* Problems Solved Chart */}
+                <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-green-500" /> Problems Solved
+                    </CardTitle>
+                    <CardDescription>
+                      Progress across difficulty levels
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <ProblemsSolvedChart profile={profile} />
+                  </CardContent>
+                </Card>
 
-                  <TabsContent value="problems" className="mt-4">
-                    <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                      <CardContent className="p-4">
-                        <ProblemsSolvedChart profile={profile} />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                {/* Recent Submissions - Always visible */}
+                <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-blue-500" /> Recent Submissions
+                    </CardTitle>
+                    <CardDescription>
+                      Latest coding activity
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <RecentSubmissions userId={profile.userID} />
+                  </CardContent>
+                </Card>
 
-                  <TabsContent value="submissions" className="mt-4">
-                    <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                      <CardContent className="p-4">
-                        <RecentSubmissions userId={profile.userID} />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="achievements" className="mt-4">
-                    <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                      <CardContent className="p-4">
-                        <ProfileAchievements badges={profile.badges || []} />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
+                {/* Achievements */}
+                {profile.badges && profile.badges.length > 0 && (
+                  <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Trophy className="h-5 w-5 text-amber-500" /> Achievements
+                      </CardTitle>
+                      <CardDescription>
+                        Badges and recognitions
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ProfileAchievements badges={profile.badges || []} />
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {/* Right Column - Challenges and Top Performers */}
@@ -230,7 +239,7 @@ const Profile = () => {
                 <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-amber-500" /> Challenges
+                      <Puzzle className="h-5 w-5 text-amber-500" /> Challenges
                     </CardTitle>
                     <CardDescription>
                       Total: {challenges.length} ({publicChallenges} public, {privateChallenges} private)

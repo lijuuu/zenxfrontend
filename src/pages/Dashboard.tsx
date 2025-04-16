@@ -20,8 +20,11 @@ const Dashboard = () => {
     error
   } = useGetUserProfile();
 
-  // Fetch top performers with the useLeaderboard hook
-  const { data: leaderboardData } = useLeaderboard(userProfile?.userID);
+  // Get the user ID from userProfile or localStorage
+  const userId = userProfile?.userID || localStorage.getItem('userid');
+
+  // Fetch top performers with the useLeaderboard hook immediately without waiting
+  const { data: leaderboardData } = useLeaderboard(userId);
 
   // Save userID to localStorage whenever it changes
   useEffect(() => {
@@ -194,6 +197,7 @@ const Dashboard = () => {
                 showTitle={true} 
                 staticMode={true} 
                 variant="dashboard"
+                compact={true}
                 className="w-full"
               />
 

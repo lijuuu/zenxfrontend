@@ -19,8 +19,8 @@ interface MonthlyActivityHeatmapProps {
   showTitle?: boolean;
   compact?: boolean;
   userID?: string;
-  staticMode?: boolean; // New prop to control static vs interactive mode
-  variant?: 'default' | 'dashboard' | 'profile'; // New prop for styling variants
+  staticMode?: boolean;
+  variant?: 'default' | 'dashboard' | 'profile';
 }
 
 const useFetchMonthData = (userID = '', initialDate: Date) => {
@@ -62,8 +62,8 @@ const useFetchMonthData = (userID = '', initialDate: Date) => {
   };
 };
 
-const SkeletonGrid = ({ weeksNeeded }: { weeksNeeded: number }) => {
-  const circleSize = 'w-10 h-10';
+const SkeletonGrid = ({ weeksNeeded, compact }: { weeksNeeded: number, compact?: boolean }) => {
+  const circleSize = compact ? 'w-8 h-8' : 'w-10 h-10';
   const gap = 'gap-1';
   return (
     <div className={`grid grid-cols-7 ${gap} justify-items-center`}>
@@ -130,7 +130,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   const grid = createDynamicGrid();
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const circleSize = 'w-10 h-10';
+  const circleSize = compact ? 'w-8 h-8' : 'w-10 h-10';
   const gap = 'gap-1';
 
   const weeksNeeded = Math.ceil((getDaysInMonth(selectedDate) + getDay(startOfMonth(selectedDate))) / 7);
@@ -177,11 +177,11 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
                 <div className={`grid grid-cols-7 ${gap} mb-2 justify-items-center`}>
                   {daysOfWeek.map((day, i) => (
                     <div key={day} className="text-xs text-zinc-500">
-                      {isMobile ? day.charAt(0) : day}
+                      {isMobile || compact ? day.charAt(0) : day}
                     </div>
                   ))}
                 </div>
-                <SkeletonGrid weeksNeeded={weeksNeeded} />
+                <SkeletonGrid weeksNeeded={weeksNeeded} compact={compact} />
               </div>
             </div>
           </div>
@@ -251,7 +251,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
               <div className={`grid grid-cols-7 ${gap} mb-2 justify-items-center`}>
                 {daysOfWeek.map((day, i) => (
                   <div key={day} className="text-xs text-zinc-500">
-                    {isMobile ? day.charAt(0) : day}
+                    {isMobile || compact ? day.charAt(0) : day}
                   </div>
                 ))}
               </div>
