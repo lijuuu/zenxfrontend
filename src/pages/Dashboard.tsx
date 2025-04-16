@@ -12,7 +12,7 @@ import { useLeaderboard } from '@/hooks';
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useEffect, useState } from 'react';
 import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
-import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from 'date-fns';
+import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval, subDays, isSameDay } from 'date-fns';
 
 const Dashboard = () => {
   const {
@@ -31,6 +31,7 @@ const Dashboard = () => {
   // State for weekly contributions
   const [weeklyContributions, setWeeklyContributions] = useState(0);
   const [weekLabel, setWeekLabel] = useState('');
+  const [dayStreak, setDayStreak] = useState(0);
 
   // Get current month and year for activity data
   const currentDate = new Date();
@@ -64,6 +65,30 @@ const Dashboard = () => {
       }, 0);
       
       setWeeklyContributions(contributionsThisWeek);
+      
+      // Calculate day streak based on continuous active days
+      const sortedDays = [...monthlyActivity.data.data]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      let currentStreak = 0;
+      let checkDate = new Date();
+      
+      // Check each day going backward from today
+      while (true) {
+        // Find if there's an activity for this day
+        const dayActivity = sortedDays.find(day => 
+          isSameDay(parseISO(day.date), checkDate) && day.count > 0
+        );
+        
+        if (dayActivity) {
+          currentStreak++;
+          checkDate = subDays(checkDate, 1); // Move to previous day
+        } else {
+          break; // Break the streak when finding a day with no activity
+        }
+      }
+      
+      setDayStreak(currentStreak);
     }
   }, [monthlyActivity.data]);
 
@@ -126,7 +151,7 @@ const Dashboard = () => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Streak"
-                  value={`${userProfile?.dayStreak || 0} days`}
+                  value={`${dayStreak} days`}
                   icon={<Zap className="h-4 w-4 text-amber-400" />}
                 />
                 <StatsCard

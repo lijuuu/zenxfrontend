@@ -30,6 +30,7 @@ const Profile = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  // Explicitly pass the userID from URL params to ensure we're fetching the correct profile
   const {
     data: profile,
     isLoading: profileLoading,
@@ -42,7 +43,7 @@ const Profile = () => {
 
   useEffect(() => {
     const loadChallenges = async () => {
-      if (profile) {
+      if (profile?.userID) {
         try {
           const userChallenges = await getUserChallenges(profile.userID);
           setChallenges(userChallenges);
@@ -58,7 +59,7 @@ const Profile = () => {
     };
 
     loadChallenges();
-  }, [profile, toast]);
+  }, [profile?.userID, toast]);
 
   // Count private and public challenges
   const privateChallenges = challenges.filter(c => c.isPrivate).length;
@@ -121,69 +122,16 @@ const Profile = () => {
       <main className="pt-20 pb-8">
         <div className="page-container">
           <div className="w-full max-w-6xl mx-auto">
-            {/* Profile Overview - Removed duplicate stats */}
+            {/* Profile Overview - Pass userID to ensure correct data display */}
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardContent className="p-6">
-                <ProfileHeader profile={profile} userID={userID} showStats={false} />
+                <ProfileHeader profile={profile} userID={userID} showStats={true} />
               </CardContent>
             </Card>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <StatsCard
-                className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                title="Problems Solved"
-                value={profile.problemsSolved || 0}
-                icon={<BarChart3 className="h-4 w-4 text-green-400" />}
-              />
-              <StatsCard
-                className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                title="Current Streak"
-                value={`${profile.dayStreak || 0} days`}
-                icon={<Clock className="h-4 w-4 text-amber-400" />}
-              />
-              {leaderboardData?.GlobalRank && (
-                <StatsCard
-                  className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Global Rank"
-                  value={`#${leaderboardData.GlobalRank}`}
-                  icon={<Trophy className="h-4 w-4 text-amber-500" />}
-                />
-              )}
-              {leaderboardData?.Score && (
-                <StatsCard
-                  className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Current Rating"
-                  value={leaderboardData.Score}
-                  icon={<User className="h-4 w-4 text-blue-400" />}
-                />
-              )}
-            </div>
-
-            {/* Monthly Activity Heatmap - Smaller size with interactive mode */}
-            <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-green-500" /> Monthly Activity
-                </CardTitle>
-                <CardDescription>
-                  Coding patterns and consistency
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4">
-                <MonthlyActivityHeatmap 
-                  userID={profile.userID} 
-                  showTitle={false} 
-                  staticMode={false} 
-                  variant="profile" 
-                  compact={true}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Content Grid */}
+            {/* Content Grid - Modified layout with reduced sized activity heatmap */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column - Problems Solved and Recent Submissions */}
+              {/* Left Column */}
               <div className="lg:col-span-8 space-y-6">
                 {/* Problems Solved Chart */}
                 <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
@@ -233,8 +181,29 @@ const Profile = () => {
                 )}
               </div>
 
-              {/* Right Column - Challenges and Top Performers */}
+              {/* Right Column - with Monthly Activity moved here */}
               <div className="lg:col-span-4 space-y-6">
+                {/* Monthly Activity Heatmap - Smaller size with interactive mode */}
+                <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-green-500" /> Monthly Activity
+                    </CardTitle>
+                    <CardDescription>
+                      Coding patterns and consistency
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <MonthlyActivityHeatmap 
+                      userID={profile.userID} 
+                      showTitle={false} 
+                      staticMode={false} 
+                      variant="profile" 
+                      compact={true}
+                    />
+                  </CardContent>
+                </Card>
+                
                 {/* Challenges Card */}
                 <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                   <CardHeader className="pb-2">

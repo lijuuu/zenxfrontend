@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -9,6 +9,10 @@ import {
   UserMinus,
   Loader2,
   CalendarDays,
+  BarChart3,
+  Clock,
+  Trophy,
+  User
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +25,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
+import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
+import { useLeaderboard } from "@/hooks";
+import { parseISO, isSameDay, subDays } from "date-fns";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -33,6 +40,69 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const authState = useSelector((state: any) => state.auth);
+  const [problemsSolved, setProblemsSolved] = useState(0);
+  const [dayStreak, setDayStreak] = useState(0);
+
+  // Get leaderboard data
+  const { data: leaderboardData } = useLeaderboard(profile.userID);
+
+  // Get current month and year for activity data
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear();
+
+  // Fetch monthly activity data to calculate streak
+  const monthlyActivity = useMonthlyActivity(
+    profile.userID || '', 
+    currentMonth,
+    currentYear
+  );
+
+  // Calculate day streak based on continuous active days
+  useEffect(() => {
+    if (monthlyActivity.data?.data) {
+      // Sort days by date in descending order (most recent first)
+      const sortedDays = [...monthlyActivity.data.data]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      let currentStreak = 0;
+      let currentDate = new Date();
+      
+      // Check each day going backward from today
+      while (true) {
+        // Find if there's an activity for this day
+        const dayActivity = sortedDays.find(day => 
+          isSameDay(parseISO(day.date), currentDate) && day.count > 0
+        );
+        
+        if (dayActivity) {
+          currentStreak++;
+          currentDate = subDays(currentDate, 1); // Move to previous day
+        } else {
+          break; // Break the streak when finding a day with no activity
+        }
+      }
+      
+      setDayStreak(currentStreak);
+    }
+  }, [monthlyActivity.data]);
+
+  // Calculate problems solved from profile stats
+  useEffect(() => {
+    if (profile) {
+      // Try to calculate from stats first if available
+      if (profile.stats) {
+        const total = 
+          (profile.stats.easy?.solved || 0) + 
+          (profile.stats.medium?.solved || 0) + 
+          (profile.stats.hard?.solved || 0);
+        setProblemsSolved(total);
+      } else {
+        // Fallback to problemsSolved field
+        setProblemsSolved(profile.problemsSolved || 0);
+      }
+    }
+  }, [profile]);
 
   const isOwnProfile = !userID || userID === profile.userID ||
     (authState.userProfile && (userID === authState.userProfile.userID || userID === authState.userID));
@@ -191,16 +261,34 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       </div>
 
       {showStats && (
-        <div className="md:ml-auto flex items-center gap-4 mt-4 md:mt-0 justify-center">
-          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg min-w-[100px]">
-            <span className="text-2xl font-bold">{profile.problemsSolved || 0}</span>
-            <span className="text-sm text-muted-foreground">Problems</span>
+        <div className="md:ml-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4 md:mt-0 w-full md:w-auto">
+          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
+            <BarChart3 className="h-4 w-4 text-green-400 mb-1" />
+            <span className="text-xl font-bold">{problemsSolved}</span>
+            <span className="text-xs text-muted-foreground">Problems</span>
           </div>
 
-          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg min-w-[100px]">
-            <span className="text-2xl font-bold">{profile.dayStreak || 0}</span>
-            <span className="text-sm text-muted-foreground">Day Streak</span>
+          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
+            <Clock className="h-4 w-4 text-amber-400 mb-1" />
+            <span className="text-xl font-bold">{dayStreak}</span>
+            <span className="text-xs text-muted-foreground">Day Streak</span>
           </div>
+          
+          {leaderboardData?.GlobalRank && (
+            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
+              <Trophy className="h-4 w-4 text-amber-500 mb-1" />
+              <span className="text-xl font-bold">#{leaderboardData.GlobalRank}</span>
+              <span className="text-xs text-muted-foreground">Global Rank</span>
+            </div>
+          )}
+          
+          {leaderboardData?.Score && (
+            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
+              <User className="h-4 w-4 text-blue-400 mb-1" />
+              <span className="text-xl font-bold">{leaderboardData.Score}</span>
+              <span className="text-xs text-muted-foreground">Rating</span>
+            </div>
+          )}
         </div>
       )}
     </div>
