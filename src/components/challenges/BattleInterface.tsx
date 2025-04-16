@@ -280,8 +280,7 @@ const BattleInterface: React.FC = () => {
         numMap[num] = i
     }
     
-    return []int{}
-}`);
+    return []int{}`);
     }
   }, [language]);
   
@@ -762,3 +761,4 @@ const BattleInterface: React.FC = () => {
                       ${index === 0 ? 'bg-amber-500 text-white' : index === 1 ? 'bg-zinc-400 text-white' : index === 2 ? 'bg-amber-800 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
                       {entry.rank}
                     </div>
+                    <
