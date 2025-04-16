@@ -10,7 +10,9 @@ import ClearInactivityCard from '@/components/common/ClearInactivityCard';
 import MainNavbar from '@/components/common/MainNavbar';
 import { useLeaderboard } from '@/hooks';
 import { useGetUserProfile } from "@/services/useGetUserProfile";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
+import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from 'date-fns';
 
 const Dashboard = () => {
   const {
@@ -25,6 +27,45 @@ const Dashboard = () => {
 
   // Fetch top performers with the useLeaderboard hook immediately without waiting
   const { data: leaderboardData } = useLeaderboard(userId);
+  
+  // State for weekly contributions
+  const [weeklyContributions, setWeeklyContributions] = useState(0);
+  const [weekLabel, setWeekLabel] = useState('');
+
+  // Get current month and year for activity data
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear();
+
+  // Fetch monthly activity data
+  const monthlyActivity = useMonthlyActivity(
+    userId || '', 
+    currentMonth,
+    currentYear
+  );
+
+  // Calculate weekly contributions whenever monthly activity data changes
+  useEffect(() => {
+    if (monthlyActivity.data?.data) {
+      const today = new Date();
+      const weekStart = startOfWeek(today);
+      const weekEnd = endOfWeek(today);
+      
+      // Format for displaying the date range
+      setWeekLabel(`${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`);
+      
+      // Count contributions within this week
+      const contributionsThisWeek = monthlyActivity.data.data.reduce((count, day) => {
+        const date = parseISO(day.date);
+        if (isWithinInterval(date, { start: weekStart, end: weekEnd }) && day.count > 0) {
+          return count + day.count;
+        }
+        return count;
+      }, 0);
+      
+      setWeeklyContributions(contributionsThisWeek);
+    }
+  }, [monthlyActivity.data]);
 
   // Save userID to localStorage whenever it changes
   useEffect(() => {
@@ -77,9 +118,9 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 ">
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Problems Solved"
-                  value={userProfile?.problemsSolved || 0}
-                  change="+0 this week"
+                  title="Contributions"
+                  value={weeklyContributions}
+                  change={weekLabel}
                   icon={<Code className="h-4 w-4 text-green-400" />}
                 />
                 <StatsCard
