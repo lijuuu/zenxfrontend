@@ -171,7 +171,7 @@ const ProblemListing: React.FC = () => {
   });
 
   const navigateToCompiler = (problem_id: string) => {
-    navigate(`/compiler?problem_id=${problem_id}`);
+    navigate(`/playground?problem_id=${problem_id}`);
   };
 
   return (

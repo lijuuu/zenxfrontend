@@ -59,7 +59,7 @@ const AppContent = () => {
         <Route path="/quick-match" element={<QuickMatch />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/compiler" element={<Compiler />} />
+        <Route path="/playground" element={<Compiler />} />
 
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />

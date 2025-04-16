@@ -343,7 +343,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                           >
                             <div className="flex items-center space-x-1">
                               <RadioGroupItem
-                                value="easy"
+                                value="e"
                                 id="r-easy"
                                 className="sr-only"
                               />
