@@ -170,7 +170,7 @@ const Dashboard = () => {
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Current Rating"
+                  title="Score"
                   value={leaderboardData?.Score || 0}
                   change="+15"
                   icon={<Award className="h-4 w-4 text-blue-400" />}

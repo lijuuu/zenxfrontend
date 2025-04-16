@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
-import { 
-  Trophy, 
+import {
+  Trophy,
   RefreshCw,
   Globe,
   Flag,
-  Medal 
+  Medal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,21 +25,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { useProblemStats } from '@/services/useProblemStats';
 
 const Leaderboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('global');
   const authState = useSelector((state: any) => state.auth);
   const userId = authState?.userProfile?.userID || authState?.userID;
-  
+
   // Fetch leaderboard data using React Query
-  const { 
-    data: leaderboardData, 
-    isLoading, 
+  const {
+    data: leaderboardData,
+    isLoading,
     error,
-    refetch 
+    refetch
   } = useLeaderboard(userId);
-  
+
   useEffect(() => {
     // Scroll to top on component mount
     window.scrollTo(0, 0);
@@ -64,6 +65,12 @@ const Leaderboard = () => {
       return <span className="text-sm font-medium text-zinc-400">{rank}</span>;
     }
   };
+
+
+  const { data: problemStats, isLoading: statsLoading } = useProblemStats(userId);
+  // Calculate total problems done
+  const totalProblemsDone = problemStats ?
+    problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount : 0;
 
   const UserRow = ({ user, rank }: { user: LeaderboardUser; rank: number }) => (
     <TableRow key={user.UserId} className="transition-colors hover:bg-zinc-800/50">
@@ -133,7 +140,7 @@ const Leaderboard = () => {
   if (isLoading) {
     return (
       <div className="pt-4 pb-16">
-        <MainNavbar/>
+        <MainNavbar />
         <div className="container px-4 mx-auto max-w-6xl pt-20">
           <div className="mb-8">
             <div className="flex items-center justify-between gap-4">
@@ -146,22 +153,22 @@ const Leaderboard = () => {
                   Track performance metrics and see where you stand among other users.
                 </p>
               </div>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="border-zinc-700 hover:bg-zinc-800"
                 onClick={refreshLeaderboard}
                 disabled={isLoading}
               >
                 <RefreshCw className={cn(
-                  "mr-2 h-4 w-4", 
+                  "mr-2 h-4 w-4",
                   isLoading && "animate-spin"
                 )} />
                 Refresh
               </Button>
             </div>
           </div>
-          
+
           <div className="bg-zinc-800/50 backdrop-blur-lg rounded-xl border border-zinc-700/50 overflow-hidden shadow-xl">
             <div className="p-8 flex items-center justify-center">
               <RefreshCw className="animate-spin h-8 w-8 text-green-500 mr-2" />
@@ -176,7 +183,7 @@ const Leaderboard = () => {
   if (error) {
     return (
       <div className="pt-4 pb-16">
-        <MainNavbar/>
+        <MainNavbar />
         <div className="container px-4 mx-auto max-w-6xl pt-20">
           <div className="mb-8">
             <div className="flex items-center justify-between gap-4">
@@ -189,9 +196,9 @@ const Leaderboard = () => {
                   Track performance metrics and see where you stand among other users.
                 </p>
               </div>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="border-zinc-700 hover:bg-zinc-800"
                 onClick={refreshLeaderboard}
               >
@@ -200,12 +207,12 @@ const Leaderboard = () => {
               </Button>
             </div>
           </div>
-          
+
           <div className="bg-zinc-800/50 backdrop-blur-lg rounded-xl border border-zinc-700/50 overflow-hidden shadow-xl">
             <div className="p-8 text-center">
               <p className="text-zinc-400 mb-4">Failed to load leaderboard data.</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={refreshLeaderboard}
               >
                 Try Again
@@ -219,7 +226,7 @@ const Leaderboard = () => {
 
   return (
     <div className="pt-4 pb-16">
-      <MainNavbar/>
+      <MainNavbar />
       <div className="container px-4 mx-auto max-w-6xl pt-20">
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4">
@@ -232,15 +239,15 @@ const Leaderboard = () => {
                 Track performance metrics and see where you stand among other users.
               </p>
             </div>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="border-zinc-700 hover:bg-zinc-800"
               onClick={refreshLeaderboard}
               disabled={isLoading}
             >
               <RefreshCw className={cn(
-                "mr-2 h-4 w-4", 
+                "mr-2 h-4 w-4",
                 isLoading && "animate-spin"
               )} />
               Refresh
@@ -263,7 +270,7 @@ const Leaderboard = () => {
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-zinc-700/30">
                   <span className="text-zinc-400">Problems Solved</span>
-                  <span className="font-medium">{leaderboardData.ProblemsDone}</span>
+                  <span className="font-medium">{totalProblemsDone}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-zinc-700/30">
                   <span className="text-zinc-400">Global Rank</span>
@@ -295,7 +302,7 @@ const Leaderboard = () => {
                     </TabsTrigger>
                   </TabsList>
                 </div>
-                
+
                 <TabsContent value="global" className="mt-0">
                   {leaderboardData?.TopKGlobal && leaderboardData.TopKGlobal.length > 0 ? (
                     <Table>
@@ -318,7 +325,7 @@ const Leaderboard = () => {
                     </div>
                   )}
                 </TabsContent>
-                
+
                 <TabsContent value="country" className="mt-0">
                   {leaderboardData?.TopKEntity && leaderboardData.TopKEntity.length > 0 ? (
                     <Table>

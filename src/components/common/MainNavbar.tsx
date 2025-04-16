@@ -207,7 +207,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                         {userProfile.country && (
                           <div className="flex items-center text-xs text-muted-foreground mt-1">
                             <Flag className="h-3 w-3 mr-1" />
-                            <span>{userProfile.country}</span>
+                            <span>{userProfile.country.toUpperCase()}</span>
                           </div>
                         )}
                       </div>
