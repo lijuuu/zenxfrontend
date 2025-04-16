@@ -1,7 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User } from "lucide-react";
+import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User,
+  ChevronRight
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
