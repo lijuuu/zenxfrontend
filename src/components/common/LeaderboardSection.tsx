@@ -1,21 +1,17 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { Trophy, Medal, ChevronRight, Flag } from "lucide-react";
-import { getUserLeaderboardData, LeaderboardUser } from "@/api/leaderboardApi";
 import { useSelector } from "react-redux";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 
 const LeaderboardSection = () => {
   const [activeTab, setActiveTab] = useState("global");
   const authState = useSelector((state: any) => state.auth);
   const userId = authState?.userProfile?.userID || authState?.userID;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['leaderboardPreview', userId],
-    queryFn: () => getUserLeaderboardData(userId),
-  });
+  const { data, isLoading, error } = useLeaderboard(userId);
 
   const leaderboardData = activeTab === "global" 
     ? data?.TopKGlobal?.slice(0, 5) || []
@@ -98,8 +94,14 @@ const LeaderboardSection = () => {
                       </td>
                     </tr>
                   ))
+                ) : error ? (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-4 text-center text-zinc-400">
+                      Failed to load leaderboard data. Please try again later.
+                    </td>
+                  </tr>
                 ) : (
-                  leaderboardData.map((user: LeaderboardUser, index: number) => (
+                  leaderboardData.map((user, index) => (
                     <tr key={user.UserId} className="transition-colors hover:bg-zinc-700/30">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">

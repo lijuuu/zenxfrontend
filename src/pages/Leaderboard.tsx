@@ -1,31 +1,19 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { fetchLeaderboard, fetchFriendsLeaderboard, setCurrentPage, setPeriod } from '@/store/slices/leaderboardSlice';
+import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { 
-  Medal, 
-  Search, 
   Trophy, 
-  Users, 
-  Calendar, 
-  ArrowUp, 
-  ArrowDown, 
   RefreshCw,
   Globe,
-  ChevronLeft,
-  ChevronRight,
   Flag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getUserLeaderboardData, LeaderboardData, LeaderboardUser } from '@/api/leaderboardApi';
+import { LeaderboardUser } from '@/api/leaderboardApi';
 import { useToast } from '@/hooks/use-toast';
 import MainNavbar from '@/components/common/MainNavbar';
-import { useSelector } from 'react-redux';
 import {
   Table,
   TableBody,
@@ -34,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useLeaderboard } from '@/hooks/useLeaderboard';
 
 const Leaderboard = () => {
   const { toast } = useToast();
@@ -41,15 +30,13 @@ const Leaderboard = () => {
   const authState = useSelector((state: any) => state.auth);
   const userId = authState?.userProfile?.userID || authState?.userID;
   
-  // Fetch real leaderboard data using React Query
+  // Fetch leaderboard data using React Query
   const { 
     data: leaderboardData, 
     isLoading, 
+    error,
     refetch 
-  } = useQuery({
-    queryKey: ['userLeaderboard', userId],
-    queryFn: () => getUserLeaderboardData(userId),
-  });
+  } = useLeaderboard(userId);
   
   useEffect(() => {
     // Scroll to top on component mount
@@ -141,7 +128,7 @@ const Leaderboard = () => {
     </Table>
   );
 
-  if (!leaderboardData && isLoading) {
+  if (isLoading) {
     return (
       <div className="pt-4 pb-16">
         <MainNavbar/>
@@ -177,6 +164,50 @@ const Leaderboard = () => {
             <div className="p-8 flex items-center justify-center">
               <RefreshCw className="animate-spin h-8 w-8 text-green-500 mr-2" />
               <p className="text-zinc-300">Loading leaderboard data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pt-4 pb-16">
+        <MainNavbar/>
+        <div className="container px-4 mx-auto max-w-6xl pt-20">
+          <div className="mb-8">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 flex items-center gap-2">
+                  <Trophy className="hidden sm:inline h-8 w-8 text-green-400" />
+                  Leaderboard
+                </h1>
+                <p className="text-zinc-400">
+                  Track performance metrics and see where you stand among other users.
+                </p>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                className="border-zinc-700 hover:bg-zinc-800"
+                onClick={refreshLeaderboard}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+            </div>
+          </div>
+          
+          <div className="bg-zinc-800/50 backdrop-blur-lg rounded-xl border border-zinc-700/50 overflow-hidden shadow-xl">
+            <div className="p-8 text-center">
+              <p className="text-zinc-400 mb-4">Failed to load leaderboard data.</p>
+              <Button 
+                variant="outline" 
+                onClick={refreshLeaderboard}
+              >
+                Try Again
+              </Button>
             </div>
           </div>
         </div>
@@ -264,9 +295,7 @@ const Leaderboard = () => {
                 </div>
                 
                 <TabsContent value="global" className="mt-0">
-                  {isLoading ? (
-                    <LoadingTable />
-                  ) : leaderboardData?.TopKGlobal && leaderboardData.TopKGlobal.length > 0 ? (
+                  {leaderboardData?.TopKGlobal && leaderboardData.TopKGlobal.length > 0 ? (
                     <Table>
                       <TableHeader>
                         <TableRow className="border-b border-zinc-700/50 bg-zinc-900/30">
@@ -289,9 +318,7 @@ const Leaderboard = () => {
                 </TabsContent>
                 
                 <TabsContent value="country" className="mt-0">
-                  {isLoading ? (
-                    <LoadingTable />
-                  ) : leaderboardData?.TopKEntity && leaderboardData.TopKEntity.length > 0 ? (
+                  {leaderboardData?.TopKEntity && leaderboardData.TopKEntity.length > 0 ? (
                     <Table>
                       <TableHeader>
                         <TableRow className="border-b border-zinc-700/50 bg-zinc-900/30">
