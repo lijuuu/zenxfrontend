@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +25,7 @@ import VerifyInfo from "./pages/Auth/VerifyInfo"
 import QuickMatch from "./components/challenges/QuickMatch";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import MinimalChallenge from "./pages/MinimalChallenges";
+import BattleInterface from "./components/challenges/BattleInterface";
 import { useEffect } from "react";
 
 // Create a client
@@ -60,6 +62,7 @@ const AppContent = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/compiler" element={<Compiler />} />
+        <Route path="/battle/:roomId" element={<BattleInterface />} />
 
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
