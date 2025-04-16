@@ -1,45 +1,75 @@
+
 import React from "react";
 import { UserProfile } from "@/api/types";
 import { Trophy, Puzzle, BarChart3, CheckCircle } from "lucide-react";
+import { useProblemStats } from "@/hooks/useProblemStats";
 
 interface ProfileStatsProps {
   profile: UserProfile;
 }
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
+  // Use our new hook
+  const { problemStats } = useProblemStats(profile.userID);
+
   // Calculate total problems
-  const totalSolved =
-    (profile?.stats?.easy?.solved || 0) +
-    (profile?.stats?.medium?.solved || 0) +
-    (profile?.stats?.hard?.solved || 0);
+  let totalSolved = 0;
+  let totalAvailable = 0;
+  let easyPercentage = 0;
+  let mediumPercentage = 0;
+  let hardPercentage = 0;
 
-  const totalAvailable =
-    (profile?.stats?.easy?.total || 0) +
-    (profile?.stats?.medium?.total || 0) +
-    (profile?.stats?.hard?.total || 0);
+  if (problemStats) {
+    // Use our problem stats hook data
+    totalSolved = problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount;
+    totalAvailable = problemStats.maxEasyCount + problemStats.maxMediumCount + problemStats.maxHardCount;
+    
+    easyPercentage = problemStats.maxEasyCount
+      ? Math.round((problemStats.doneEasyCount / problemStats.maxEasyCount) * 100)
+      : 0;
+      
+    mediumPercentage = problemStats.maxMediumCount
+      ? Math.round((problemStats.doneMediumCount / problemStats.maxMediumCount) * 100)
+      : 0;
+      
+    hardPercentage = problemStats.maxHardCount
+      ? Math.round((problemStats.doneHardCount / problemStats.maxHardCount) * 100)
+      : 0;
+  } else if (profile?.stats) {
+    // Fallback to profile stats
+    totalSolved =
+      (profile?.stats?.easy?.solved || 0) +
+      (profile?.stats?.medium?.solved || 0) +
+      (profile?.stats?.hard?.solved || 0);
 
-  // Calculate problem percentages safely
-  const easyPercentage = profile?.stats?.easy?.total
-    ? Math.round(((profile?.stats?.easy?.solved || 0) / profile?.stats?.easy?.total) * 100)
-    : 0;
+    totalAvailable =
+      (profile?.stats?.easy?.total || 0) +
+      (profile?.stats?.medium?.total || 0) +
+      (profile?.stats?.hard?.total || 0);
 
-  const mediumPercentage = profile?.stats?.medium?.total
-    ? Math.round(((profile?.stats?.medium?.solved || 0) / profile?.stats?.medium?.total) * 100)
-    : 0;
+    // Calculate problem percentages safely
+    easyPercentage = profile?.stats?.easy?.total
+      ? Math.round(((profile?.stats?.easy?.solved || 0) / profile?.stats?.easy?.total) * 100)
+      : 0;
 
-  const hardPercentage = profile?.stats?.hard?.total
-    ? Math.round(((profile?.stats?.hard?.solved || 0) / profile?.stats?.hard?.total) * 100)
-    : 0;
+    mediumPercentage = profile?.stats?.medium?.total
+      ? Math.round(((profile?.stats?.medium?.solved || 0) / profile?.stats?.medium?.total) * 100)
+      : 0;
+
+    hardPercentage = profile?.stats?.hard?.total
+      ? Math.round(((profile?.stats?.hard?.solved || 0) / profile?.stats?.hard?.total) * 100)
+      : 0;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Problems Solved */}
+      {/* Problems Done */}
       <div className="border border-border/50 rounded-lg p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-green-100/50 dark:bg-green-900/20 flex items-center justify-center">
           <CheckCircle className="h-6 w-6 text-green-500" />
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">Problems Solved</p>
+          <p className="text-sm text-muted-foreground">Problems Done</p>
           <div className="mt-1 flex items-baseline">
             <span className="text-xl font-bold">{totalSolved}</span>
             <span className="ml-1 text-xs text-muted-foreground">/ {totalAvailable}</span>

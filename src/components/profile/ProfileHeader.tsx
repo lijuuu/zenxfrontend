@@ -12,7 +12,8 @@ import {
   BarChart3,
   Clock,
   Trophy,
-  User
+  User,
+  Award
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { useSelector } from "react-redux";
 import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
 import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
+import { useProblemStats } from "@/hooks/useProblemStats";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -40,11 +42,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const authState = useSelector((state: any) => state.auth);
-  const [problemsSolved, setProblemsSolved] = useState(0);
   const [dayStreak, setDayStreak] = useState(0);
 
   // Get leaderboard data
   const { data: leaderboardData } = useLeaderboard(profile.userID);
+
+  // Get problem stats data
+  const { problemStats } = useProblemStats(profile.userID);
 
   // Get current month and year for activity data
   const currentDate = new Date();
@@ -57,6 +61,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
     currentMonth,
     currentYear
   );
+
+  // Calculate problems done
+  const problemsDone = problemStats 
+    ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
+    : profile.stats 
+      ? (profile.stats.easy?.solved || 0) + (profile.stats.medium?.solved || 0) + (profile.stats.hard?.solved || 0)
+      : profile.problemsSolved || 0;
 
   // Calculate day streak based on continuous active days
   useEffect(() => {
@@ -86,23 +97,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       setDayStreak(currentStreak);
     }
   }, [monthlyActivity.data]);
-
-  // Calculate problems solved from profile stats
-  useEffect(() => {
-    if (profile) {
-      // Try to calculate from stats first if available
-      if (profile.stats) {
-        const total = 
-          (profile.stats.easy?.solved || 0) + 
-          (profile.stats.medium?.solved || 0) + 
-          (profile.stats.hard?.solved || 0);
-        setProblemsSolved(total);
-      } else {
-        // Fallback to problemsSolved field
-        setProblemsSolved(profile.problemsSolved || 0);
-      }
-    }
-  }, [profile]);
 
   const isOwnProfile = !userID || userID === profile.userID ||
     (authState.userProfile && (userID === authState.userProfile.userID || userID === authState.userID));
@@ -149,6 +143,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
     if (profile.userName) return profile.userName.charAt(0).toUpperCase();
     return "U";
   };
+
+  // Calculate contest participation
+  const contestsParticipated = (profile.achievements?.weeklyContests || 0) + 
+                              (profile.achievements?.monthlyContests || 0) + 
+                              (profile.achievements?.specialEvents || 0);
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -239,7 +238,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           ) : (
             <Button
               variant={isFollowing ? "outline" : "default"}
-              className={isFollowing ? "" : "bg-green-500 hover:bg-green-600"}
+              className={isFollowing ? "" : "bg-green-500 hover:bg-green-600 text-white"}
               onClick={handleFollow}
               disabled={isLoading}
             >
@@ -254,41 +253,39 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             </Button>
           )}
 
-          <Button variant="outline" onClick={() => navigate("/chat")}>
+          <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">
             Message
           </Button>
         </div>
       </div>
 
       {showStats && (
-        <div className="md:ml-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4 md:mt-0 w-full md:w-auto">
-          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
-            <BarChart3 className="h-4 w-4 text-green-400 mb-1" />
-            <span className="text-xl font-bold">{problemsSolved}</span>
-            <span className="text-xs text-muted-foreground">Problems</span>
-          </div>
+        <div className="md:ml-auto w-full md:w-auto mt-4 md:mt-0">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
+              <BarChart3 className="h-4 w-4 text-green-400 mb-1" />
+              <span className="text-xl font-bold">{problemsDone}</span>
+              <span className="text-xs text-muted-foreground">Problems Done</span>
+            </div>
 
-          <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
-            <Clock className="h-4 w-4 text-amber-400 mb-1" />
-            <span className="text-xl font-bold">{dayStreak}</span>
-            <span className="text-xs text-muted-foreground">Day Streak</span>
-          </div>
-          
-          {leaderboardData?.GlobalRank && (
-            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
+            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
+              <Clock className="h-4 w-4 text-amber-400 mb-1" />
+              <span className="text-xl font-bold">{dayStreak}</span>
+              <span className="text-xs text-muted-foreground">Day Streak</span>
+            </div>
+            
+            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
               <Trophy className="h-4 w-4 text-amber-500 mb-1" />
-              <span className="text-xl font-bold">#{leaderboardData.GlobalRank}</span>
+              <span className="text-xl font-bold">#{leaderboardData?.GlobalRank || '-'}</span>
               <span className="text-xs text-muted-foreground">Global Rank</span>
             </div>
-          )}
-          
-          {leaderboardData?.Score && (
-            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[90px]">
-              <User className="h-4 w-4 text-blue-400 mb-1" />
-              <span className="text-xl font-bold">{leaderboardData.Score}</span>
-              <span className="text-xs text-muted-foreground">Rating</span>
+            
+            <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
+              <Award className="h-4 w-4 text-blue-400 mb-1" />
+              <span className="text-xl font-bold">{contestsParticipated}</span>
+              <span className="text-xs text-muted-foreground">Contests</span>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

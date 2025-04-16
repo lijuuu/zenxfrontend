@@ -1,9 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User,
-  ChevronRight
-} from "lucide-react";
+import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -21,7 +19,7 @@ import MainNavbar from "@/components/common/MainNavbar";
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useLeaderboard } from "@/hooks";
 import { Link } from "react-router-dom";
-import StatsCard from "@/components/common/StatsCard";
+import { useProblemStats } from "@/hooks/useProblemStats";
 
 const Profile = () => {
   const { userID } = useParams<{ userID: string }>();
@@ -37,6 +35,9 @@ const Profile = () => {
     isError: profileError,
     error
   } = useGetUserProfile(userID);
+
+  // Fetch problem stats for this user
+  const { problemStats, isLoading: statsLoading } = useProblemStats(profile?.userID);
 
   // Fetch leaderboard data for this user on component mount
   const { data: leaderboardData } = useLeaderboard(profile?.userID);
@@ -104,7 +105,7 @@ const Profile = () => {
             <CardContent>
               <p>Failed to load profile</p>
               <Button 
-                className="mt-4 bg-green-500 hover:bg-green-600"
+                className="mt-4 bg-green-500 hover:bg-green-600 text-white"
                 onClick={() => navigate("/dashboard")}
               >
                 Return to Dashboard
@@ -137,7 +138,7 @@ const Profile = () => {
                 <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-green-500" /> Problems Solved
+                      <BarChart3 className="h-5 w-5 text-green-500" /> Problems Done
                     </CardTitle>
                     <CardDescription>
                       Progress across difficulty levels
@@ -218,7 +219,7 @@ const Profile = () => {
                     <ChallengesList challenges={challenges} />
 
                     <div className="mt-4 pt-4 border-t border-zinc-700/50">
-                      <Button className="w-full bg-green-500 hover:bg-green-600">
+                      <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
                         <Puzzle className="mr-2 h-4 w-4" />
                         View All Challenges
                       </Button>

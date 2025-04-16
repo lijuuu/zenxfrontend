@@ -1,56 +1,15 @@
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
 import { UserProfile } from '@/api/types';
-import axiosInstance from '@/utils/axiosInstance';
+import { useProblemStats } from '@/hooks/useProblemStats';
 
 interface ProblemsSolvedChartProps {
   profile: UserProfile;
 }
 
-interface ProblemsDoneStatistics {
-  maxEasyCount: number;
-  doneEasyCount: number;
-  maxMediumCount: number;
-  doneMediumCount: number;
-  maxHardCount: number;
-  doneHardCount: number;
-}
-
-interface GenericResponse {
-  success: boolean;
-  status: number;
-  payload: ProblemsDoneStatistics;
-  error: any;
-}
-
 const ProblemsSolvedChart: React.FC<ProblemsSolvedChartProps> = ({ profile }) => {
   const { userID } = profile;
-  const [problemStats, setProblemStats] = useState<ProblemsDoneStatistics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await axiosInstance.get<GenericResponse>('/problems/stats', {
-          params: { userID },
-          headers: { 'X-Requires-Auth': 'false' }, // Auth not required
-        });
-        setProblemStats(response.data.payload);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch statistics'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (userID) {
-      fetchStats();
-    }
-  }, [userID]);
-
-  console.log(problemStats)
+  const { problemStats, isLoading, error } = useProblemStats(userID);
 
   if (isLoading) {
     return <div>Loading problem statistics...</div>; // loading state
@@ -127,8 +86,6 @@ const ProblemsSolvedChart: React.FC<ProblemsSolvedChartProps> = ({ profile }) =>
           </div>
         </div>
       </div>
-      
-      
     </div>
   );
 };

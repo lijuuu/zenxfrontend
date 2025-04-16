@@ -1,6 +1,7 @@
+
 import { UserProfile } from '@/store/slices/authSlice';
 import { mockUsers, mockFriends } from './mockData';
-import {  Friend } from './types';
+import { Friend } from './types';
 import axiosInstance from '@/utils/axiosInstance';
 
 export const getFriends = async (): Promise<Friend[]> => {
