@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { useState, useEffect, useRef } from 'react'; // Add React imports
 
 // API base URL
 const API_BASE_URL = 'https://localhost:7000/api/v1';
@@ -356,7 +357,7 @@ export const useSubmission = (submissionId: string) => {
     enabled: !!submissionId,
     refetchInterval: (data) => {
       // Poll until submission is complete
-      return data?.status === 'pending' ? 2000 : false;
+      return data && data.status === 'pending' ? 2000 : false;
     },
   });
 };
@@ -397,15 +398,15 @@ export const useUserRoomStats = (userId: string, roomId: string) => {
 
 // WebSocket hook
 export const useWebSocket = (roomId: string) => {
-  const [ws, setWs] = React.useState<WebSocket | null>(null);
-  const [connected, setConnected] = React.useState(false);
-  const [lastEvent, setLastEvent] = React.useState<WSEvent | null>(null);
-  const reconnectAttemptsRef = React.useRef(0);
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [connected, setConnected] = useState(false);
+  const [lastEvent, setLastEvent] = useState<WSEvent | null>(null);
+  const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
   
   const token = localStorage.getItem('token');
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (!roomId || !token) return;
     
     const connectWebSocket = () => {
@@ -470,7 +471,7 @@ export const useWebSocket = (roomId: string) => {
         ws.close();
       }
     };
-  }, [roomId, token]);
+  }, [roomId, token, ws]);
   
   return { ws, connected, lastEvent };
 };

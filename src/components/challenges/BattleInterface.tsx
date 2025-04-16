@@ -359,7 +359,8 @@ const BattleInterface: React.FC = () => {
                   </div>
                   
                   <div className="prose prose-invert prose-sm max-w-none">
-                    <ReactMarkdown className="text-zinc-300">
+                    {/* FIX: Remove className from ReactMarkdown */}
+                    <ReactMarkdown>
                       {currentProblem.description}
                     </ReactMarkdown>
                     
