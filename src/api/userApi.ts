@@ -1,4 +1,3 @@
-
 import { UserProfile } from '@/store/slices/authSlice';
 import { mockUsers, mockFriends } from './mockData';
 import {  Friend } from './types';
@@ -51,17 +50,26 @@ export const setUpTwoFactorAuth = async (): Promise<{ qrCode: string }> => {
 
 
 export const getUserProfile = async (userID?: string): Promise<UserProfile> => {
-  const url = userID ? `/users/public/profile/${userID}` : `/users/profile`;
-  const res = await axiosInstance.get(url, {
-    headers: {
-      'X-Requires-Auth': userID?'false':'true',
-    },
-  });
+  try {
+    const url = userID ? `/users/public/profile/${userID}` : `/users/profile`;
+    const requiresAuth = !userID; // If userID is provided, it's a public profile and doesn't require auth
+    
+    const res = await axiosInstance.get(url, {
+      headers: {
+        'X-Requires-Auth': requiresAuth ? 'true' : 'false',
+      },
+    });
 
-  localStorage.setItem("userid",res.data.payload.userProfile?.userID)
+    // Store current user ID in localStorage for later use if it's the authenticated user's profile
+    if (!userID && res.data.payload.userProfile?.userID) {
+      localStorage.setItem("userid", res.data.payload.userProfile.userID);
+    }
 
-  // console.log("triggered api getUserProfile, ", res.data);
-  return res.data.payload.userProfile;
+    return res.data.payload.userProfile;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw new Error("Failed to fetch user profile");
+  }
 };
 
 

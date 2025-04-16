@@ -10,6 +10,7 @@ import ClearInactivityCard from '@/components/common/ClearInactivityCard';
 import MainNavbar from '@/components/common/MainNavbar';
 import { useLeaderboard } from '@/hooks';
 import { useGetUserProfile } from "@/services/useGetUserProfile";
+import { useEffect } from 'react';
 
 const Dashboard = () => {
   const {
@@ -21,6 +22,13 @@ const Dashboard = () => {
 
   // Fetch top performers with the useLeaderboard hook
   const { data: leaderboardData } = useLeaderboard(userProfile?.userID);
+
+  // Save userID to localStorage whenever it changes
+  useEffect(() => {
+    if (userProfile?.userID) {
+      localStorage.setItem('userid', userProfile.userID);
+    }
+  }, [userProfile?.userID]);
 
   // Navigate to other pages
   const navigate = useNavigate();

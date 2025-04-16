@@ -25,14 +25,21 @@ export interface LeaderboardData {
 
 export const getUserLeaderboardData = async (userId?: string): Promise<LeaderboardData> => {
   try {
-    let id = userId;
-    
-    // If no userId is provided, we'll use a default one for demo
-    if (!id) {
-      id = "03e40494-92b1-4d3d-bcdf-a9cad80c5993"; // Default user ID
+    if (!userId) {
+      // Try to get userId from localStorage as fallback
+      userId = localStorage.getItem("userid") || undefined;
+      
+      if (!userId) {
+        throw new Error("User ID is required");
+      }
     }
     
-    const response = await axiosInstance.get(`/problems/leaderboard/data?userID=${id}`);
+    const response = await axiosInstance.get(`/problems/leaderboard/data?userID=${userId}`, {
+      headers: {
+        'X-Requires-Auth': 'false', // Public endpoint doesn't require auth
+      },
+    });
+    
     return response.data.payload;
   } catch (error) {
     console.error("Error fetching leaderboard data:", error);
