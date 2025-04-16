@@ -351,7 +351,7 @@ export const useSubmitSolution = () => {
   });
 };
 
-// Fix: Corrected access to the status property in useSubmission
+// Fix: Corrected the refetchInterval function to check data.status instead of query status
 export const useSubmission = (submissionId: string) => {
   return useQuery({
     queryKey: ['submissions', submissionId],
@@ -361,7 +361,7 @@ export const useSubmission = (submissionId: string) => {
     },
     enabled: !!submissionId,
     refetchInterval: (data) => {
-      // Fixed: Properly check the status from the submission data
+      // Fixed: Check data?.status directly (data is the returned submission)
       return data && data.status === 'pending' ? 2000 : false;
     },
   });
