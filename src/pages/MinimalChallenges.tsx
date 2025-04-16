@@ -13,8 +13,11 @@ import {
   User,
   Lock,
   Unlock,
-  Search
+  Search,
+  Filter,
+  Copy
 } from "lucide-react";
+import { toast } from "sonner";
 import MainNavbar from "@/components/common/MainNavbar";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +42,7 @@ import { Challenge } from "@/api/types";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import ChallengeInterface from "@/components/challenges/ChallengeInterface";
+import { useProblemStats } from "@/hooks";
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -46,6 +50,12 @@ const MinimalChallenges = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { data: problemStats } = useProblemStats("current");
+
+  // Calculate total problems completed
+  const totalProblemsDone = problemStats ? (
+    problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
+  ) : 0;
 
   const { data: activeChallenges, isLoading: activeChallengesLoading, refetch: refetchChallenges } = useQuery({
     queryKey: ["active-challenges"],
@@ -81,6 +91,66 @@ const MinimalChallenges = () => {
   const handleJoinSuccess = (challenge: Challenge) => {
     setActiveChallenge(challenge);
     setActiveChallengeId(challenge.id);
+  };
+
+  const handleQuickMatch = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
+    // Generate a unique room ID and password
+    const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
+    const password = Math.random().toString(36).substring(2, 8);
+    
+    // Create a shareable URL
+    const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}`;
+    
+    // Navigate to the room
+    navigate(roomUrl);
+  };
+
+  const startFriendChallenge = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
+    // Generate a unique room ID and password
+    const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
+    const password = Math.random().toString(36).substring(2, 8);
+    
+    // Create a shareable URL
+    const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
+    
+    // Create a shareable link
+    const shareableLink = `${window.location.origin}/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
+    
+    // Show toast with ability to copy link
+    toast("Challenge created! Share this link with your friend.", {
+      description: (
+        <div className="mt-2">
+          <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded mb-2 text-xs font-mono">
+            <span className="truncate">{shareableLink}</span>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-6 w-6"
+              onClick={() => {
+                navigator.clipboard.writeText(shareableLink);
+                toast.success("Link copied to clipboard!");
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+          <Button 
+            size="sm" 
+            className="w-full" 
+            onClick={() => navigate(roomUrl)}
+          >
+            Enter Challenge Room
+          </Button>
+        </div>
+      ),
+      duration: 10000,
+    });
+  };
+
+  const copyRoomInfo = (challenge: Challenge) => {
+    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"}\nDifficulty: ${challenge.difficulty}`;
+    navigator.clipboard.writeText(roomInfo);
+    toast.success("Room information copied to clipboard!");
   };
 
   return (
@@ -145,21 +215,50 @@ const MinimalChallenges = () => {
                       Quick Match
                     </CardTitle>
                     <CardDescription>
-                      Challenge random opponents (Coming Soon)
+                      Start a coding challenge instantly
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="rounded-lg bg-zinc-100/80 dark:bg-zinc-800/80 p-3 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
-                        <Lock className="h-5 w-5" />
+                        <Zap className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">Feature Locked</p>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">This feature will be available soon</p>
+                        <p className="text-sm font-medium">Random Problem</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Solve a random problem with friends</p>
                       </div>
-                      <Button size="sm" className="bg-zinc-500 hover:bg-zinc-600" disabled>
-                        Locked
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleQuickMatch("Easy")}>
+                          Easy
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleQuickMatch("Medium")}>
+                          Medium
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleQuickMatch("Hard")}>
+                          Hard
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg bg-zinc-100/80 dark:bg-zinc-800/80 p-3 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Challenge a Friend</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Create a private room and share the link</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => startFriendChallenge("Easy")}>
+                          Easy
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => startFriendChallenge("Medium")}>
+                          Medium
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => startFriendChallenge("Hard")}>
+                          Hard
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -176,6 +275,11 @@ const MinimalChallenges = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Problems Solved</span>
+                      <span className="font-semibold">{totalProblemsDone}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">Challenges Completed</span>
                       <span className="font-semibold">12</span>
                     </div>
@@ -186,8 +290,8 @@ const MinimalChallenges = () => {
                     </div>
                     <Separator />
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Problems Solved</span>
-                      <span className="font-semibold">87</span>
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Quick Matches</span>
+                      <span className="font-semibold">24</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -196,8 +300,8 @@ const MinimalChallenges = () => {
               <Tabs defaultValue="active" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-4">
                   <TabsTrigger value="active">Active Challenges</TabsTrigger>
-                  <TabsTrigger value="public">Public History</TabsTrigger>
-                  <TabsTrigger value="private">Private History</TabsTrigger>
+                  <TabsTrigger value="public">Public Challenges</TabsTrigger>
+                  <TabsTrigger value="private">Private Challenges</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
@@ -234,8 +338,27 @@ const MinimalChallenges = () => {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">Problems: {challenge.problemCount}</p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Participants: {challenge.participants}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" /> {challenge.participants} participants
+                              </span>
+                            </p>
                           </div>
+                        </div>
+                        <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
+                          <span>Room ID: {challenge.id.substring(0, 8)}...</span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-6 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyRoomInfo(challenge);
+                            }}
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy Info
+                          </Button>
                         </div>
                       </CardContent>
                       <CardFooter className="flex justify-end">
@@ -262,6 +385,13 @@ const MinimalChallenges = () => {
                 </TabsContent>
 
                 <TabsContent value="public" className="space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium">Public Challenges</h3>
+                    <Button variant="outline" size="sm" className="h-8">
+                      <Filter className="h-3 w-3 mr-1" /> Filter
+                    </Button>
+                  </div>
+                  
                   {!publicChallengesLoading && publicChallenges?.filter(c => !c.isActive).map((challenge) => (
                     <Card
                       key={challenge.id}
@@ -276,7 +406,7 @@ const MinimalChallenges = () => {
                           </div>
                         </div>
                         <CardDescription className="flex items-center gap-1">
-                          <Unlock className="h-3 w-3 text-green-500" /> Public Challenge History
+                          <Unlock className="h-3 w-3 text-green-500" /> Public Challenge
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -299,10 +429,25 @@ const MinimalChallenges = () => {
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
                           </div>
                         </div>
+                        <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
+                          <span>Room ID: {challenge.id.substring(0, 8)}...</span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-6 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyRoomInfo(challenge);
+                            }}
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy Info
+                          </Button>
+                        </div>
                       </CardContent>
                       <CardFooter className="flex justify-end">
                         <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
-                          View Results
+                          Join Challenge
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </CardFooter>
@@ -311,7 +456,7 @@ const MinimalChallenges = () => {
 
                   {(publicChallengesLoading || !publicChallenges?.filter(c => !c.isActive).length) && (
                     <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No public challenge history found</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">No public challenges found</p>
                       <p className="text-xs text-zinc-400 mt-2">Join public challenges to see them here</p>
                     </div>
                   )}
@@ -335,7 +480,7 @@ const MinimalChallenges = () => {
                           </div>
                         </div>
                         <CardDescription className="flex items-center gap-1">
-                          <Lock className="h-3 w-3 text-amber-500" /> Private Challenge History
+                          <Lock className="h-3 w-3 text-amber-500" /> Private Challenge
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -358,10 +503,14 @@ const MinimalChallenges = () => {
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
                           </div>
                         </div>
+                        <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
+                          <span>Room ID: {challenge.id.substring(0, 8)}...</span>
+                          <span>Password: {challenge.accessCode ? "••••••" : "None"}</span>
+                        </div>
                       </CardContent>
                       <CardFooter className="flex justify-end">
                         <Button size="sm" className="bg-amber-500 hover:bg-amber-600">
-                          View Results
+                          Join Challenge
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </CardFooter>
@@ -370,7 +519,7 @@ const MinimalChallenges = () => {
 
                   {(privateChallengesLoading || !privateChallenges?.filter(c => !c.isActive).length) && (
                     <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No private challenge history found</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">No private challenges found</p>
                       <p className="text-xs text-zinc-400 mt-2">Join private challenges to see them here</p>
                     </div>
                   )}
@@ -389,7 +538,7 @@ const MinimalChallenges = () => {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-zinc-600 dark:text-zinc-400">Problems Solved</span>
-                    <span className="font-semibold">124</span>
+                    <span className="font-semibold">{totalProblemsDone}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between items-center">
@@ -424,48 +573,59 @@ const MinimalChallenges = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Zap className="h-5 w-5 text-green-500" />
-                    Top Performers
+                    Recent Activities
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" className="w-8 h-8 rounded-full" />
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center">
+                          <Zap className="h-4 w-4 text-green-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Quick Match Completed</p>
+                          <p className="text-xs text-zinc-500">2 hours ago</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-medium">Alex Johnson</span>
-                        <p className="text-xs text-zinc-500">Solved: 428 problems</p>
+                      <div className="px-2 py-1 rounded bg-green-500/10 text-green-500 text-xs">
+                        Won
                       </div>
                     </div>
-                    <span className="text-xs font-bold bg-green-500/10 text-green-500 px-2 py-1 rounded">#1</span>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" className="w-8 h-8 rounded-full" />
+                  
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
+                          <Lock className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Private Challenge</p>
+                          <p className="text-xs text-zinc-500">Yesterday</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-medium">Taylor Smith</span>
-                        <p className="text-xs text-zinc-500">Solved: 412 problems</p>
+                      <div className="px-2 py-1 rounded bg-red-500/10 text-red-500 text-xs">
+                        Lost
                       </div>
                     </div>
-                    <span className="text-xs font-bold bg-blue-500/10 text-blue-500 px-2 py-1 rounded">#2</span>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <img src="https://randomuser.me/api/portraits/men/86.jpg" alt="User" className="w-8 h-8 rounded-full" />
+                  
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-purple-500/10 rounded-full flex items-center justify-center">
+                          <Trophy className="h-4 w-4 text-purple-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Challenge Created</p>
+                          <p className="text-xs text-zinc-500">3 days ago</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-medium">Jamie Parker</span>
-                        <p className="text-xs text-zinc-500">Solved: 387 problems</p>
+                      <div className="px-2 py-1 rounded bg-zinc-500/10 text-zinc-400 text-xs">
+                        Creator
                       </div>
                     </div>
-                    <span className="text-xs font-bold bg-purple-500/10 text-purple-500 px-2 py-1 rounded">#3</span>
                   </div>
                 </CardContent>
               </Card>
