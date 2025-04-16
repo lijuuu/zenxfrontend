@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserProfile } from '@/api/types';
-import { useProblemStats } from '@/hooks/useProblemStats';
+import { useProblemStats } from '@/services/useProblemStats';
 
 interface ProblemsSolvedChartProps {
   profile: UserProfile;
@@ -9,7 +9,7 @@ interface ProblemsSolvedChartProps {
 
 const ProblemsSolvedChart: React.FC<ProblemsSolvedChartProps> = ({ profile }) => {
   const { userID } = profile;
-  const { problemStats, isLoading, error } = useProblemStats(userID);
+  const { data: problemStats, isLoading, error } = useProblemStats(userID);
 
   if (isLoading) {
     return <div>Loading problem statistics...</div>; // loading state

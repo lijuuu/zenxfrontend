@@ -19,7 +19,7 @@ import MainNavbar from "@/components/common/MainNavbar";
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useLeaderboard } from "@/hooks";
 import { Link } from "react-router-dom";
-import { useProblemStats } from "@/hooks/useProblemStats";
+import { useProblemStats } from "@/services/useProblemStats";
 
 const Profile = () => {
   const { userID } = useParams<{ userID: string }>();
@@ -37,7 +37,7 @@ const Profile = () => {
   } = useGetUserProfile(userID);
 
   // Fetch problem stats for this user
-  const { problemStats, isLoading: statsLoading } = useProblemStats(profile?.userID);
+  const { data: problemStats, isLoading: statsLoading } = useProblemStats(profile?.userID);
 
   // Fetch leaderboard data for this user on component mount
   const { data: leaderboardData } = useLeaderboard(profile?.userID);

@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useEffect, useState } from 'react';
 import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
 import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval, subDays, isSameDay } from 'date-fns';
+import { useProblemStats } from '@/services/useProblemStats';
 
 const Dashboard = () => {
   const {
@@ -27,6 +27,9 @@ const Dashboard = () => {
 
   // Fetch top performers with the useLeaderboard hook immediately without waiting
   const { data: leaderboardData } = useLeaderboard(userId);
+  
+  // Fetch problem stats using our new hook
+  const { data: problemStats, isLoading: statsLoading } = useProblemStats(userId);
   
   // State for weekly contributions
   const [weeklyContributions, setWeeklyContributions] = useState(0);
@@ -102,6 +105,10 @@ const Dashboard = () => {
   // Navigate to other pages
   const navigate = useNavigate();
 
+  // Calculate total problems done
+  const totalProblemsDone = problemStats ? 
+    problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount : 0;
+
   return (
     <div className="min-h-screen">
       <MainNavbar/>
@@ -143,9 +150,9 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 ">
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
-                  title="Contributions"
-                  value={weeklyContributions}
-                  change={weekLabel}
+                  title="Problems Done"
+                  value={totalProblemsDone}
+                  change={statsLoading ? "Loading..." : ""}
                   icon={<Code className="h-4 w-4 text-green-400" />}
                 />
                 <StatsCard

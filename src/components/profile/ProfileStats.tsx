@@ -2,15 +2,15 @@
 import React from "react";
 import { UserProfile } from "@/api/types";
 import { Trophy, Puzzle, BarChart3, CheckCircle } from "lucide-react";
-import { useProblemStats } from "@/hooks/useProblemStats";
+import { useProblemStats } from "@/services/useProblemStats";
 
 interface ProfileStatsProps {
   profile: UserProfile;
 }
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
-  // Use our new hook
-  const { problemStats } = useProblemStats(profile.userID);
+  // Use our new hook with React Query
+  const { data: problemStats, isLoading } = useProblemStats(profile.userID);
 
   // Calculate total problems
   let totalSolved = 0;
@@ -71,8 +71,8 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         <div>
           <p className="text-sm text-muted-foreground">Problems Done</p>
           <div className="mt-1 flex items-baseline">
-            <span className="text-xl font-bold">{totalSolved}</span>
-            <span className="ml-1 text-xs text-muted-foreground">/ {totalAvailable}</span>
+            <span className="text-xl font-bold">{isLoading ? "..." : totalSolved}</span>
+            <span className="ml-1 text-xs text-muted-foreground">/ {isLoading ? "..." : totalAvailable}</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <span>Easy: {easyPercentage}%</span>
