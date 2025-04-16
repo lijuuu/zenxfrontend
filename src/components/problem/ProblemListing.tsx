@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Filter, Search, Loader2, FileCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "@/components/common/MainNavbar";
-import { useProblems } from "@/hooks/useChallengeSystem";
+import { useProblems } from "@/hooks";
 
 const mapDifficulty = (difficulty: string): string => {
   const difficultyMap: Record<string, string> = {

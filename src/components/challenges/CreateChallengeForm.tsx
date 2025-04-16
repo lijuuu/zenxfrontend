@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Loader2, PlusCircle, MinusCircle, Clock, Shield, ChevronRight } from "lucide-react";
+import { Loader2, PlusCircle, MinusCircle, Clock, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProblems, useCreateChallenge } from '@/hooks/useChallengeSystem';
+import { useProblems } from '@/hooks';
+import { useCreateChallenge } from '@/hooks/useChallengeSystem';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -111,6 +111,7 @@ const CreateChallengeForm: React.FC = () => {
   };
 
   return (
+    
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">

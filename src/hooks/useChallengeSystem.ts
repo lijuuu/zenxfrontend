@@ -4,7 +4,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { useState, useEffect, useRef } from 'react'; // Add React imports
+import { useState, useEffect, useRef } from 'react'; 
+import { ProblemMetadata } from '@/api/types';
+import { useProblems } from './useProblems';
 
 // API base URL
 const API_BASE_URL = 'https://localhost:7000/api/v1';
@@ -119,84 +121,8 @@ export interface WSEvent {
   data: any;
 }
 
-// Add problem types
-export interface Problem {
-  problem_id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  difficulty: string;
-  testcase_run: { run: { input: string; expected: string }[] };
-  supported_languages: string[];
-  validated: boolean;
-  placeholder_maps: { [key: string]: string };
-}
-
-// Problem hooks
-export const useProblems = (filters?: { 
-  search?: string; 
-  difficulty?: string; 
-  tags?: string 
-}) => {
-  return useQuery({
-    queryKey: ['problems', filters],
-    queryFn: async () => {
-      try {
-        const response = await axios.get('http://localhost:7000/api/v1/problems/metadata/list', { 
-          params: { page: 1, page_size: 100 } 
-        });
-        const problemList = response.data.payload?.problems || [];
-        
-        if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
-        
-        const mappedProblems: Problem[] = problemList.map((item: any) => ({
-          problem_id: item.problem_id || '',
-          title: item.title || 'Untitled',
-          description: item.description || '',
-          tags: item.tags || [],
-          difficulty: item.difficulty || '',
-          testcase_run: item.testcase_run || { run: [] },
-          supported_languages: item.supported_languages || [],
-          validated: item.validated || false,
-          placeholder_maps: item.placeholder_maps || {},
-        }));
-        
-        let filteredProblems = mappedProblems;
-
-        // Apply filters
-        if (filters) {
-          if (filters.search) {
-            const searchLower = filters.search.toLowerCase();
-            filteredProblems = filteredProblems.filter(p => 
-              p.title.toLowerCase().includes(searchLower) || 
-              p.tags.some(tag => tag.toLowerCase().includes(searchLower))
-            );
-          }
-          
-          if (filters.difficulty && filters.difficulty !== 'all') {
-            filteredProblems = filteredProblems.filter(p => p.difficulty === filters.difficulty);
-          }
-          
-          if (filters.tags) {
-            const tagsLower = filters.tags.toLowerCase();
-            filteredProblems = filteredProblems.filter(p => 
-              p.tags.some(tag => tag.toLowerCase().includes(tagsLower))
-            );
-          }
-        }
-        
-        return filteredProblems;
-      } catch (error) {
-        console.error("Error fetching problems:", error);
-        
-        // Since we're falling back to the API already defined, we'll just throw the error
-        // and the API consumption in ProblemListing will handle the fallback
-        throw error;
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-  });
-};
+// Export the useProblems hook from the separate file
+export { useProblems };
 
 // Challenge hooks
 export const usePublicChallenges = (options?: { 
@@ -436,7 +362,6 @@ export const useSubmission = (submissionId: string) => {
     enabled: !!submissionId,
     refetchInterval: (data) => {
       // Poll until submission is complete
-      // Fix: Access the status property on data, not on the query result
       return data && data.status === 'pending' ? 2000 : false;
     },
   });
@@ -551,7 +476,7 @@ export const useWebSocket = (roomId: string) => {
         ws.close();
       }
     };
-  }, [roomId, token, ws]);
+  }, [roomId, token]);
   
   return { ws, connected, lastEvent };
 };
@@ -633,116 +558,6 @@ export const useMockRoomStatus = (roomId: string) => {
   };
 };
 
-// Mock problem data
-export interface Problem {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: string;
-  constraints: string[];
-  examples: {
-    input: string;
-    output: string;
-    explanation?: string;
-  }[];
-  timeLimit: number;
-  memoryLimit: number;
-}
-
-export const useMockProblems = () => {
-  const problems: { [id: string]: Problem } = {
-    'prob-1': {
-      id: 'prob-1',
-      title: 'Two Sum',
-      description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
-      
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-You can return the answer in any order.`,
-      difficulty: 'Easy',
-      constraints: [
-        '2 <= nums.length <= 10^4',
-        '-10^9 <= nums[i] <= 10^9',
-        '-10^9 <= target <= 10^9',
-        'Only one valid answer exists.'
-      ],
-      examples: [
-        {
-          input: 'nums = [2,7,11,15], target = 9',
-          output: '[0,1]',
-          explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
-        },
-        {
-          input: 'nums = [3,2,4], target = 6',
-          output: '[1,2]'
-        }
-      ],
-      timeLimit: 1000,
-      memoryLimit: 128000
-    },
-    'prob-2': {
-      id: 'prob-2',
-      title: 'Valid Parentheses',
-      description: `Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.
-
-An input string is valid if:
-1. Open brackets must be closed by the same type of brackets.
-2. Open brackets must be closed in the correct order.
-3. Every close bracket has a corresponding open bracket of the same type.`,
-      difficulty: 'Easy',
-      constraints: [
-        '1 <= s.length <= 10^4',
-        's consists of parentheses only \'()[]{}\'.'
-      ],
-      examples: [
-        {
-          input: 's = "()"',
-          output: 'true'
-        },
-        {
-          input: 's = "()[]{}"',
-          output: 'true'
-        },
-        {
-          input: 's = "(]"',
-          output: 'false'
-        }
-      ],
-      timeLimit: 1000,
-      memoryLimit: 128000
-    },
-    'prob-3': {
-      id: 'prob-3',
-      title: 'Merge Two Sorted Lists',
-      description: `You are given the heads of two sorted linked lists list1 and list2.
-
-Merge the two lists in a one sorted list. The list should be made by splicing together the nodes of the first two lists.
-
-Return the head of the merged linked list.`,
-      difficulty: 'Easy',
-      constraints: [
-        'The number of nodes in both lists is in the range [0, 50].',
-        '-100 <= Node.val <= 100',
-        'Both list1 and list2 are sorted in non-decreasing order.'
-      ],
-      examples: [
-        {
-          input: 'list1 = [1,2,4], list2 = [1,3,4]',
-          output: '[1,1,2,3,4,4]'
-        },
-        {
-          input: 'list1 = [], list2 = []',
-          output: '[]'
-        }
-      ],
-      timeLimit: 1000,
-      memoryLimit: 128000
-    }
-  };
-  
-  return problems;
-};
-
 export default {
   usePublicChallenges,
   useChallenge,
@@ -761,6 +576,5 @@ export default {
   useWebSocket,
   useMockChallenges,
   useMockRoomStatus,
-  useMockProblems,
   useProblems
 };
