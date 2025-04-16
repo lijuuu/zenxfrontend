@@ -7,9 +7,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import StatsCard from '@/components/common/StatsCard';
 import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
 import ClearInactivityCard from '@/components/common/ClearInactivityCard';
-import { getLeaderboard } from '@/api/leaderboardApi';
 import MainNavbar from '@/components/common/MainNavbar';
-import {useGetUserProfile} from "@/services/useGetUserProfile"
+import { useLeaderboard } from '@/hooks';
+import { useGetUserProfile } from "@/services/useGetUserProfile";
 
 const Dashboard = () => {
   const {
@@ -19,13 +19,8 @@ const Dashboard = () => {
     error
   } = useGetUserProfile();
 
-
-  // Fetch top performers with React Query
-  const { data: topPerformers } = useQuery({
-    queryKey: ['topPerformers'],
-    queryFn: () => getLeaderboard({ period: 'weekly' }),
-  });
-
+  // Fetch top performers with the useLeaderboard hook
+  const { data: leaderboardData } = useLeaderboard(userProfile?.userID);
 
   // Navigate to other pages
   const navigate = useNavigate();
@@ -145,7 +140,7 @@ const Dashboard = () => {
               </Card>
 
               {/* Clear Recent Inactivity */}
-              <ClearInactivityCard referralLink ={userProfile?.referralLink}/>
+              <ClearInactivityCard referralLink={userProfile?.referralLink}/>
             </div>
 
             {/* Right Column - Activity & Leaderboard */}
@@ -166,8 +161,8 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {(topPerformers?.leaderboard || []).slice(0, 5).map((entry, index) => (
-                      <div key={entry.user.id} className="flex items-center justify-between">
+                    {leaderboardData?.TopKGlobal?.slice(0, 5).map((entry, index) => (
+                      <div key={entry.UserId} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="bg-zinc-900 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium">
                             {index === 0 ? (
@@ -179,18 +174,18 @@ const Dashboard = () => {
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full overflow-hidden">
                               <img
-                                src={entry.user.profileImage}
-                                alt={entry.user.username}
+                                src={entry.AvatarURL}
+                                alt={entry.UserName}
                                 className="w-full h-full object-cover"
                               />
                             </div>
                             <div>
-                              <div className="font-medium text-sm">{entry.user.fullName}</div>
-                              <div className="text-xs text-zinc-500">@{entry.user.username}</div>
+                              <div className="font-medium text-sm">{entry.UserName}</div>
+                              <div className="text-xs text-zinc-500">{entry.Entity.toUpperCase()}</div>
                             </div>
                           </div>
                         </div>
-                        <div className="font-semibold text-sm">{entry.score.toLocaleString()}</div>
+                        <div className="font-semibold text-sm">{entry.Score.toLocaleString()}</div>
                       </div>
                     ))}
                   </div>

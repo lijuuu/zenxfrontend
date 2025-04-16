@@ -6,7 +6,8 @@ import {
   Trophy, 
   RefreshCw,
   Globe,
-  Flag
+  Flag,
+  Medal 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LeaderboardUser } from '@/api/leaderboardApi';
 import { useToast } from '@/hooks/use-toast';
 import MainNavbar from '@/components/common/MainNavbar';
+import { Link } from 'react-router-dom';
 import {
   Table,
   TableBody,
