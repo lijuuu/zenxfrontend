@@ -3,21 +3,23 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
-import { ArrowRight, Trophy, Medal, ChevronRight } from "lucide-react";
-import { getLeaderboard } from "@/api/leaderboardApi";
+import { Trophy, Medal, ChevronRight, Flag } from "lucide-react";
+import { getUserLeaderboardData, LeaderboardUser } from "@/api/leaderboardApi";
+import { useSelector } from "react-redux";
 
 const LeaderboardSection = () => {
-  const [activeTab, setActiveTab] = useState("weekly");
+  const [activeTab, setActiveTab] = useState("global");
+  const authState = useSelector((state: any) => state.auth);
+  const userId = authState?.userProfile?.userID || authState?.userID;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['leaderboardPreview', activeTab],
-    queryFn: () => getLeaderboard({ 
-      limit: 5, 
-      period: activeTab as 'weekly' | 'monthly' | 'all' 
-    }),
+    queryKey: ['leaderboardPreview', userId],
+    queryFn: () => getUserLeaderboardData(userId),
   });
 
-  const leaderboardData = data?.leaderboard || [];
+  const leaderboardData = activeTab === "global" 
+    ? data?.TopKGlobal?.slice(0, 5) || []
+    : data?.TopKEntity?.slice(0, 5) || [];
 
   return (
     <section className="section-spacing bg-zinc-900">
@@ -41,37 +43,26 @@ const LeaderboardSection = () => {
           
           <div className="inline-flex bg-zinc-800 p-1 rounded-full border border-zinc-700">
             <button
-              onClick={() => setActiveTab("daily")}
+              onClick={() => setActiveTab("global")}
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-full transition-all duration-200",
-                activeTab === "daily" 
+                activeTab === "global" 
                   ? "bg-zinc-700 text-white" 
                   : "text-zinc-400 hover:text-white"
               )}
             >
-              Daily
+              Global
             </button>
             <button
-              onClick={() => setActiveTab("weekly")}
+              onClick={() => setActiveTab("country")}
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-full transition-all duration-200",
-                activeTab === "weekly" 
+                activeTab === "country" 
                   ? "bg-zinc-700 text-white" 
                   : "text-zinc-400 hover:text-white"
               )}
             >
-              Weekly
-            </button>
-            <button
-              onClick={() => setActiveTab("monthly")}
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-full transition-all duration-200",
-                activeTab === "monthly" 
-                  ? "bg-zinc-700 text-white" 
-                  : "text-zinc-400 hover:text-white"
-              )}
-            >
-              Monthly
+              Country
             </button>
           </div>
         </div>
@@ -84,7 +75,6 @@ const LeaderboardSection = () => {
                   <th className="px-6 py-4 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Rank</th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">User</th>
                   <th className="px-6 py-4 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">Score</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">Change</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-700/50">
@@ -106,14 +96,11 @@ const LeaderboardSection = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="h-4 w-12 bg-zinc-700 rounded ml-auto"></div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="h-4 w-10 bg-zinc-700 rounded ml-auto"></div>
-                      </td>
                     </tr>
                   ))
                 ) : (
-                  leaderboardData.map((user, index) => (
-                    <tr key={user.user.id} className="transition-colors hover:bg-zinc-700/30">
+                  leaderboardData.map((user: LeaderboardUser, index: number) => (
+                    <tr key={user.UserId} className="transition-colors hover:bg-zinc-700/30">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {index === 0 ? (
@@ -130,21 +117,18 @@ const LeaderboardSection = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full overflow-hidden border border-zinc-700">
-                            <img src={user.user.profileImage} alt={user.user.fullName} className="h-full w-full object-cover" />
+                            <img src={user.AvatarURL} alt={user.UserName} className="h-full w-full object-cover" />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-white">{user.user.fullName}</div>
-                            <div className="text-xs text-zinc-500">@{user.user.username}</div>
+                            <div className="text-sm font-medium text-white">{user.UserName}</div>
+                            <div className="text-xs text-zinc-500 flex items-center gap-1">
+                              <Flag className="w-3 h-3" /> {user.Entity.toUpperCase()}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-semibold text-white">{user.score.toLocaleString()}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-medium text-emerald-400">
-                          +{Math.floor(Math.random() * 10) + 1}.{Math.floor(Math.random() * 9)}
-                        </div>
+                        <div className="text-sm font-semibold text-white">{user.Score.toLocaleString()}</div>
                       </td>
                     </tr>
                   ))

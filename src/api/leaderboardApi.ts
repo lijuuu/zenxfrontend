@@ -1,6 +1,7 @@
 
 import { mockLeaderboard, mockFriendsLeaderboard } from './mockData';
 import { LeaderboardEntry } from './types';
+import axiosInstance from '@/utils/axiosInstance';
 
 // API functions
 export const getLeaderboard = async (options?: { limit?: number; page?: number; period?: 'all' | 'monthly' | 'weekly' }): Promise<{ leaderboard: LeaderboardEntry[]; total: number }> => {
@@ -46,4 +47,68 @@ export const getFriendsLeaderboard = async (): Promise<LeaderboardEntry[]> => {
     // Return the friends leaderboard
     setTimeout(() => resolve(mockFriendsLeaderboard), 600);
   });
+};
+
+// New API function to get real leaderboard data
+export interface LeaderboardUser {
+  UserId: string;
+  UserName: string;
+  AvatarURL: string;
+  Score: number;
+  Entity: string;
+}
+
+export interface LeaderboardData {
+  UserId: string;
+  UserName: string;
+  AvatarURL: string;
+  ProblemsDone: number;
+  Score: number;
+  Entity: string;
+  GlobalRank: number;
+  EntityRank: number;
+  TopKGlobal: LeaderboardUser[];
+  TopKEntity: LeaderboardUser[];
+}
+
+export const getUserLeaderboardData = async (userId?: string): Promise<LeaderboardData> => {
+  try {
+    let id = userId;
+    
+    // If no userId is provided, we'll use a mock ID for demo
+    if (!id) {
+      id = "03e40494-92b1-4d3d-bcdf-a9cad80c5993"; // Default user ID
+    }
+    
+    const response = await axiosInstance.get(`/problems/leaderboard/data?userID=${id}`);
+    return response.data.payload;
+  } catch (error) {
+    console.error("Error fetching leaderboard data:", error);
+    
+    // Return a mock response if the API call fails
+    return {
+      UserId: "03e40494-92b1-4d3d-bcdf-a9cad80c5993",
+      UserName: "liju6c94",
+      AvatarURL: "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1744434106/demo/avatar_q5h25r.jpg",
+      ProblemsDone: 0,
+      Score: 14,
+      Entity: "in",
+      GlobalRank: 19,
+      EntityRank: 15,
+      TopKGlobal: mockLeaderboard.slice(0, 10).map(entry => ({
+        UserId: entry.user.id,
+        UserName: entry.user.username,
+        AvatarURL: entry.user.profileImage,
+        Score: entry.score,
+        Entity: "in"
+      })),
+      TopKEntity: mockLeaderboard.slice(0, 10).map(entry => ({
+        UserId: entry.user.id,
+        UserName: entry.user.username,
+        AvatarURL: entry.user.profileImage,
+        Score: entry.score,
+        Entity: "in"
+      }))
+    };
+  }
 };
