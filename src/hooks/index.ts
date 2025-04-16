@@ -10,12 +10,14 @@ export * from './useLeaderboard';
 export * from './useProblemStats';
 export * from './useUserSearch';
 export * from './useProblems';
+export * from './useWebSocket';
 
-// Export the default hooks
-export { default as useAppDispatch } from './useAppDispatch';
-export { default as useAppSelector } from './useAppSelector';
+// Export individual hooks
+export { useAppDispatch } from './useAppDispatch';
+export { useAppSelector } from './useAppSelector';
 export { default as useCountries } from './useCountries';
 export { default as useLeaderboard } from './useLeaderboard';
 export { default as useProblemStats } from './useProblemStats';
 export { default as useUserSearch } from './useUserSearch';
 export { default as useProblems } from './useProblems';
+export { default as useWebSocket } from './useWebSocket';
