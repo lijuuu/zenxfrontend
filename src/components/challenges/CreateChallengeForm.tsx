@@ -17,6 +17,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Tabs,
@@ -31,6 +32,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { createChallenge } from "@/api/challengeApi";
@@ -87,6 +89,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   onClose,
   onSuccess,
 }) => {
+  
   const [activeTab, setActiveTab] = useState("basic");
   const [accessCode, setAccessCode] = useState("");
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
@@ -274,7 +277,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                           >
                             <div className="flex items-center space-x-1">
                               <RadioGroupItem
-                                value="e"
+                                value="easy"
                                 id="r-easy"
                                 className="sr-only"
                               />
@@ -536,6 +539,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                   <Button
                     type="button"
                     variant="outline"
+                    onClick={() => setActiveTab("basic")}
                   >
                     Back
                   </Button>
