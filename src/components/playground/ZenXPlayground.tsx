@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Clock, CheckCircle, XCircle, ArrowLeft, Plus } from 'lucide-react';
@@ -5,18 +6,58 @@ import Editor from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import ReactMarkdown from 'react-markdown';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as monaco from 'monaco-editor';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance';
 import { useGetUserProfile } from '@/services/useGetUserProfile';
-import { useProblemById } from '@/hooks';
 import {
   TestCase,
+  TestCaseRunOnly,
+  ProblemMetadata,
+  TestResult,
   ExecutionResult,
+  ApiResponsePayload,
   GenericResponse,
+  twoSumProblem
 } from '@/api/types';
+
+const environment = import.meta.env.VITE_ENVIRONMENT || 'PRODUCTION';
+const ENGINE_BASE_URL =
+  environment === 'DEVELOPMENT'
+    ? import.meta.env.VITE_XENGINELOCALENGINEURL || 'http://localhost:7000/api/v1'
+    : import.meta.env.VITE_XENGINEPRODUCTIONENGINEURL || 'https://xengine.lijuu.me/compile';
+
+const mapDifficulty = (difficulty: string): string => {
+  switch (difficulty) {
+    case 'E': return 'Easy';
+    case 'M': return 'Medium';
+    case 'H': return 'Hard';
+    case 'easy': return 'Easy';
+    case 'medium': return 'Medium';
+    case 'hard': return 'Hard';
+    default: return difficulty;
+  }
+};
+
+const fetchProblemById = async (problemId: string): Promise<ProblemMetadata> => {
+  const response = await fetch(`${ENGINE_BASE_URL}/problems/metadata?problem_id=${problemId}`);
+  if (!response.ok) throw new Error('Failed to fetch problem');
+  const data = await response.json();
+  const problemData = data.payload || data;
+  return {
+    problem_id: problemData.problem_id || '',
+    title: problemData.title || 'Untitled',
+    description: problemData.description || '',
+    tags: problemData.tags || [],
+    testcase_run: problemData.testcase_run || { run: [] },
+    difficulty: mapDifficulty(problemData.difficulty || ''),
+    supported_languages: problemData.supported_languages || [],
+    validated: problemData.validated || false,
+    placeholder_maps: problemData.placeholder_maps || {},
+  };
+};
 
 const useIsMobile = (): boolean => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
@@ -47,6 +88,9 @@ const Timer: React.FC = () => {
   return (
     <motion.div
       className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-md shadow-md"
+    // initial={{ opacity: 0 }}
+    // animate={{ opacity: 1 }}
+    // transition={{ duration: 0.3 }}
     >
       <div className="flex items-center gap-2 text-sm text-zinc-300">
         <Clock className="h-4 w-4 text-green-500" />
@@ -73,17 +117,7 @@ const Timer: React.FC = () => {
 };
 
 interface ProblemDescriptionProps {
-  problem: {
-    problem_id: string;
-    title: string;
-    description: string;
-    tags: string[];
-    difficulty: string;
-    testcase_run: { run: { input: string; expected: string; id?: string }[] };
-    supported_languages: string[];
-    validated: boolean;
-    placeholder_maps: { [key: string]: string };
-  };
+  problem: ProblemMetadata;
 }
 
 const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
@@ -92,6 +126,9 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
   return (
     <motion.div
       className="p-4 overflow-y-auto h-full bg-zinc-900/70 border-r border-zinc-800 relative"
+    // initial={{ opacity: 0, x: -20 }}
+    // animate={{ opacity: 1, x: 0 }}
+    // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="space-y-4 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -245,6 +282,9 @@ const Console: React.FC<ConsoleProps> = ({
   return (
     <motion.div
       className="h-full overflow-hidden flex flex-col bg-zinc-900 border-t border-zinc-800"
+    // initial={{ opacity: 0, y: 20 }}
+    // animate={{ opacity: 1, y: 0 }}
+    // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2 bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -496,32 +536,55 @@ const Console: React.FC<ConsoleProps> = ({
 };
 
 const ZenXPlayground: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const problemId = searchParams.get('problem_id') || '';
+  const [problemId, setProblemId] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [output, setOutput] = useState<string[]>([]);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
+  const [problem, setProblem] = useState<ProblemMetadata | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [customTestCases, setCustomTestCases] = useState<TestCase[]>([]);
   const [consoleTab, setConsoleTab] = useState<'output' | 'tests' | 'custom'>('tests');
   const isMobile = useIsMobile();
-  const [consoleSize, setConsoleSize] = useState(30);
+  const [consoleSize, setConsoleSize] = useState(30)
 
-  const { data: problem, isLoading, error } = useProblemById(problemId);
-  const { data: userProfile } = useGetUserProfile();
 
   useEffect(() => {
-    if (problem) {
-      const storedLanguage = localStorage.getItem('language');
-      const firstLang = storedLanguage && problem.supported_languages.includes(storedLanguage)
-        ? storedLanguage
-        : problem.supported_languages[0] || 'javascript';
-      
-      setLanguage(firstLang);
-      localStorage.setItem('language', firstLang);
+    const queryParams = new URLSearchParams(window.location.search);
+    const urlProblemId = queryParams.get('problem_id') || '';
+    setProblemId(urlProblemId);
+
+    if (!urlProblemId) {
+      setIsLoading(false);
+      return;
     }
-  }, [problem]);
+
+    const storedLanguage = localStorage.getItem('language');
+
+    setIsLoading(true);
+    fetchProblemById(urlProblemId)
+      .then(data => {
+        setProblem(data);
+        const firstLang = storedLanguage && data.supported_languages.includes(storedLanguage)
+          ? storedLanguage
+          : data.supported_languages[0] || 'javascript';
+        setLanguage(firstLang);
+        localStorage.setItem('language', firstLang);
+
+        const codeKey = `${urlProblemId}_${firstLang}`;
+        const storedCode = localStorage.getItem(codeKey);
+        setCode(storedCode || data.placeholder_maps[firstLang] || '');
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching problem:', error);
+        // Set a default problem to prevent undefined states
+        setProblem(twoSumProblem);
+        setLanguage(storedLanguage || 'javascript');
+        setIsLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     if (problem && language) {
@@ -541,12 +604,16 @@ const ZenXPlayground: React.FC = () => {
     }
   }, [code, problemId, language]);
 
+    const {data: userProfile} = useGetUserProfile();
+
   const handleCodeExecution = useCallback(async (type: string) => {
     if (!problem) return;
 
     setIsExecuting(true);
     setOutput([]);
     setExecutionResult(null);
+
+    // alert(JSON.stringify(userProfile))
 
     try {
       const response = await axiosInstance.post(
@@ -564,6 +631,25 @@ const ZenXPlayground: React.FC = () => {
           },
         }
       );
+
+      // const response = await fetch(`${ENGINE_BASE_URL}/problems/execute`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     problem_id: problem.problem_id,
+      //     language: language,
+      //     user_code: code,
+      //     is_run_testcase: type === 'run',
+      //   }),
+      // });
+
+      type GenericResponse = {
+        success: boolean;
+        status: number;
+        payload: ApiResponsePayload;
+        error?: { errorType: string; message: string };
+      };
+
 
       const data: GenericResponse = response.data;
 
@@ -599,6 +685,7 @@ const ZenXPlayground: React.FC = () => {
           `ExecutionResult: ${JSON.stringify(executionResult, null, 2)}`,
         ]);
         setExecutionResult(executionResult);
+        // console.log(executionResult)
 
         if (executionResult.overallPass) {
           toast.success(`${type === 'run' ? 'Run' : 'Submission'} Successful`, {
@@ -625,9 +712,10 @@ const ZenXPlayground: React.FC = () => {
         description: errorMsg,
       });
     } finally {
+      // setConsoleSize(80);
       setIsExecuting(false);
     }
-  }, [code, problem, language, userProfile]);
+  }, [code, problem, language]);
 
   const handleResetCode = () => {
     if (problem && language) {
@@ -661,7 +749,7 @@ const ZenXPlayground: React.FC = () => {
     );
   }
 
-  if (error || !problem) {
+  if (!problem) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-zinc-300">
         <div className="text-center space-y-4">
@@ -671,7 +759,7 @@ const ZenXPlayground: React.FC = () => {
           </p>
           <Button
             variant="outline"
-            onClick={() => navigate('/problems')}
+            onClick={() => window.location.href = '/problems'}
             className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 mt-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Problem List
@@ -689,6 +777,14 @@ const ZenXPlayground: React.FC = () => {
             className="h-5 w-5 text-zinc-500 cursor-pointer hover:text-green-500 transition-colors"
             onClick={() => navigate("/problems")}
           />
+          {/* <h1 className="text-sm sm:text-base text-zinc-200 font-medium truncate">
+            {problem.title}
+            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full inline-block ${problem.difficulty === "Easy" ? "bg-green-600/20 text-green-400" :
+              problem.difficulty === "Medium" ? "bg-yellow-600/20 text-yellow-400" : "bg-red-600/20 text-red-400"
+              }`}>
+              {problem.difficulty}
+            </span>
+          </h1> */}
           <div className="hidden md:block">
             <Timer />
           </div>
@@ -705,6 +801,7 @@ const ZenXPlayground: React.FC = () => {
             ))}
           </select>
 
+
           <Button
             onClick={() => handleCodeExecution('run')}
             className="h-8 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
@@ -717,3 +814,69 @@ const ZenXPlayground: React.FC = () => {
           <Button
             onClick={() => handleCodeExecution('submit')}
             className="h-8 bg-green-600 hover:bg-green-700 text-white"
+            disabled={isExecuting}
+          >
+            <span className="text-xs">Submit</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden">
+        <ResizablePanelGroup
+          direction={isMobile ? "vertical" : "horizontal"}
+          className="min-h-[calc(100vh-3rem)]"
+        >
+          {!isMobile && (
+            <>
+              <ResizablePanel
+                defaultSize={30}
+                minSize={25}
+                maxSize={50}
+                className="bg-zinc-900"
+              >
+                <ProblemDescription problem={problem} />
+              </ResizablePanel>
+              <ResizableHandle className="w-1.5 bg-zinc-800" />
+            </>
+          )}
+
+          <ResizablePanel defaultSize={isMobile ? 50 : 70} className="flex flex-col">
+            {isMobile && (
+              <div className="h-12 border-b border-zinc-800 flex items-center px-4">
+                <div className="w-full">
+                  <Timer />
+                </div>
+              </div>
+            )}
+
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={70}>
+                <CodeEditor
+                  value={code}
+                  onChange={setCode}
+                  language={language}
+                />
+              </ResizablePanel>
+              <ResizableHandle className="h-1.5 bg-zinc-800" />
+              <ResizablePanel defaultSize={50} minSize={10}>
+                <Console
+                  output={output}
+                  executionResult={executionResult}
+                  isMobile={isMobile}
+                  onReset={handleResetCode}
+                  testCases={problem.testcase_run?.run || []}
+                  customTestCases={customTestCases}
+                  onAddCustomTestCase={handleAddCustomTestCase}
+                  activeTab={consoleTab}
+                  setActiveTab={setConsoleTab}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </div>
+  );
+};
+
+export default ZenXPlayground;
