@@ -42,7 +42,7 @@ import { Challenge } from "@/api/types";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import ChallengeInterface from "@/components/challenges/ChallengeInterface";
-import { useProblemStats } from "@/hooks";
+import { useProblemStats } from "@/services/useProblemStats";
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -50,7 +50,7 @@ const MinimalChallenges = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { data: problemStats } = useProblemStats("current");
+  const { problemStats, isLoading: statsLoading } = useProblemStats("current");
 
   // Calculate total problems completed
   const totalProblemsDone = problemStats ? (
