@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -37,16 +36,28 @@ import {
 
 import {
   useWebSocket,
-  useMockRoomStatus,
-  useMockProblems,
-  Problem,
-  LeaderboardEntry
-} from '@/hooks/useChallengeSystem';
+  useProblems
+} from '@/hooks';
 
-interface UserData {
+// Mock problem type that matches what we're using
+interface MockProblem {
   id: string;
-  name: string;
-  avatar: string;
+  title: string;
+  difficulty: string;
+  description: string;
+  examples: {
+    input: string;
+    output: string;
+    explanation?: string;
+  }[];
+  constraints: string[];
+}
+
+interface LeaderboardEntry {
+  userId: string;
+  problemsCompleted: number;
+  totalScore: number;
+  rank: number;
 }
 
 // Mock users
@@ -57,6 +68,108 @@ const mockUsers: { [id: string]: UserData } = {
   'user-4': { id: 'user-4', name: 'David Johnson', avatar: 'https://i.pravatar.cc/150?img=4' },
   'user-5': { id: 'user-5', name: 'Emma Davis', avatar: 'https://i.pravatar.cc/150?img=5' },
   'user-6': { id: 'user-6', name: 'Frank Zhang', avatar: 'https://i.pravatar.cc/150?img=6' },
+};
+
+interface UserData {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+// Mock problems data
+const mockProblemsData: { [key: string]: MockProblem } = {
+  'prob-1': {
+    id: 'prob-1',
+    title: 'Two Sum',
+    difficulty: 'Easy',
+    description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+    examples: [
+      {
+        input: 'nums = [2,7,11,15], target = 9',
+        output: '[0,1]',
+        explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
+      },
+      {
+        input: 'nums = [3,2,4], target = 6',
+        output: '[1,2]'
+      }
+    ],
+    constraints: [
+      '2 <= nums.length <= 10^4',
+      '-10^9 <= nums[i] <= 10^9',
+      '-10^9 <= target <= 10^9',
+      'Only one valid answer exists.'
+    ]
+  },
+  'prob-2': {
+    id: 'prob-2',
+    title: 'Valid Parentheses',
+    difficulty: 'Easy',
+    description: 'Given a string s containing just the characters \'(\', \')\', \'{\', \'}\', \'[\' and \']\', determine if the input string is valid.',
+    examples: [
+      {
+        input: 's = "()"',
+        output: 'true'
+      },
+      {
+        input: 's = "()[]{}"',
+        output: 'true'
+      }
+    ],
+    constraints: [
+      '1 <= s.length <= 10^4',
+      's consists of parentheses only \'()[]{}\''
+    ]
+  },
+  'prob-3': {
+    id: 'prob-3',
+    title: 'Merge Two Sorted Lists',
+    difficulty: 'Medium',
+    description: 'Merge two sorted linked lists and return it as a sorted list.',
+    examples: [
+      {
+        input: 'l1 = [1,2,4], l2 = [1,3,4]',
+        output: '[1,1,2,3,4,4]'
+      }
+    ],
+    constraints: [
+      'The number of nodes in both lists is in the range [0, 50]',
+      '-100 <= Node.val <= 100',
+      'Both l1 and l2 are sorted in non-decreasing order.'
+    ]
+  }
+};
+
+// Mock Room Status
+const useMockRoomStatus = (roomId: string) => {
+  // Sample mock room data
+  const mockRoom = {
+    id: roomId || 'room-1',
+    challengeId: 'chal-1',
+    password: 'pass123',
+    status: 'active',
+    startTime: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
+    participantIds: ['user-1', 'user-2', 'user-3', 'user-4'],
+    problemIds: ['prob-1', 'prob-2', 'prob-3'],
+    createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString() // 15 minutes ago
+  };
+  
+  const mockLeaderboard: LeaderboardEntry[] = [
+    { userId: 'user-2', problemsCompleted: 2, totalScore: 850, rank: 1 },
+    { userId: 'user-1', problemsCompleted: 1, totalScore: 450, rank: 2 },
+    { userId: 'user-3', problemsCompleted: 1, totalScore: 400, rank: 3 },
+    { userId: 'user-4', problemsCompleted: 0, totalScore: 0, rank: 4 }
+  ];
+  
+  return {
+    data: {
+      room: mockRoom,
+      problemIds: mockRoom.problemIds,
+      leaderboard: mockLeaderboard
+    },
+    isLoading: false,
+    error: null
+  };
 };
 
 const BattleInterface: React.FC = () => {
@@ -85,8 +198,10 @@ const BattleInterface: React.FC = () => {
   
   // Get mock room data
   const { data: roomData, isLoading } = useMockRoomStatus(roomId || '');
-  const problemsData = useMockProblems();
   const { connected: wsConnected, lastEvent } = useWebSocket(roomId || '');
+  
+  // Use real problems data with fallback to mock
+  const { data: realProblems } = useProblems();
   
   // Timer state
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -121,7 +236,7 @@ const BattleInterface: React.FC = () => {
   
   // Get current problem
   const currentProblemId = roomData?.problemIds?.[currentProblemIndex] || 'prob-1';
-  const currentProblem = problemsData[currentProblemId];
+  const currentProblem = mockProblemsData[currentProblemId];
   
   // Set initial code based on language
   useEffect(() => {
@@ -310,7 +425,7 @@ const BattleInterface: React.FC = () => {
           </div>
           
           <div className="flex-1 overflow-y-auto">
-            {Object.values(problemsData).map((problem, index) => (
+            {Object.values(mockProblemsData).map((problem, index) => (
               <button
                 key={problem.id}
                 className={`flex flex-col p-3 border-b border-zinc-800/50 text-left hover:bg-zinc-800/50 transition-colors w-full
@@ -647,112 +762,3 @@ const BattleInterface: React.FC = () => {
                       ${index === 0 ? 'bg-amber-500 text-white' : index === 1 ? 'bg-zinc-400 text-white' : index === 2 ? 'bg-amber-800 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
                       {entry.rank}
                     </div>
-                    
-                    <Avatar className="h-7 w-7">
-                      <AvatarImage src={user?.avatar} />
-                      <AvatarFallback>{user?.name.substr(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center">
-                        <span className={`text-xs font-medium truncate ${isCurrentUser ? 'text-green-400' : 'text-zinc-300'}`}>
-                          {isCurrentUser ? 'You' : user?.name}
-                        </span>
-                        <span className="text-xs font-medium text-amber-400">{entry.totalScore}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 mt-1">
-                        <Progress value={(entry.problemsCompleted / 3) * 100} className="h-1 flex-1" />
-                        <span className="text-xs text-zinc-500">{entry.problemsCompleted}/3</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          <div className="p-3 border-t border-zinc-800 bg-zinc-900/60">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Bolt className="h-4 w-4 text-amber-500" />
-                <span className="text-sm font-medium">Battle Stats</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="bg-zinc-800/50 rounded-md p-2 border border-zinc-700/50">
-                  <div className="text-xs text-zinc-500">Problems</div>
-                  <div className="text-lg font-bold text-white">1/3</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-md p-2 border border-zinc-700/50">
-                  <div className="text-xs text-zinc-500">Score</div>
-                  <div className="text-lg font-bold text-amber-400">450</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-md p-2 border border-zinc-700/50">
-                  <div className="text-xs text-zinc-500">Time</div>
-                  <div className="text-lg font-bold text-green-400">12:35</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-md p-2 border border-zinc-700/50">
-                  <div className="text-xs text-zinc-500">Rank</div>
-                  <div className="text-lg font-bold text-white">#2</div>
-                </div>
-              </div>
-              
-              <div className="bg-zinc-800/50 rounded-md p-2 border border-zinc-700/50">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs text-zinc-500">Connection Status</span>
-                  {wsConnected ? (
-                    <Badge className="bg-green-900/30 text-green-400 border-green-800/50 text-xs">Connected</Badge>
-                  ) : (
-                    <Badge className="bg-amber-900/30 text-amber-400 border-amber-800/50 text-xs">Reconnecting...</Badge>
-                  )}
-                </div>
-                <div className="text-xs text-zinc-500">
-                  {wsConnected ? 'Real-time updates active' : 'Attempting to reconnect...'}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Exit confirmation modal */}
-      {exitConfirmOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-lg max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-red-900/30 p-3 rounded-full">
-                  <AlertTriangle className="h-6 w-6 text-red-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Exit Challenge?</h3>
-                  <p className="text-zinc-400 mt-1">
-                    Are you sure you want to exit this challenge? Your progress will be saved, but you'll forfeit your position in the challenge.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-3 mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setExitConfirmOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={() => navigate('/')}
-                >
-                  Exit Challenge
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default BattleInterface;

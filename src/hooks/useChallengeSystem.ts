@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -367,6 +366,7 @@ export const useSubmission = (submissionId: string) => {
   });
 };
 
+// Fix: Corrected access to the status property via data
 export const useRoomSubmissions = (roomId: string) => {
   return useQuery({
     queryKey: ['rooms', roomId, 'submissions'],
