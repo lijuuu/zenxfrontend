@@ -152,62 +152,16 @@ const Leaderboard = () => {
                   <Globe className="w-4 h-4 mr-2" />
                   Global
                 </TabsTrigger>
-                <TabsTrigger value="friends" className="data-[state=active]:bg-green-500">
+                <TabsTrigger value="country" className="data-[state=active]:bg-green-500">
                   <Users className="w-4 h-4 mr-2" />
-                  Friends
+                  Country
                 </TabsTrigger>
               </TabsList>
               
               <div className="flex gap-2 w-full sm:w-auto">
-                <div className="flex items-center gap-2 bg-zinc-900/50 border border-zinc-700 rounded-lg px-3 py-2 w-full">
-                  <Search className="w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    className="bg-transparent border-none outline-none text-sm w-full text-zinc-300"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+               
                 
-                <div className="inline-flex bg-zinc-900/50 border border-zinc-700 p-1 rounded-lg">
-                  <button
-                    onClick={() => handleTimeRangeChange('weekly')}
-                    className={cn(
-                      "px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 flex items-center",
-                      timeRange === 'weekly' 
-                        ? "bg-zinc-800 text-white" 
-                        : "text-zinc-400 hover:text-white"
-                    )}
-                  >
-                    <Calendar className="w-3 h-3 mr-1" />
-                    Weekly
-                  </button>
-                  <button
-                    onClick={() => handleTimeRangeChange('monthly')}
-                    className={cn(
-                      "px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 flex items-center",
-                      timeRange === 'monthly' 
-                        ? "bg-zinc-800 text-white" 
-                        : "text-zinc-400 hover:text-white"
-                    )}
-                  >
-                    <Calendar className="w-3 h-3 mr-1" />
-                    Monthly
-                  </button>
-                  <button
-                    onClick={() => handleTimeRangeChange('all')}
-                    className={cn(
-                      "px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 flex items-center",
-                      timeRange === 'all' 
-                        ? "bg-zinc-800 text-white" 
-                        : "text-zinc-400 hover:text-white"
-                    )}
-                  >
-                    <Calendar className="w-3 h-3 mr-1" />
-                    All Time
-                  </button>
-                </div>
+                
               </div>
             </div>
             
@@ -395,7 +349,7 @@ const Leaderboard = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="friends" className="mt-0">
+            <TabsContent value="country" className="mt-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>

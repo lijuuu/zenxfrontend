@@ -8,7 +8,6 @@ import {
   UserPlus,
   UserMinus,
   Loader2,
-  MapPin,
   CalendarDays
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -72,7 +71,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
 
   const navigate = useNavigate();
 
-  console.log()
+  console.log(`https://flagcdn.com/24x18/${profile.country?.toLowerCase()}.png`)
 
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -95,16 +94,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
 
           {profile.isOnline && (
             <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-background"></span>
-          )}
-        </div>
-
-        <div className="flex gap-2 mt-3">
-          {profile.country && (
-            <img
-              src={`https://flagcdn.com/24x18/${profile.countryCode?.toLowerCase()}.png`}
-              alt={profile.country}
-              className="h-5 rounded"
-            />
           )}
         </div>
       </div>
@@ -139,6 +128,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+
+        <div className="flex gap-2 mt-3">
+          {profile.country && (
+           <>
+            <img
+              src={`https://flagcdn.com/24x18/${profile.country?.toLowerCase()}.png`}
+              alt={profile.country}
+              className="h-5 rounded"
+            />
+            <p>{profile.country}</p>
+           </>
+          )}
         </div>
 
         {profile.bio && (

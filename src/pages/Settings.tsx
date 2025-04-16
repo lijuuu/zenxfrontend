@@ -77,9 +77,9 @@ const Settings = () => {
                 <TabsTrigger value="password" className="justify-start">
                   Password
                 </TabsTrigger>
-                <TabsTrigger value="notifications" className="justify-start">
+                {/* <TabsTrigger value="notifications" className="justify-start">
                   Notifications
-                </TabsTrigger>
+                </TabsTrigger> */}
               </TabsList>
             </Tabs>
             

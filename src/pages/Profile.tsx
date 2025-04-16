@@ -120,7 +120,7 @@ const Profile = () => {
             </Card>
 
             {/* Stats Section */}
-            <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+            {/* <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-green-500" /> Statistics Overview
@@ -129,7 +129,7 @@ const Profile = () => {
               <CardContent className="p-6">
                 <ProfileStats profile={profile!} />
 
-                {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card className="bg-zinc-800 border-zinc-700">
                     <CardHeader className="p-4 pb-2">
                       <CardTitle className="text-sm font-medium">Challenges</CardTitle>
@@ -195,9 +195,9 @@ const Profile = () => {
                       </div>
                     </CardContent>
                   </Card>
-                </div> */}
+                </div> 
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Activity Section - Only show on small screens */}
             {isMobile && (
