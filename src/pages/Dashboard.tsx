@@ -101,22 +101,6 @@ const Dashboard = () => {
                 />
               </div>
 
-              {/* Monthly Activity View */}
-              <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-green-400" />
-                    Monthly Activity
-                  </CardTitle>
-                  <CardDescription>
-                    Coding patterns and consistency
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <MonthlyActivityHeatmap userID={userProfile?.userID} showTitle={false} />
-                </CardContent>
-              </Card>
-
               {/* 1v1 Challenges */}
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader>
@@ -203,6 +187,15 @@ const Dashboard = () => {
                   </Link>
                 </CardContent>
               </Card>
+
+              {/* Monthly Activity View (Static) */}
+              <MonthlyActivityHeatmap 
+                userID={userProfile?.userID} 
+                showTitle={true} 
+                staticMode={true} 
+                variant="dashboard"
+                className="w-full"
+              />
 
               {/* Leaderboard Preview */}
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">

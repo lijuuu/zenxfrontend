@@ -19,6 +19,8 @@ interface MonthlyActivityHeatmapProps {
   showTitle?: boolean;
   compact?: boolean;
   userID?: string;
+  staticMode?: boolean; // New prop to control static vs interactive mode
+  variant?: 'default' | 'dashboard' | 'profile'; // New prop for styling variants
 }
 
 const useFetchMonthData = (userID = '', initialDate: Date) => {
@@ -82,7 +84,9 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   className = "",
   showTitle = true,
   compact = false,
-  userID = ""
+  userID = "",
+  staticMode = false,
+  variant = 'default'
 }) => {
   const [hoveredDay, setHoveredDay] = useState<ActivityDay | null>(null);
   const isMobile = useIsMobile();
@@ -131,9 +135,21 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
 
   const weeksNeeded = Math.ceil((getDaysInMonth(selectedDate) + getDay(startOfMonth(selectedDate))) / 7);
 
+  // Determine card styling based on variant
+  const getCardStyles = () => {
+    switch (variant) {
+      case 'dashboard':
+        return 'bg-zinc-900/30 border-zinc-800/40 backdrop-blur-sm shadow-sm';
+      case 'profile':
+        return 'bg-zinc-900/40 border-zinc-800/50 backdrop-blur-sm';
+      default:
+        return 'bg-black border-zinc-800/50';
+    }
+  };
+
   if (isLoading) {
     return (
-      <Card className={`bg-black border-zinc-800/50 ${className}`}>
+      <Card className={`${getCardStyles()} ${className}`}>
         {showTitle && (
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -144,11 +160,18 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
         )}
         <CardContent className={compact ? "p-3" : "p-4"}>
           <div className="flex flex-col">
-            <div className="flex justify-between items-center mb-2">
-              <button className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700">Previous</button>
-              <span className="text-sm text-zinc-400">{format(selectedDate, 'MMMM yyyy')}</span>
-              <button className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700">Next</button>
-            </div>
+            {!staticMode && (
+              <div className="flex justify-between items-center mb-2">
+                <button className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700">Previous</button>
+                <span className="text-sm text-zinc-400">{format(selectedDate, 'MMMM yyyy')}</span>
+                <button className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700">Next</button>
+              </div>
+            )}
+            {staticMode && (
+              <div className="mb-2 text-center">
+                <span className="text-sm text-zinc-400">{format(selectedDate, 'MMMM yyyy')}</span>
+              </div>
+            )}
             <div className="flex justify-center">
               <div className="w-full">
                 <div className={`grid grid-cols-7 ${gap} mb-2 justify-items-center`}>
@@ -169,7 +192,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
 
   if (isError) {
     return (
-      <Card className={`bg-black border-zinc-800/50 ${className}`}>
+      <Card className={`${getCardStyles()} ${className}`}>
         {showTitle && (
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -189,7 +212,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   }
 
   return (
-    <Card className={`bg-black border-zinc-800/50 ${className}`}>
+    <Card className={`${getCardStyles()} ${className}`}>
       {showTitle && (
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -200,23 +223,29 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
       )}
       <CardContent className={compact ? "p-3" : "p-4"}>
         <div className="flex flex-col">
-          <div className="flex justify-between items-center mb-2">
-            <button
-              onClick={() => setNewDate(subMonths(selectedDate, 1))}
-              className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-zinc-400">
-              {format(selectedDate, 'MMMM yyyy')}
-            </span>
-            <button
-              onClick={() => setNewDate(addMonths(selectedDate, 1))}
-              className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700"
-            >
-              Next
-            </button>
-          </div>
+          {!staticMode ? (
+            <div className="flex justify-between items-center mb-2">
+              <button
+                onClick={() => setNewDate(subMonths(selectedDate, 1))}
+                className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-zinc-400">
+                {format(selectedDate, 'MMMM yyyy')}
+              </span>
+              <button
+                onClick={() => setNewDate(addMonths(selectedDate, 1))}
+                className="px-2 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-700"
+              >
+                Next
+              </button>
+            </div>
+          ) : (
+            <div className="mb-2 text-center">
+              <span className="text-sm text-zinc-400">{format(selectedDate, 'MMMM yyyy')}</span>
+            </div>
+          )}
           <div className="flex justify-center">
             <div className="w-full">
               <div className={`grid grid-cols-7 ${gap} mb-2 justify-items-center`}>

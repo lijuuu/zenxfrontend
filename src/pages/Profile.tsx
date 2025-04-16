@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User,
@@ -166,7 +167,7 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Monthly Activity Heatmap from Dashboard */}
+            {/* Monthly Activity Heatmap - Interactive mode */}
             <Card className="mb-6 bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -177,7 +178,12 @@ const Profile = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4">
-                <MonthlyActivityHeatmap userID={profile.userID} showTitle={false} />
+                <MonthlyActivityHeatmap 
+                  userID={profile.userID} 
+                  showTitle={false} 
+                  staticMode={false} 
+                  variant="profile" 
+                />
               </CardContent>
             </Card>
 
