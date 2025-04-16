@@ -5,4 +5,4 @@ export { useIsMobile } from './use-mobile';
 export { useLeaderboard } from './useLeaderboard';
 
 // Export challenge system hooks
-export { default as useChallengeSystem } from './useChallengeSystem';
+export { default as useChallengeSystem, useProblems } from './useChallengeSystem';

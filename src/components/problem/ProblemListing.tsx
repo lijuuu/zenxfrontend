@@ -1,7 +1,5 @@
 
 import React, { useState, useRef, useCallback } from "react";
-import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,22 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Filter, Search, Loader2, FileCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MainNavbar from "@/components/common/MainNavbar";
-import { mockProblems } from "@/api/mockData";
-
-// Define the Problem interface based on ProblemMetadata
-interface Problem {
-  problem_id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  difficulty: string;
-  testcase_run: { run: { input: string; expected: string }[] };
-  supported_languages: string[];
-  validated: boolean;
-  placeholder_maps: { [key: string]: string };
-}
-
-const BASE_URL = "http://localhost:7000/api/v1/problems";
+import { useProblems } from "@/hooks/useChallengeSystem";
 
 const mapDifficulty = (difficulty: string): string => {
   const difficultyMap: Record<string, string> = {
@@ -43,63 +26,18 @@ const getDifficultyColor = (difficulty: string) => {
   switch (difficulty) {
     case "E":
     case "Easy":
+    case "1":
       return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
     case "M":
     case "Medium":
+    case "2":
       return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
     case "H":
     case "Hard":
+    case "3":
       return "bg-red-500/10 text-red-500 hover:bg-red-500/20";
     default:
       return "bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500/20";
-  }
-};
-
-const fetchProblems = async () => {
-  try {
-    // For production/deployed app
-    const res = await axios.get(`${BASE_URL}/metadata/list`, { params: { page: 1, page_size: 100 } });
-    const problemList = res.data.payload?.problems || [];
-    
-    if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
-    
-    const mappedProblems: Problem[] = problemList.map((item: any) => ({
-      problem_id: item.problem_id || '',
-      title: item.title || 'Untitled',
-      description: item.description || '',
-      tags: item.tags || [],
-      difficulty: item.difficulty || '',
-      testcase_run: item.testcase_run || { run: [] },
-      supported_languages: item.supported_languages || [],
-      validated: item.validated || false,
-      placeholder_maps: item.placeholder_maps || {},
-    }));
-    
-    return mappedProblems;
-  } catch (error) {
-    console.error("Error fetching problems:", error);
-    
-    
-    // Map the mock data to match the Problem interface
-    return mockProblems.map(p => ({
-      problem_id: p.id,
-      title: p.title,
-      description: p.description,
-      tags: p.tags,
-      difficulty: p.difficulty,
-      testcase_run: { 
-        run: p.examples.map(ex => ({ 
-          input: ex.input, 
-          expected: ex.output 
-        })) 
-      },
-      supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
-      validated: true,
-      placeholder_maps: {
-        javascript: '// Write your solution here',
-        python: '# Write your solution here'
-      }
-    }));
   }
 };
 
@@ -110,9 +48,11 @@ const ProblemListing: React.FC = () => {
   const tagInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  const { data: problems = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['problems'],
-    queryFn: fetchProblems,
+  // Use the new React Query hook for fetching problems
+  const { data: problems = [], isLoading, error, refetch } = useProblems({
+    search: filters.search,
+    difficulty: filters.difficulty !== "all" ? filters.difficulty : undefined,
+    tags: filters.tags
   });
 
   const debounce = useCallback(
@@ -149,26 +89,6 @@ const ProblemListing: React.FC = () => {
     if (searchInputRef.current) searchInputRef.current.value = "";
     if (tagInputRef.current) tagInputRef.current.value = "";
   };
-
-  // Apply filters to the problems
-  const filteredProblems = problems.filter(p => {
-    // Search filter
-    if (filters.search && !p.title.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
-    }
-    
-    // Difficulty filter
-    if (filters.difficulty !== "all" && mapDifficulty(p.difficulty) !== filters.difficulty) {
-      return false;
-    }
-    
-    // Tags filter
-    if (filters.tags && !p.tags.some(t => t.toLowerCase().includes(filters.tags.toLowerCase()))) {
-      return false;
-    }
-    
-    return true;
-  });
 
   const navigateToCompiler = (problem_id: string) => {
     navigate(`/compiler?problem_id=${problem_id}`);
@@ -266,7 +186,7 @@ const ProblemListing: React.FC = () => {
             
             <div className="ml-auto">
               <p className="text-sm text-zinc-400">
-                {filteredProblems.length} {filteredProblems.length === 1 ? "problem" : "problems"} found
+                {problems.length} {problems.length === 1 ? "problem" : "problems"} found
               </p>
             </div>
           </div>
@@ -286,7 +206,7 @@ const ProblemListing: React.FC = () => {
               </Button>
             </CardContent>
           </Card>
-        ) : filteredProblems.length === 0 ? (
+        ) : problems.length === 0 ? (
           <Card className="bg-zinc-800/40 border border-zinc-700/40 text-white">
             <CardContent className="p-8 flex flex-col items-center justify-center text-center">
               <FileCode className="h-12 w-12 text-zinc-500 mb-4" />
@@ -299,7 +219,7 @@ const ProblemListing: React.FC = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredProblems.map((problem) => (
+            {problems.map((problem) => (
               <Card
                 key={problem.problem_id}
                 className="bg-zinc-800/40 border border-zinc-700/40 hover:border-green-500/50 transition-colors cursor-pointer"

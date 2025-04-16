@@ -1,796 +1,373 @@
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Loader2, PlusCircle, MinusCircle, Clock, Shield, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { createChallenge } from "@/api/challengeApi";
-import { Challenge, UserProfile } from "@/api/types";
-import {
-  FileCode,
-  Lock,
-  Unlock,
-  Copy,
-  Check,
-  Clock,
-  X,
-  Plus,
-  Users,
-  Search,
-  CheckCircle,
-  User,
-  ChevronsUpDown,
-  AlertCircle
-} from "lucide-react";
-import UserSearch from "./UserSearch";
-import { searchUsers } from "@/api/challengeApi";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useProblems, useCreateChallenge } from '@/hooks/useChallengeSystem';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
-const formSchema = z.object({
-  title: z.string().min(3, { message: "Title must be at least 3 characters" }),
-  description: z.string().optional(),
-  difficulty: z.enum(["easy", "medium", "hard"]),
-  isPrivate: z.boolean(),
-  timeLimit: z.string(),
-  problemIds: z.array(z.string()).min(1, "Select at least one problem"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface CreateChallengeFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess?: (challenge: Challenge) => void;
-}
-
-// Create a simplified Friend type that doesn't need all User properties
-interface FriendItem {
-  userID: string;
-  userName: string;
-  firstName: string;
-  profileImage: string;
-  isOnline?: boolean;
-}
-
-const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
-  isOpen,
-  onClose,
-  onSuccess,
-}) => {
-  const [activeTab, setActiveTab] = useState("basic");
-  const [accessCode, setAccessCode] = useState("");
-  const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
-  const [problems, setProblems] = useState([
-    { id: "p1", title: "Two Sum", difficulty: "Easy" },
-    { id: "p2", title: "Valid Parentheses", difficulty: "Easy" },
-    { id: "p3", title: "Merge Two Sorted Lists", difficulty: "Easy" },
-    { id: "p4", title: "LRU Cache", difficulty: "Medium" },
-    { id: "p5", title: "Longest Substring", difficulty: "Medium" },
-    { id: "p6", title: "Binary Tree Level Order Traversal", difficulty: "Medium" },
-    { id: "p7", title: "Reverse Linked List", difficulty: "Easy" },
-    { id: "p8", title: "Trapping Rain Water", difficulty: "Hard" },
-    { id: "p9", title: "Word Search II", difficulty: "Hard" },
-  ]);
-  const [selectedFriends, setSelectedFriends] = useState<FriendItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const { toast } = useToast();
-
-  // Mock friends
-  const friends: UserProfile[] = [
-    { userID: '1', userName: 'sophiew', firstName: 'Sophie Williams', profileImage: 'https://i.pravatar.cc/300?img=9', isOnline: true },
-    { userID: '2', userName: 'tsmith', firstName: 'Taylor Smith', profileImage: 'https://i.pravatar.cc/300?img=5', isOnline: false },
-    { userID: '3', userName: 'mchen', firstName: 'Mike Chen', profileImage: 'https://i.pravatar.cc/300?img=3', isOnline: true },
-    { userID: '4', userName: 'alexj', firstName: 'Alex Johnson', profileImage: 'https://i.pravatar.cc/300?img=4', isOnline: false },
-    { userID: '5', userName: 'ewilson', firstName: 'Emma Wilson', profileImage: 'https://i.pravatar.cc/300?img=2', isOnline: true },
-  ];
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      difficulty: "medium",
-      isPrivate: false,
-      timeLimit: "30",
-      problemIds: [],
-    },
+const CreateChallengeForm: React.FC = () => {
+  const navigate = useNavigate();
+  const [title, setTitle] = useState('');
+  const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [timeLimit, setTimeLimit] = useState(60);
+  const [selectedProblemIds, setSelectedProblemIds] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
+  const [problemFilters, setProblemFilters] = useState({ 
+    difficulty: 'all', 
+    tags: '' 
   });
 
-  const isPrivate = form.watch("isPrivate");
+  // Use the hook to fetch problems
+  const { data: problems = [], isLoading: isLoadingProblems } = useProblems({
+    search,
+    difficulty: problemFilters.difficulty !== 'all' ? problemFilters.difficulty : undefined,
+    tags: problemFilters.tags
+  });
 
-  const generateAccessCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let code = "";
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setAccessCode(code);
-  };
+  const createChallengeMutation = useCreateChallenge();
 
-  React.useEffect(() => {
-    if (isPrivate && !accessCode) {
-      generateAccessCode();
-    }
-  }, [isPrivate]);
-
-  const copyAccessCode = () => {
-    navigator.clipboard.writeText(accessCode);
-    toast({
-      title: "Copied!",
-      description: "Access code copied to clipboard",
-    });
-  };
-
-  const toggleProblem = (problemId: string) => {
-    setSelectedProblems((prev) =>
-      prev.includes(problemId)
-        ? prev.filter((id) => id !== problemId)
-        : [...prev, problemId]
-    );
-    form.setValue("problemIds", selectedProblems.includes(problemId)
-      ? selectedProblems.filter((id) => id !== problemId)
-      : [...selectedProblems, problemId]);
-  };
-
-  const handleSearch = async () => {
-    if (searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    
-    setIsSearching(true);
-    try {
-      const results = await searchUsers(searchQuery);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const toggleFriendSelection = (friend: FriendItem | UserProfile) => {
-    // Create a FriendItem from either a FriendItem or UserType
-    const friendItem: FriendItem = {
-      userID: friend.userID,
-      userName: friend.userName,
-      firstName: friend.firstName,
-      profileImage: friend.profileImage || '',
-      isOnline: 'isOnline' in friend ? friend.isOnline : undefined
-    };
-    
-    setSelectedFriends(prev => {
-      const isSelected = prev.some(f => f.userID === friendItem.userID);
-      return isSelected 
-        ? prev.filter(f => f.userID !== friendItem.userID)
-        : [...prev, friendItem];
-    });
-  };
-
-  const goToNextTab = () => {
-    if (activeTab === "basic") {
-      setActiveTab("problems");
-    } else if (activeTab === "problems") {
-      setActiveTab("invite");
-    }
-  };
-
-  const goToPrevTab = () => {
-    if (activeTab === "problems") {
-      setActiveTab("basic");
-    } else if (activeTab === "invite") {
-      setActiveTab("problems");
-    }
-  };
-
-  const onSubmit = async (data: FormValues) => {
-    // Make sure problemIds is set correctly
-    data.problemIds = selectedProblems;
-    
-    if (data.problemIds.length === 0) {
-      toast({
-        title: "No problems selected",
-        description: "Please select at least one problem",
-        variant: "destructive",
-      });
+  const handleCreateChallenge = async () => {
+    if (!title) {
+      toast.error('Please enter a challenge title');
       return;
     }
 
-    setIsCreating(true);
+    if (selectedProblemIds.length === 0) {
+      toast.error('Please select at least one problem');
+      return;
+    }
 
     try {
-      const challenge = await createChallenge({
-        title: data.title,
-        difficulty: data.difficulty,
-        problemIds: data.problemIds,
-        isPrivate: data.isPrivate,
-        timeLimit: parseInt(data.timeLimit),
-        invitedUsers: selectedFriends.map(f => f.userID),
+      await createChallengeMutation.mutateAsync({
+        title,
+        creatorId: "user-1", // In a real app, you'd get this from authentication
+        difficulty,
+        isPrivate,
+        problemIds: selectedProblemIds,
+        timeLimit
       });
-
-      toast({
-        title: "Challenge created!",
-        description: data.isPrivate
-          ? `Your private challenge has been created. Access code: ${accessCode}`
-          : "Your challenge has been created successfully.",
-      });
-
-      if (onSuccess) {
-        onSuccess(challenge);
-      }
 
       // Reset form
-      form.reset();
-      setSelectedProblems([]);
-      setSelectedFriends([]);
-      setAccessCode("");
-      onClose();
+      setTitle('');
+      setDifficulty('Medium');
+      setIsPrivate(false);
+      setTimeLimit(60);
+      setSelectedProblemIds([]);
+
+      // Navigate to challenges page
+      navigate('/challenges');
     } catch (error) {
-      console.error("Failed to create challenge:", error);
-      toast({
-        title: "Failed to create challenge",
-        description: "There was an error creating your challenge. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreating(false);
+      console.error('Error creating challenge:', error);
     }
+  };
+
+  const toggleProblemSelection = (problemId: string) => {
+    setSelectedProblemIds(prev => 
+      prev.includes(problemId) 
+        ? prev.filter(id => id !== problemId) 
+        : [...prev, problemId]
+    );
+  };
+
+  const getDifficultyColor = (diff: string) => {
+    switch (diff) {
+      case 'Easy':
+      case 'E':
+      case '1':
+        return 'bg-green-500/10 text-green-500 hover:bg-green-500/20';
+      case 'Medium':
+      case 'M':
+      case '2':
+        return 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20';
+      case 'Hard':
+      case 'H':
+      case '3':
+        return 'bg-red-500/10 text-red-500 hover:bg-red-500/20';
+      default:
+        return 'bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500/20';
+    }
+  };
+
+  const mapDifficulty = (diff: string): string => {
+    const difficultyMap: Record<string, string> = {
+      "1": "Easy",
+      "2": "Medium",
+      "3": "Hard",
+      "E": "Easy",
+      "M": "Medium",
+      "H": "Hard",
+    };
+    return difficultyMap[diff] || diff;
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <FileCode className="mr-2 h-5 w-5 text-green-500" />
-            Create Challenge
-          </DialogTitle>
-          <DialogDescription>
-            Set up a new coding challenge for yourself or friends
-          </DialogDescription>
-        </DialogHeader>
+    <div className="container mx-auto py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Create Challenge</h1>
+          <p className="text-zinc-400">Create a coding challenge to compete with friends or the community</p>
+        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="problems">Problems</TabsTrigger>
-                <TabsTrigger value="invite">Invite Friends</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="basic" className="space-y-4 pt-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Challenge Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Algorithm Sprint" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe your challenge..."
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="difficulty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Difficulty</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex space-x-2 mt-2"
-                          >
-                            <div className="flex items-center space-x-1">
-                              <RadioGroupItem
-                                value="easy"
-                                id="r-easy"
-                                className="sr-only"
-                              />
-                              <FormLabel
-                                htmlFor="r-easy"
-                                className={cn(
-                                  "px-2 py-1 text-xs rounded-full cursor-pointer",
-                                  field.value === "easy"
-                                    ? "bg-green-500 text-white"
-                                    : "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                )}
-                              >
-                                Easy
-                              </FormLabel>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <RadioGroupItem
-                                value="medium"
-                                id="r-medium"
-                                className="sr-only"
-                              />
-                              <FormLabel
-                                htmlFor="r-medium"
-                                className={cn(
-                                  "px-2 py-1 text-xs rounded-full cursor-pointer",
-                                  field.value === "medium"
-                                    ? "bg-amber-500 text-white"
-                                    : "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
-                                )}
-                              >
-                                Medium
-                              </FormLabel>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <RadioGroupItem
-                                value="hard"
-                                id="r-hard"
-                                className="sr-only"
-                              />
-                              <FormLabel
-                                htmlFor="r-hard"
-                                className={cn(
-                                  "px-2 py-1 text-xs rounded-full cursor-pointer",
-                                  field.value === "hard"
-                                    ? "bg-red-500 text-white"
-                                    : "bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                                )}
-                              >
-                                Hard
-                              </FormLabel>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="timeLimit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Time Limit</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex flex-col space-y-1 mt-2"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="15" id="time-15" />
-                              <FormLabel htmlFor="time-15">15 minutes</FormLabel>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="30" id="time-30" />
-                              <FormLabel htmlFor="time-30">30 minutes</FormLabel>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="60" id="time-60" />
-                              <FormLabel htmlFor="time-60">1 hour</FormLabel>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Challenge Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Challenge Title</Label>
+                  <Input 
+                    id="title" 
+                    value={title} 
+                    onChange={(e) => setTitle(e.target.value)} 
+                    placeholder="Algorithm Sprint" 
+                    className="mt-1" 
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="isPrivate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                      <div className="space-y-0.5">
-                        <FormLabel className="flex items-center">
-                          {field.value ? (
-                            <Lock className="mr-2 h-4 w-4 text-orange-500" />
-                          ) : (
-                            <Unlock className="mr-2 h-4 w-4 text-green-500" />
-                          )}
-                          {field.value ? "Private Challenge" : "Public Challenge"}
-                        </FormLabel>
-                        <FormDescription>
-                          {field.value
-                            ? "Only invited users can join with an access code"
-                            : "Anyone can join the challenge"}
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <Select 
+                    value={difficulty} 
+                    onValueChange={(value: 'Easy' | 'Medium' | 'Hard') => setDifficulty(value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                {isPrivate && (
-                  <div className="p-3 bg-orange-50/30 dark:bg-orange-900/10 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium flex items-center gap-1">
-                        <Lock className="h-4 w-4 text-orange-500" />
-                        Access Code
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="h-7"
-                          onClick={generateAccessCode}
-                        >
-                          Regenerate
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="h-7"
-                          onClick={copyAccessCode}
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          Copy
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <div className="font-mono text-lg bg-orange-100/80 dark:bg-orange-900/30 px-4 py-2 rounded text-orange-800 dark:text-orange-300 tracking-widest">
-                        {accessCode}
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center mt-2">
-                      Share this code with your friends to join your private challenge
-                    </p>
+                <div>
+                  <Label htmlFor="timeLimit">Time Limit (minutes)</Label>
+                  <div className="flex items-center mt-1">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setTimeLimit(prev => Math.max(10, prev - 10))}
+                      disabled={timeLimit <= 10}
+                    >
+                      <MinusCircle className="h-4 w-4" />
+                    </Button>
+                    <Input 
+                      id="timeLimit" 
+                      type="number" 
+                      value={timeLimit} 
+                      onChange={(e) => setTimeLimit(parseInt(e.target.value) || 60)} 
+                      className="mx-2 text-center" 
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setTimeLimit(prev => Math.min(240, prev + 10))}
+                      disabled={timeLimit >= 240}
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="problems" className="space-y-4 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium">Select Problems</h3>
-                  <Badge variant="outline">
-                    Selected: {selectedProblems.length}
-                  </Badge>
                 </div>
 
-                <ScrollArea className="h-[300px] pr-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="private">Private Challenge</Label>
+                    <p className="text-xs text-zinc-500">Limit access with an invite code</p>
+                  </div>
+                  <Switch 
+                    id="private" 
+                    checked={isPrivate} 
+                    onCheckedChange={setIsPrivate} 
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full" 
+                  onClick={handleCreateChallenge} 
+                  disabled={createChallengeMutation.isPending || title === '' || selectedProblemIds.length === 0}
+                >
+                  {createChallengeMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      Create Challenge
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Selected Problems</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedProblemIds.length === 0 ? (
+                  <div className="text-center p-4 text-zinc-500">
+                    <p>No problems selected</p>
+                    <p className="text-xs mt-1">Select problems from the list on the right</p>
+                  </div>
+                ) : (
                   <div className="space-y-2">
-                    {problems.map((problem) => (
-                      <Card
-                        key={problem.id}
-                        className={cn(
-                          "cursor-pointer transition-colors",
-                          selectedProblems.includes(problem.id)
-                            ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5"
-                            : "hover:bg-accent/5"
-                        )}
-                        onClick={() => toggleProblem(problem.id)}
-                      >
-                        <CardContent className="p-3 flex items-center justify-between">
+                    {selectedProblemIds.map(id => {
+                      const problem = problems.find(p => p.problem_id === id);
+                      return problem ? (
+                        <div 
+                          key={id} 
+                          className="flex items-center justify-between py-2 px-3 bg-zinc-800/40 rounded-md hover:bg-zinc-800/60"
+                        >
                           <div>
-                            <h4 className="font-medium">{problem.title}</h4>
-                            <div className="flex items-center gap-1 mt-1">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-xs",
-                                  problem.difficulty === "Easy"
-                                    ? "bg-green-100/50 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800/50"
-                                    : problem.difficulty === "Medium"
-                                    ? "bg-amber-100/50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800/50"
-                                    : "bg-red-100/50 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800/50"
-                                )}
-                              >
-                                {problem.difficulty}
+                            <p className="font-medium">{problem.title}</p>
+                            <div className="flex items-center mt-1">
+                              <Badge className={`mr-2 ${getDifficultyColor(problem.difficulty)}`}>
+                                {mapDifficulty(problem.difficulty)}
                               </Badge>
                             </div>
                           </div>
-                          {selectedProblems.includes(problem.id) ? (
-                            <div className="h-6 w-6 rounded-full flex items-center justify-center bg-[hsl(var(--accent-green))]">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          ) : (
-                            <div className="h-6 w-6 rounded-full flex items-center justify-center border border-dashed border-muted-foreground">
-                              <Plus className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </ScrollArea>
-
-                {selectedProblems.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-4 text-center text-muted-foreground">
-                    <AlertCircle className="h-8 w-8 mb-2 opacity-40" />
-                    <p>No problems selected</p>
-                    <p className="text-xs">Please select at least one problem</p>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => toggleProblemSelection(id)}
+                          >
+                            <MinusCircle className="h-4 w-4 text-red-400" />
+                          </Button>
+                        </div>
+                      ) : null;
+                    })}
                   </div>
                 )}
-              </TabsContent>
-
-              <TabsContent value="invite" className="space-y-4 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium">Invite Friends</h3>
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    <span>Selected: {selectedFriends.length}</span>
-                  </Badge>
+              </CardContent>
+              <CardFooter>
+                <div className="text-sm text-zinc-400 flex items-center">
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{selectedProblemIds.length} problem{selectedProblemIds.length !== 1 ? 's' : ''} selected</span>
                 </div>
+              </CardFooter>
+            </Card>
+          </div>
 
-                <div className="flex gap-3 mb-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                  </div>
-                  <Button 
-                    type="button"
-                    onClick={handleSearch} 
-                    className="accent-color"
-                    disabled={searchQuery.length < 2 || isSearching}
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Problems</CardTitle>
+                <div className="mt-2">
+                  <Input
+                    placeholder="Search problems by title or tag..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <Select 
+                    value={problemFilters.difficulty} 
+                    onValueChange={(value) => setProblemFilters(prev => ({ ...prev, difficulty: value }))}
                   >
-                    {isSearching ? 'Searching...' : 'Search'}
-                  </Button>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Difficulties</SelectItem>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Input
+                    placeholder="Filter by tag..." 
+                    value={problemFilters.tags}
+                    onChange={(e) => setProblemFilters(prev => ({ ...prev, tags: e.target.value }))}
+                    className="w-[200px]"
+                  />
                 </div>
-
-                <Tabs defaultValue="friends" className="w-full">
-                  <TabsList className="w-full grid grid-cols-2">
-                    <TabsTrigger value="friends">Friends</TabsTrigger>
-                    <TabsTrigger value="search">Search Results</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="friends" className="pt-4">
-                    <ScrollArea className="h-[200px] pr-4">
-                      {friends.length > 0 ? (
-                        <div className="space-y-2">
-                          {friends.map((friend) => (
-                            <Card 
-                              key={friend.userID} 
-                              className={cn(
-                                "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.userID === friend.userID)
-                                  ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
-                                  : "hover:bg-accent/5"
-                              )}
-                              onClick={() => toggleFriendSelection(friend)}
-                            >
-                              <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="relative mr-3">
-                                    <img 
-                                      src={friend.profileImage} 
-                                      alt={friend.firstName} 
-                                      className="w-10 h-10 rounded-full"
-                                    />
-                                    {friend.isOnline && (
-                                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-background"></span>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-sm">{friend.firstName}</h4>
-                                    <p className="text-xs text-muted-foreground">
-                                      @{friend.userName} • {friend.isOnline ? 'Online' : 'Offline'}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                {selectedFriends.some(f => f.userID === friend.userID) ? (
-                                  <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                          <User className="h-10 w-10 text-muted-foreground mb-2 opacity-40" />
-                          <p className="text-muted-foreground">No friends found</p>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </TabsContent>
-
-                  <TabsContent value="search" className="pt-4">
-                    <ScrollArea className="h-[200px] pr-4">
-                      {searchResults.length > 0 ? (
-                        <div className="space-y-2">
-                          {searchResults.map((user) => (
-                            <Card 
-                              key={user.userID} 
-                              className={cn(
-                                "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.userID === user.userID)
-                                  ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
-                                  : "hover:bg-accent/5"
-                              )}
-                              onClick={() => toggleFriendSelection(user)}
-                            >
-                              <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <img 
-                                    src={user.profileImage} 
-                                    alt={user.firstName} 
-                                    className="w-10 h-10 rounded-full mr-3"
-                                  />
-                                  <div>
-                                    <h4 className="font-medium text-sm">{user.firstName}</h4>
-                                    <p className="text-xs text-muted-foreground">@{user.userName}</p>
-                                  </div>
-                                </div>
-                                
-                                {selectedFriends.some(f => f.userID === user.userID) ? (
-                                  <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : searchQuery.length > 1 ? (
-                        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                          <AlertCircle className="h-10 w-10 text-muted-foreground mb-2 opacity-40" />
-                          <p className="text-muted-foreground">No users found</p>
-                          <p className="text-xs text-muted-foreground">Try a different search term</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                          <Search className="h-10 w-10 text-muted-foreground mb-2 opacity-40" />
-                          <p className="text-muted-foreground">Search for users</p>
-                          <p className="text-xs text-muted-foreground">Enter at least 2 characters</p>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </TabsContent>
-                </Tabs>
-
-                {selectedFriends.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium mb-2">Selected Friends ({selectedFriends.length})</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedFriends.map(friend => (
-                        <Badge 
-                          key={friend.userID}
-                          className="flex items-center gap-1 py-1 pl-1 pr-2"
+              </CardHeader>
+              <CardContent>
+                {isLoadingProblems ? (
+                  <div className="flex justify-center items-center p-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+                  </div>
+                ) : problems.length === 0 ? (
+                  <div className="text-center p-6 text-zinc-500">
+                    <p>No problems found</p>
+                    <p className="text-xs mt-1">Try adjusting your filters</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-3">
+                      {problems.map((problem) => (
+                        <div 
+                          key={problem.problem_id} 
+                          className={`flex items-start p-3 border rounded-md cursor-pointer transition-colors ${
+                            selectedProblemIds.includes(problem.problem_id) 
+                              ? 'border-green-500/50 bg-green-500/5' 
+                              : 'border-zinc-700/50 hover:border-zinc-500/50'
+                          }`}
+                          onClick={() => toggleProblemSelection(problem.problem_id)}
                         >
-                          <img 
-                            src={friend.profileImage} 
-                            alt={friend.userName}
-                            className="w-5 h-5 rounded-full"
+                          <Checkbox 
+                            checked={selectedProblemIds.includes(problem.problem_id)}
+                            className="mt-1 mr-3"
+                            onCheckedChange={() => toggleProblemSelection(problem.problem_id)}
                           />
-                          <span>{friend.firstName}</span>
-                          <X 
-                            className="h-3 w-3 ml-1 cursor-pointer opacity-70 hover:opacity-100" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFriendSelection(friend);
-                            }}
-                          />
-                        </Badge>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-white">{problem.title}</h3>
+                            <div className="flex items-center mt-2 flex-wrap gap-1">
+                              <Badge className={`mr-2 ${getDifficultyColor(problem.difficulty)}`}>
+                                {mapDifficulty(problem.difficulty)}
+                              </Badge>
+                              {problem.tags.slice(0, 3).map((tag) => (
+                                <Badge
+                                  key={tag}
+                                  variant="outline"
+                                  className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {problem.tags.length > 3 && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
+                                >
+                                  +{problem.tags.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          {selectedProblemIds.includes(problem.problem_id) && (
+                            <Badge className="ml-2 mt-1 bg-green-500/80 text-white">
+                              Selected
+                            </Badge>
+                          )}
+                        </div>
                       ))}
                     </div>
-                  </div>
+                  </ScrollArea>
                 )}
-              </TabsContent>
-            </Tabs>
-
-            <DialogFooter className="flex justify-between items-center mt-6 pt-4 border-t">
-              <div>
-                {activeTab !== "basic" && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={goToPrevTab}
-                  >
-                    Back
-                  </Button>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                >
-                  Cancel
-                </Button>
-                {activeTab !== "invite" ? (
-                  <Button
-                    type="button"
-                    className="accent-color"
-                    onClick={goToNextTab}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    className="accent-color"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? (
-                      "Creating Challenge..."
-                    ) : (
-                      <>
-                        <FileCode className="mr-2 h-4 w-4" />
-                        Create Challenge
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
