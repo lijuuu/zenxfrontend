@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
+import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
@@ -88,18 +88,34 @@ const Dashboard = () => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Global Rank"
-                  value={`#${userProfile?.ranking || 0}`}
+                  value={leaderboardData?.GlobalRank ? `#${leaderboardData.GlobalRank}` : "-"}
                   change="0"
                   icon={<Trophy className="h-4 w-4 text-amber-500" />}
                 />
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Rating"
-                  value={userProfile?.ranking || 0}
+                  value={leaderboardData?.Score || 0}
                   change="+15"
                   icon={<Award className="h-4 w-4 text-blue-400" />}
                 />
               </div>
+
+              {/* Monthly Activity View */}
+              <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-green-400" />
+                    Monthly Activity
+                  </CardTitle>
+                  <CardDescription>
+                    Coding patterns and consistency
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <MonthlyActivityHeatmap userID={userProfile?.userID} showTitle={false} />
+                </CardContent>
+              </Card>
 
               {/* 1v1 Challenges */}
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
@@ -153,8 +169,40 @@ const Dashboard = () => {
 
             {/* Right Column - Activity & Leaderboard */}
             <div className="space-y-6">
-              {/* Monthly Activity Heatmap */}
-              <MonthlyActivityHeatmap userID={userProfile?.userID}/>
+              {/* Profile Summary Card */}
+              <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-5 w-5 text-blue-400" />
+                    Your Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700">
+                      <img
+                        src={userProfile?.avatarURL || userProfile?.profileImage}
+                        alt={userProfile?.userName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{userProfile?.firstName} {userProfile?.lastName}</h3>
+                      <p className="text-zinc-400">@{userProfile?.userName}</p>
+                    </div>
+                  </div>
+                  
+                  {userProfile?.bio && (
+                    <p className="text-sm text-zinc-300 mb-4 line-clamp-3">{userProfile.bio}</p>
+                  )}
+
+                  <Link to="/profile">
+                    <Button className="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700">
+                      View Full Profile
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
 
               {/* Leaderboard Preview */}
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">

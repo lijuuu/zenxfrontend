@@ -8,7 +8,8 @@ import {
   UserPlus,
   UserMinus,
   Loader2,
-  CalendarDays
+  CalendarDays,
+  ChevronRight
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -70,8 +71,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
   };
 
   const navigate = useNavigate();
-
-  console.log(`https://flagcdn.com/24x18/${profile.country?.toLowerCase()}.png`)
 
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -170,7 +169,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID }) => {
           ) : (
             <Button
               variant={isFollowing ? "outline" : "default"}
-              className={isFollowing ? "" : "accent-color"}
+              className={isFollowing ? "" : "bg-green-500 hover:bg-green-600"}
               onClick={handleFollow}
               disabled={isLoading}
             >

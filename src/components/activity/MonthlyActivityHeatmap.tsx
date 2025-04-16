@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format, parseISO, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths, isSameMonth, addDays, subDays } from 'date-fns';
 import { Activity } from 'lucide-react';
@@ -20,16 +21,23 @@ interface MonthlyActivityHeatmapProps {
   userID?: string;
 }
 
-const useFetchMonthData = (userID: string, initialDate: Date) => {
+const useFetchMonthData = (userID = '', initialDate: Date) => {
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [activityData, setActivityData] = useState<ActivityDay[]>([]);
 
-  const currentMonth = useMonthlyActivity(userID, selectedDate.getMonth() + 1, selectedDate.getFullYear());
+  // Get fallback user ID from localStorage if needed
+  const effectiveUserID = userID || localStorage.getItem('userid') || '';
+  
+  const currentMonth = useMonthlyActivity(
+    effectiveUserID,
+    selectedDate.getMonth() + 1,
+    selectedDate.getFullYear()
+  );
 
   useEffect(() => {
     if (currentMonth.data) {
       const normalizeData = (data: any) => {
-        return data.map(day => ({
+        return data.map((day: any) => ({
           date: day.date,
           count: day.count || 0,
           isActive: day.isActive || false,
@@ -42,7 +50,14 @@ const useFetchMonthData = (userID: string, initialDate: Date) => {
 
   const setNewDate = (date: Date) => setSelectedDate(date);
 
-  return { activityData, setNewDate, selectedDate, isLoading: currentMonth.isLoading, isError: currentMonth.isError, error: currentMonth.error };
+  return { 
+    activityData, 
+    setNewDate, 
+    selectedDate, 
+    isLoading: currentMonth.isLoading, 
+    isError: currentMonth.isError, 
+    error: currentMonth.error 
+  };
 };
 
 const SkeletonGrid = ({ weeksNeeded }: { weeksNeeded: number }) => {
@@ -67,11 +82,20 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   className = "",
   showTitle = true,
   compact = false,
-  userID = "03e40494-92b1-4d3d-bcdf-a9cad80c5993"
+  userID = ""
 }) => {
   const [hoveredDay, setHoveredDay] = useState<ActivityDay | null>(null);
   const isMobile = useIsMobile();
-  const { activityData, setNewDate, selectedDate, isLoading, isError, error } = useFetchMonthData(userID, new Date());
+  
+  // Get a fallback user ID if none is provided
+  const { 
+    activityData, 
+    setNewDate, 
+    selectedDate, 
+    isLoading, 
+    isError, 
+    error 
+  } = useFetchMonthData(userID, new Date());
 
   const createDynamicGrid = () => {
     const start = startOfMonth(selectedDate);
@@ -143,7 +167,26 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
     );
   }
 
-  if (isError) return <div>Error: {error?.message}</div>;
+  if (isError) {
+    return (
+      <Card className={`bg-black border-zinc-800/50 ${className}`}>
+        {showTitle && (
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5 text-green-500" />
+              Monthly Activity
+            </CardTitle>
+          </CardHeader>
+        )}
+        <CardContent className={compact ? "p-3" : "p-4"}>
+          <div className="flex flex-col items-center justify-center p-4 text-center">
+            <p className="text-zinc-400 mb-2">Unable to load activity data</p>
+            <p className="text-sm text-zinc-500">{error?.message || "Please try again later"}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={`bg-black border-zinc-800/50 ${className}`}>
