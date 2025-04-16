@@ -351,6 +351,7 @@ export const useSubmitSolution = () => {
   });
 };
 
+// Fix: Corrected access to the status property in useSubmission
 export const useSubmission = (submissionId: string) => {
   return useQuery({
     queryKey: ['submissions', submissionId],
