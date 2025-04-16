@@ -13,7 +13,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,9 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -93,12 +90,8 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   const [activeTab, setActiveTab] = useState("basic");
   const [accessCode, setAccessCode] = useState("");
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [problemSearchQuery, setProblemSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedFriends, setSelectedFriends] = useState<FriendItem[]>([]);
   const { toast } = useToast();
   
   // Use our new hook to get problems
@@ -110,15 +103,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     problem.title.toLowerCase().includes(problemSearchQuery.toLowerCase()) ||
     problem.tags.some(tag => tag.toLowerCase().includes(problemSearchQuery.toLowerCase()))
   ) : [];
-
-  // Mock friends
-  const friends: UserProfile[] = [
-    { userID: '1', userName: 'sophiew', firstName: 'Sophie Williams', profileImage: 'https://i.pravatar.cc/300?img=9', isOnline: true },
-    { userID: '2', userName: 'tsmith', firstName: 'Taylor Smith', profileImage: 'https://i.pravatar.cc/300?img=5', isOnline: false },
-    { userID: '3', userName: 'mchen', firstName: 'Mike Chen', profileImage: 'https://i.pravatar.cc/300?img=3', isOnline: true },
-    { userID: '4', userName: 'alexj', firstName: 'Alex Johnson', profileImage: 'https://i.pravatar.cc/300?img=4', isOnline: false },
-    { userID: '5', userName: 'ewilson', firstName: 'Emma Wilson', profileImage: 'https://i.pravatar.cc/300?img=2', isOnline: true },
-  ];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -168,57 +152,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       : [...selectedProblems, problemId]);
   };
 
-  const handleSearch = async () => {
-    if (searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    
-    setIsSearching(true);
-    try {
-      const results = await searchUsers(searchQuery);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const toggleFriendSelection = (friend: FriendItem | UserProfile) => {
-    // Create a FriendItem from either a FriendItem or UserType
-    const friendItem: FriendItem = {
-      userID: friend.userID,
-      userName: friend.userName,
-      firstName: friend.firstName,
-      profileImage: friend.profileImage || '',
-      isOnline: 'isOnline' in friend ? friend.isOnline : undefined
-    };
-    
-    setSelectedFriends(prev => {
-      const isSelected = prev.some(f => f.userID === friendItem.userID);
-      return isSelected 
-        ? prev.filter(f => f.userID !== friendItem.userID)
-        : [...prev, friendItem];
-    });
-  };
-
-  const goToNextTab = () => {
-    if (activeTab === "basic") {
-      setActiveTab("problems");
-    } else if (activeTab === "problems") {
-      setActiveTab("invite");
-    }
-  };
-
-  const goToPrevTab = () => {
-    if (activeTab === "problems") {
-      setActiveTab("basic");
-    } else if (activeTab === "invite") {
-      setActiveTab("problems");
-    }
-  };
-
   const onSubmit = async (data: FormValues) => {
     // Make sure problemIds is set correctly
     data.problemIds = selectedProblems;
@@ -241,13 +174,13 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         problemIds: data.problemIds,
         isPrivate: data.isPrivate,
         timeLimit: parseInt(data.timeLimit),
-        invitedUsers: selectedFriends.map(f => f.userID),
+        invitedUsers: [],
       });
 
       toast({
         title: "Challenge created!",
         description: data.isPrivate
-          ? `Your private challenge has been created. Access code: ${accessCode}`
+          ? `Your private challenge has been created. Challenge Access Code: ${accessCode}`
           : "Your challenge has been created successfully.",
       });
 
@@ -258,7 +191,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       // Reset form
       form.reset();
       setSelectedProblems([]);
-      setSelectedFriends([]);
       setAccessCode("");
       onClose();
     } catch (error) {
@@ -289,10 +221,9 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="problems">Problems</TabsTrigger>
-                <TabsTrigger value="invite">Invite Friends</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 pt-4">
@@ -597,178 +528,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                   </div>
                 )}
               </TabsContent>
-
-              <TabsContent value="invite" className="space-y-4 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium">Invite Friends</h3>
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    <span>Selected: {selectedFriends.length}</span>
-                  </Badge>
-                </div>
-
-                <div className="flex gap-3 mb-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                  </div>
-                  <Button 
-                    type="button"
-                    onClick={handleSearch} 
-                    className="accent-color"
-                    disabled={searchQuery.length < 2 || isSearching}
-                  >
-                    {isSearching ? 'Searching...' : 'Search'}
-                  </Button>
-                </div>
-
-                <Tabs defaultValue="friends" className="w-full">
-                  <TabsList className="w-full grid grid-cols-2">
-                    <TabsTrigger value="friends">Friends</TabsTrigger>
-                    <TabsTrigger value="search">Search Results</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="friends" className="pt-4">
-                    <ScrollArea className="h-[200px] pr-4">
-                      {friends.length > 0 ? (
-                        <div className="space-y-2">
-                          {friends.map((friend) => (
-                            <Card 
-                              key={friend.userID} 
-                              className={cn(
-                                "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.userID === friend.userID)
-                                  ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
-                                  : "hover:bg-accent/5"
-                              )}
-                              onClick={() => toggleFriendSelection(friend)}
-                            >
-                              <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="relative mr-3">
-                                    <img 
-                                      src={friend.profileImage} 
-                                      alt={friend.firstName} 
-                                      className="w-10 h-10 rounded-full"
-                                    />
-                                    {friend.isOnline && (
-                                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-background"></span>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-sm">{friend.firstName}</h4>
-                                    <p className="text-xs text-muted-foreground">
-                                      @{friend.userName} • {friend.isOnline ? 'Online' : 'Offline'}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                {selectedFriends.some(f => f.userID === friend.userID) ? (
-                                  <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                          <User className="h-10 w-10 text-muted-foreground mb-2 opacity-40" />
-                          <p className="text-muted-foreground">No friends found</p>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </TabsContent>
-
-                  <TabsContent value="search" className="pt-4">
-                    <ScrollArea className="h-[200px] pr-4">
-                      {searchResults.length > 0 ? (
-                        <div className="space-y-2">
-                          {searchResults.map((user) => (
-                            <Card 
-                              key={user.userID} 
-                              className={cn(
-                                "cursor-pointer transition-colors",
-                                selectedFriends.some(f => f.userID === user.userID)
-                                  ? "border-[hsl(var(--accent-green))] bg-[hsl(var(--accent-green))]/5" 
-                                  : "hover:bg-accent/5"
-                              )}
-                              onClick={() => toggleFriendSelection(user)}
-                            >
-                              <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <img 
-                                    src={user.profileImage} 
-                                    alt={user.firstName} 
-                                    className="w-10 h-10 rounded-full mr-3"
-                                  />
-                                  <div>
-                                    <h4 className="font-medium text-sm">{user.firstName}</h4>
-                                    <p className="text-xs text-muted-foreground">@{user.userName}</p>
-                                  </div>
-                                </div>
-                                
-                                {selectedFriends.some(f => f.userID === user.userID) ? (
-                                  <CheckCircle className="h-5 w-5 text-[hsl(var(--accent-green))]" />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full border border-dashed border-muted-foreground"></div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : searchQuery.length > 1 ? (
-                        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                          <AlertCircle className="h-10 w-10 text-muted-foreground mb-2 opacity-40" />
-                          <p className="text-muted-foreground">No users found</p>
-                          <p className="text-xs text-muted-foreground">Try a different search term</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                          <Search className="h-10 w-10 text-muted-foreground mb-2 opacity-40" />
-                          <p className="text-muted-foreground">Search for users</p>
-                          <p className="text-xs text-muted-foreground">Enter at least 2 characters</p>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </TabsContent>
-                </Tabs>
-
-                {selectedFriends.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium mb-2">Selected Friends ({selectedFriends.length})</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedFriends.map(friend => (
-                        <Badge 
-                          key={friend.userID}
-                          className="flex items-center gap-1 py-1 pl-1 pr-2"
-                        >
-                          <img 
-                            src={friend.profileImage} 
-                            alt={friend.userName}
-                            className="w-5 h-5 rounded-full"
-                          />
-                          <span>{friend.firstName}</span>
-                          <X 
-                            className="h-3 w-3 ml-1 cursor-pointer opacity-70 hover:opacity-100" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFriendSelection(friend);
-                            }}
-                          />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
             </Tabs>
 
             <DialogFooter className="flex justify-between items-center mt-6 pt-4 border-t">
@@ -777,7 +536,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={goToPrevTab}
                   >
                     Back
                   </Button>
@@ -791,30 +549,20 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                 >
                   Cancel
                 </Button>
-                {activeTab !== "invite" ? (
-                  <Button
-                    type="button"
-                    className="accent-color"
-                    onClick={goToNextTab}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    className="accent-color"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? (
-                      "Creating Challenge..."
-                    ) : (
-                      <>
-                        <FileCode className="mr-2 h-4 w-4" />
-                        Create Challenge
-                      </>
-                    )}
-                  </Button>
-                )}
+                <Button
+                  type="submit"
+                  className="accent-color"
+                  disabled={isCreating}
+                >
+                  {isCreating ? (
+                    "Creating Challenge..."
+                  ) : (
+                    <>
+                      <FileCode className="mr-2 h-4 w-4" />
+                      Create Challenge
+                    </>
+                  )}
+                </Button>
               </div>
             </DialogFooter>
           </form>
