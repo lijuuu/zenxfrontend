@@ -50,7 +50,7 @@ const MinimalChallenges = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { problemStats, isLoading: statsLoading } = useProblemStats("current");
+  const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
 
   // Calculate total problems completed
   const totalProblemsDone = problemStats ? (
