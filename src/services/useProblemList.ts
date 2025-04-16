@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { getProblems } from '@/api/problemApi';
+import axios from 'axios';
+import { mockProblems } from '@/api/mockData';
 
 // Define the Problem interface based on the provided structure
 export interface Problem {
@@ -22,37 +23,60 @@ interface ProblemFilters {
   solved?: boolean;
 }
 
+const BASE_URL = "http://localhost:7000/api/v1/problems";
+
+const fetchProblems = async (filters?: ProblemFilters) => {
+  try {
+    // For production/deployed app
+    const res = await axios.get(`${BASE_URL}/metadata/list`, { params: { page: 1, page_size: 100, ...filters } });
+    const problemList = res.data.payload?.problems || [];
+    
+    if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
+    
+    const mappedProblems: Problem[] = problemList.map((item: any) => ({
+      problem_id: item.problem_id || '',
+      title: item.title || 'Untitled',
+      description: item.description || '',
+      tags: item.tags || [],
+      difficulty: item.difficulty || '',
+      testcase_run: item.testcase_run || { run: [] },
+      supported_languages: item.supported_languages || [],
+      validated: item.validated || false,
+      placeholder_maps: item.placeholder_maps || {},
+    }));
+    
+    return mappedProblems;
+  } catch (error) {
+    console.error("Error fetching problems:", error);
+    
+    // Map the mock data to match the Problem interface
+    return mockProblems.map(p => ({
+      problem_id: p.id,
+      title: p.title,
+      description: p.description,
+      tags: p.tags,
+      difficulty: p.difficulty,
+      testcase_run: { 
+        run: p.examples.map(ex => ({ 
+          input: ex.input, 
+          expected: ex.output 
+        })) 
+      },
+      supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
+      validated: true,
+      placeholder_maps: {
+        javascript: '// Write your solution here',
+        python: '# Write your solution here'
+      }
+    }));
+  }
+};
+
 export const useProblemList = (filters?: ProblemFilters) => {
   return useQuery({
     queryKey: ['problems', filters],
-    queryFn: async () => {
-      // Use the existing getProblems API function
-      const problems = await getProblems(filters);
-      
-      // Map the API response to match our Problem interface
-      return problems.map(p => ({
-        problem_id: p.id,
-        title: p.title,
-        description: p.description,
-        tags: p.tags,
-        difficulty: p.difficulty,
-        testcase_run: {
-          run: p.examples.map(example => ({
-            input: example.input,
-            expected: example.output,
-          }))
-        },
-        supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
-        validated: true,
-        placeholder_maps: {
-          javascript: '// Write your JavaScript solution here',
-          python: '# Write your Python solution here',
-          java: '// Write your Java solution here',
-          cpp: '// Write your C++ solution here',
-          go: '// Write your Go solution here',
-        }
-      })) as Problem[];
-    },
+    queryFn: () => fetchProblems(filters),
     refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
