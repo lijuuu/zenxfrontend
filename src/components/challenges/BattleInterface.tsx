@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -473,7 +474,6 @@ const BattleInterface: React.FC = () => {
                   </div>
                   
                   <div className="prose prose-invert prose-sm max-w-none">
-                    {/* FIX: Remove className from ReactMarkdown */}
                     <ReactMarkdown>
                       {currentProblem.description}
                     </ReactMarkdown>
@@ -761,4 +761,33 @@ const BattleInterface: React.FC = () => {
                       ${index === 0 ? 'bg-amber-500 text-white' : index === 1 ? 'bg-zinc-400 text-white' : index === 2 ? 'bg-amber-800 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
                       {entry.rank}
                     </div>
-                    <
+                    
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={user?.avatar} />
+                      <AvatarFallback>{user?.name.substr(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium truncate">{user?.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-zinc-400">
+                        <span>{entry.problemsCompleted} solved</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <span className="text-sm font-bold text-amber-500">{entry.totalScore}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BattleInterface;
