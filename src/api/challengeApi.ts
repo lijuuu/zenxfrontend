@@ -38,12 +38,33 @@ export interface SubmissionStatus {
   };
 }
 
+export interface ChallengeInvite {
+  challengeId: string;
+  challengeTitle: string;
+  invitedBy: string;
+  isPrivate: boolean;
+  accessCode?: string;
+}
+
 export const getChallenges = async (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; }) => {
   try {
     const response = await axiosInstance.get('/challenges/public', { params: filters });
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching challenges:', error);
+    throw error;
+  }
+};
+
+// This function can be used as getUserChallenges with a userId filter
+export const getUserChallenges = async (userId: string) => {
+  try {
+    const response = await axiosInstance.get('/challenges/public', {
+      params: { user_id: userId }
+    });
+    return response.data.payload;
+  } catch (error) {
+    console.error('Error fetching user challenges:', error);
     throw error;
   }
 };
@@ -189,13 +210,25 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
   }
 };
 
-// Add function for searching users - we'll implement this based on assumed backend
+// Mock function since API might not be implemented yet
+export const getChallengeInvites = async (): Promise<ChallengeInvite[]> => {
+  try {
+    const response = await axiosInstance.get('/challenges/invites');
+    return response.data.payload || [];
+  } catch (error) {
+    console.error('Error fetching challenge invites:', error);
+    // Return empty array to not break UI
+    return [];
+  }
+};
+
+// Add function for searching users
 export const searchUsers = async (query: string): Promise<UserProfile[]> => {
   try {
     const response = await axiosInstance.get('/users/search', {
       params: { query }
     });
-    return response.data.payload;
+    return response.data.payload || [];
   } catch (error) {
     console.error('Error searching users:', error);
     return []; // Return empty array on error to prevent UI breaks

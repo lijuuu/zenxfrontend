@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +40,6 @@ import ChallengeInterface from "@/components/challenges/ChallengeInterface";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import FriendChallengeDialog from "@/components/challenges/FriendChallengeDialog";
-// import UserSearch from "@/components/UserSearch";
 import { getChallenges, getChallenge, getChallengeInvites } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
 
@@ -58,12 +58,12 @@ const Challenges = () => {
 
   const { data: publicChallenges, isLoading: publicChallengesLoading } = useQuery({
     queryKey: ["public-challenges"],
-    queryFn: () => getChallenges({ private: false }),
+    queryFn: () => getChallenges({ isPrivate: false }),
   });
 
   const { data: privateChallenges, isLoading: privateChallengesLoading } = useQuery({
     queryKey: ["private-challenges"],
-    queryFn: () => getChallenges({ private: true }),
+    queryFn: () => getChallenges({ isPrivate: true }),
   });
 
   const { data: invites, isLoading: invitesLoading } = useQuery({
@@ -99,6 +99,24 @@ const Challenges = () => {
   const handleChallengeAFriend = () => {
     setIsFriendChallengeOpen(true);
   };
+
+  // Type guard to ensure challenges is an array
+  const activeChallengesToRender = Array.isArray(challenges) 
+    ? challenges.filter(c => c.isActive) 
+    : [];
+
+  // Type guard to ensure publicChallenges is an array
+  const activePublicChallengesToRender = Array.isArray(publicChallenges) 
+    ? publicChallenges.filter(c => c.isActive) 
+    : [];
+
+  // Type guard to ensure privateChallenges is an array
+  const activePrivateChallengesToRender = Array.isArray(privateChallenges) 
+    ? privateChallenges.filter(c => c.isActive) 
+    : [];
+
+  // Type guard to ensure invites is an array
+  const invitesToRender = Array.isArray(invites) ? invites : [];
 
   return (
     <div className="min-h-screen rounded-lg shadow-lg text-foreground pt-16 pb-8">
@@ -253,7 +271,7 @@ const Challenges = () => {
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
-                  {!challengesLoading && challenges?.filter(c => c.isActive).map((challenge) => (
+                  {!challengesLoading && activeChallengesToRender.map((challenge) => (
                     <Card
                       key={challenge.id}
                       className="cursor-pointer hover:shadow-md transition-shadow"
@@ -299,7 +317,7 @@ const Challenges = () => {
                     </Card>
                   ))}
 
-                  {(challengesLoading || !challenges?.filter(c => c.isActive).length) && (
+                  {(challengesLoading || activeChallengesToRender.length === 0) && (
                     <div className="text-center py-10">
                       <p className="text-zinc-500 dark:text-zinc-400">No active challenges</p>
                       <Button
@@ -314,7 +332,7 @@ const Challenges = () => {
                 </TabsContent>
 
                 <TabsContent value="public" className="space-y-4">
-                  {!publicChallengesLoading && publicChallenges?.filter(c => c.isActive).map((challenge) => (
+                  {!publicChallengesLoading && activePublicChallengesToRender.map((challenge) => (
                     <Card
                       key={challenge.id}
                       className="cursor-pointer hover:shadow-md transition-shadow"
@@ -361,7 +379,7 @@ const Challenges = () => {
                     </Card>
                   ))}
 
-                  {(publicChallengesLoading || !publicChallenges?.filter(c => c.isActive).length) && (
+                  {(publicChallengesLoading || activePublicChallengesToRender.length === 0) && (
                     <div className="text-center py-10">
                       <p className="text-zinc-500 dark:text-zinc-400">No public challenges found</p>
                       <Button
@@ -376,7 +394,7 @@ const Challenges = () => {
                 </TabsContent>
 
                 <TabsContent value="private" className="space-y-4">
-                  {!privateChallengesLoading && privateChallenges?.filter(c => c.isActive).map((challenge) => (
+                  {!privateChallengesLoading && activePrivateChallengesToRender.map((challenge) => (
                     <Card
                       key={challenge.id}
                       className="cursor-pointer hover:shadow-md transition-shadow border-amber-200/30 dark:border-amber-800/30"
@@ -426,7 +444,7 @@ const Challenges = () => {
                     </Card>
                   ))}
 
-                  {(privateChallengesLoading || !privateChallenges?.filter(c => c.isActive).length) && (
+                  {(privateChallengesLoading || activePrivateChallengesToRender.length === 0) && (
                     <div className="text-center py-10">
                       <p className="text-zinc-500 dark:text-zinc-400">No private challenges found</p>
                       <div className="flex items-center justify-center gap-3 mt-4">
@@ -450,7 +468,7 @@ const Challenges = () => {
                 </TabsContent>
 
                 <TabsContent value="invites" className="space-y-4">
-                  {!invitesLoading && invites?.map((invite) => (
+                  {!invitesLoading && invitesToRender.map((invite) => (
                     <Card
                       key={invite.challengeId}
                       className="hover:shadow-md transition-shadow"
@@ -501,7 +519,7 @@ const Challenges = () => {
                     </Card>
                   ))}
 
-                  {(invitesLoading || !invites?.length) && (
+                  {(invitesLoading || invitesToRender.length === 0) && (
                     <div className="text-center py-10">
                       <p className="text-zinc-500 dark:text-zinc-400">No challenge invites</p>
                       <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-2">

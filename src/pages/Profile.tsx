@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getUserChallenges } from "@/api/challengeApi";
+import { getChallenges } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
@@ -46,8 +46,9 @@ const Profile = () => {
     const loadChallenges = async () => {
       if (profile?.userID) {
         try {
-          const userChallenges = await getUserChallenges(profile.userID);
-          setChallenges(userChallenges);
+          // Use getChallenges with a user_id filter instead of getUserChallenges
+          const userChallenges = await getChallenges({ user_id: profile.userID });
+          setChallenges(userChallenges || []);
         } catch (error) {
           console.error("Failed to load user challenges:", error);
           toast({
