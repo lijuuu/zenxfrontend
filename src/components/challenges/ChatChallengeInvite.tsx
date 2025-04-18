@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, ArrowRight, Lock, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { joinChallenge, joinChallengeWithCode } from "@/api/challengeApi";
+import { joinChallenge } from "@/api/challengeApi";
 
 interface ChatChallengeInviteProps {
   challengeId: string;
@@ -27,30 +27,26 @@ const ChatChallengeInvite: React.FC<ChatChallengeInviteProps> = ({
   const handleJoinChallenge = async () => {
     setLoading(true);
     try {
-      let result;
-
-      if (isPrivate && accessCode) {
-        result = await joinChallengeWithCode(accessCode);
-        if (!result.success) {
-          toast({
-            title: "Error",
-            description: "Invalid access code or challenge not found",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-      } else {
-        result = await joinChallenge(challengeId);
-      }
-
-      toast({
-        title: "Success",
-        description: `Joined challenge: ${challengeTitle}`,
+      const result = await joinChallenge({
+        challengeId,
+        accessCode: isPrivate ? accessCode : undefined
       });
 
-      // Navigate to the challenges page with the active challenge
-      navigate(`/challenges?challenge=${challengeId}`);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Joined challenge: ${challengeTitle}`,
+        });
+
+        // Navigate to the challenges page with the active challenge
+        navigate(`/challenges?challenge=${challengeId}`);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to join challenge",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Failed to join challenge:", error);
       toast({

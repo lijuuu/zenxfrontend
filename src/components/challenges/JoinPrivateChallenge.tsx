@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { joinChallengeWithCode } from "@/api/challengeApi";
+import { joinChallenge } from "@/api/challengeApi";
 
 interface JoinPrivateChallengeProps {
   isOpen: boolean;
@@ -30,6 +30,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
   const [loading, setLoading] = useState(false);
   const [codeFound, setCodeFound] = useState(false);
   const [challengeName, setChallengeName] = useState("");
+  const [challengeId, setChallengeId] = useState("");
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,11 +38,15 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     
     setLoading(true);
     try {
-      const result = await joinChallengeWithCode(accessCode.trim());
+      const result = await joinChallenge({
+        challengeId: "", // Empty ID indicates we're just validating the code
+        accessCode: accessCode.trim()
+      });
       
       if (result.success && result.challenge) {
         setCodeFound(true);
         setChallengeName(result.challenge.title);
+        setChallengeId(result.challenge.id);
         toast({
           title: "Challenge Found",
           description: `Found challenge: ${result.challenge.title}`,
@@ -68,7 +73,10 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
   const handleJoin = async () => {
     setLoading(true);
     try {
-      const result = await joinChallengeWithCode(accessCode.trim());
+      const result = await joinChallenge({
+        challengeId: challengeId,
+        accessCode: accessCode.trim()
+      });
       
       if (result.success && result.challenge) {
         toast({
@@ -104,6 +112,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     setAccessCode("");
     setCodeFound(false);
     setChallengeName("");
+    setChallengeId("");
   };
   
   return (

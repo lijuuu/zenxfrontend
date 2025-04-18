@@ -4,14 +4,16 @@ import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
 import { Challenge } from '@/api/types';
 
-export const useChallenges = (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number }) => {
+export const useChallenges = (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; }) => {
   return useQuery({
     queryKey: ['challenges', filters],
     queryFn: () => challengeApi.getChallenges(filters),
-    onError: (error: Error) => {
-      toast.error('Failed to fetch challenges', {
-        description: error.message
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch challenges', {
+          description: error.message
+        });
+      }
     }
   });
 };
@@ -21,10 +23,12 @@ export const useChallenge = (id?: string) => {
     queryKey: ['challenge', id],
     queryFn: () => challengeApi.getChallenge(id!),
     enabled: !!id,
-    onError: (error: Error) => {
-      toast.error('Failed to fetch challenge details', {
-        description: error.message
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch challenge details', {
+          description: error.message
+        });
+      }
     }
   });
 };
@@ -114,10 +118,12 @@ export const useSubmissionStatus = (submissionId?: string) => {
       // Refetch every 2 seconds if status is pending, stop if completed or error
       return data?.status === 'pending' ? 2000 : false;
     },
-    onError: (error: Error) => {
-      toast.error('Failed to fetch submission status', {
-        description: error.message
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch submission status', {
+          description: error.message
+        });
+      }
     }
   });
 };
@@ -127,10 +133,12 @@ export const useChallengeSubmissions = (challengeId?: string) => {
     queryKey: ['challenge-submissions', challengeId],
     queryFn: () => challengeApi.getChallengeSubmissions(challengeId!),
     enabled: !!challengeId,
-    onError: (error: Error) => {
-      toast.error('Failed to fetch challenge submissions', {
-        description: error.message
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch challenge submissions', {
+          description: error.message
+        });
+      }
     }
   });
 };
@@ -140,10 +148,12 @@ export const useUserChallengeStats = (userId?: string) => {
     queryKey: ['user-challenge-stats', userId],
     queryFn: () => challengeApi.getUserChallengeStats(userId!),
     enabled: !!userId,
-    onError: (error: Error) => {
-      toast.error('Failed to fetch user stats', {
-        description: error.message
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch user stats', {
+          description: error.message
+        });
+      }
     }
   });
 };
@@ -153,11 +163,12 @@ export const useChallengeUserStats = (challengeId?: string, userId?: string) => 
     queryKey: ['challenge-user-stats', challengeId, userId],
     queryFn: () => challengeApi.getChallengeUserStats(challengeId!, userId!),
     enabled: !!challengeId && !!userId,
-    onError: (error: Error) => {
-      toast.error('Failed to fetch challenge user stats', {
-        description: error.message
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch challenge user stats', {
+          description: error.message
+        });
+      }
     }
   });
 };
-

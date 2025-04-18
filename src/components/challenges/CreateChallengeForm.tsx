@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +37,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { createChallenge } from "@/api/challengeApi";
-import { Challenge, UserProfile } from "@/api/types";
+import { Challenge } from "@/api/types";
 import { useProblemList, Problem } from "@/services/useProblemList";
 import {
   FileCode,
@@ -50,13 +51,9 @@ import {
   Users,
   Search,
   CheckCircle,
-  User,
-  ChevronsUpDown,
   AlertCircle,
   Loader2
 } from "lucide-react";
-import UserSearch from "./UserSearch";
-import { searchUsers } from "@/api/challengeApi";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -73,15 +70,6 @@ interface CreateChallengeFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (challenge: Challenge) => void;
-}
-
-// Create a simplified Friend type that doesn't need all User properties
-interface FriendItem {
-  userID: string;
-  userName: string;
-  firstName: string;
-  profileImage: string;
-  isOnline?: boolean;
 }
 
 const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
@@ -177,7 +165,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         problemIds: data.problemIds,
         isPrivate: data.isPrivate,
         timeLimit: parseInt(data.timeLimit),
-        invitedUsers: [],
+        accessCode: isPrivate ? accessCode : undefined
       });
 
       toast({

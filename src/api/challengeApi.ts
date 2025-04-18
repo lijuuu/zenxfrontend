@@ -38,7 +38,7 @@ export interface SubmissionStatus {
   };
 }
 
-export const getChallenges = async (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number }) => {
+export const getChallenges = async (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; }) => {
   try {
     const response = await axiosInstance.get('/challenges/public', { params: filters });
     return response.data.payload;
@@ -83,11 +83,11 @@ export const createChallenge = async (data: CreateChallengeOptions): Promise<Cha
   }
 };
 
-export const joinChallenge = async ({ challengeId, accessCode }: ChallengeJoinRequest): Promise<{ success: boolean; challenge: Challenge }> => {
+export const joinChallenge = async (data: ChallengeJoinRequest): Promise<{ success: boolean; challenge: Challenge }> => {
   try {
     const response = await axiosInstance.post('/challenges/join', {
-      challenge_id: challengeId,
-      access_code: accessCode
+      challenge_id: data.challengeId,
+      access_code: data.accessCode
     });
     return {
       success: true,
@@ -189,3 +189,31 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
   }
 };
 
+// Add function for searching users - we'll implement this based on assumed backend
+export const searchUsers = async (query: string): Promise<UserProfile[]> => {
+  try {
+    const response = await axiosInstance.get('/users/search', {
+      params: { query }
+    });
+    return response.data.payload;
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return []; // Return empty array on error to prevent UI breaks
+  }
+};
+
+// Utility function for accessing private challenges via code
+export const joinChallengeWithCode = async (accessCode: string): Promise<{ success: boolean; challenge: Challenge }> => {
+  try {
+    const response = await axiosInstance.post('/challenges/join', {
+      access_code: accessCode
+    });
+    return {
+      success: true,
+      challenge: response.data.payload
+    };
+  } catch (error) {
+    console.error('Error joining challenge with code:', error);
+    throw error;
+  }
+};
