@@ -124,7 +124,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
   const navigate = useNavigate();
 
   return (
-    <motion.div
+    <div
       className="p-4 overflow-y-auto h-full bg-zinc-900/70 border-r border-zinc-800 relative"
     // initial={{ opacity: 0, x: -20 }}
     // animate={{ opacity: 1, x: 0 }}
@@ -173,7 +173,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
       >
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Problems
       </Button>
-    </motion.div>
+    </div>
   );
 };
 

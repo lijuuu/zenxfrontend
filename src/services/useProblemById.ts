@@ -3,21 +3,24 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { ProblemMetadata } from '@/api/types';
 import { twoSumProblem } from '@/api/types';
+import axiosInstance from '@/utils/axiosInstance';
 
-// Helper function to map difficulty values
 const mapDifficulty = (difficulty: string): string => {
-  const lowerDifficulty = difficulty.toLowerCase();
-  if (lowerDifficulty.includes('easy')) return 'Easy';
-  if (lowerDifficulty.includes('medium')) return 'Medium';
-  if (lowerDifficulty.includes('hard')) return 'Hard';
-  return difficulty; // Return original if no match
+  switch (difficulty) {
+    case 'E': return 'Easy';
+    case 'M': return 'Medium';
+    case 'H': return 'Hard';
+    case 'easy': return 'Easy';
+    case 'medium': return 'Medium';
+    case 'hard': return 'Hard';
+    default: return difficulty;
+  }
 };
 
-const BASE_URL = "http://localhost:7000/api/v1";
 
 const fetchProblemById = async (problemId: string): Promise<ProblemMetadata> => {
   try {
-    const response = await axios.get(`${BASE_URL}/problems/metadata?problem_id=${problemId}`);
+    const response = await axiosInstance.get(`problems/metadata?problem_id=${problemId}`);
     if (!response.data) throw new Error('Failed to fetch problem');
     
     const problemData = response.data.payload || response.data;

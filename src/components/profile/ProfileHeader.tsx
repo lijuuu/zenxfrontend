@@ -282,8 +282,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             
             <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
               <Award className="h-4 w-4 text-blue-400 mb-1" />
-              <span className="text-xl font-bold">{contestsParticipated}</span>
-              <span className="text-xs text-muted-foreground">Contests</span>
+              <span className="text-xl font-bold">{contestsParticipated}</span> 
+              <span className="text-xs text-muted-foreground">Challenges</span> 
             </div>
           </div>
         </div>
