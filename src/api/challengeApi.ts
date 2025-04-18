@@ -1,4 +1,3 @@
-
 import axiosInstance from '@/utils/axiosInstance';
 import { Challenge, UserProfile } from './types';
 
@@ -46,9 +45,24 @@ export interface ChallengeInvite {
   accessCode?: string;
 }
 
-export const getChallenges = async (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; }) => {
+export const getChallenges = async (filters?: { 
+  active?: boolean; 
+  difficulty?: string; 
+  page?: number; 
+  pageSize?: number; 
+  isPrivate?: boolean;
+  userId?: string; // Added userId parameter
+}) => {
   try {
-    const response = await axiosInstance.get('/challenges/public', { params: filters });
+    const params: Record<string, any> = { ...filters };
+    
+    // Convert userId to user_id for the API
+    if (filters?.userId) {
+      params.user_id = filters.userId;
+      delete params.userId;
+    }
+    
+    const response = await axiosInstance.get('/challenges/public', { params });
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching challenges:', error);

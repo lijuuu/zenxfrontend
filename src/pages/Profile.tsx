@@ -46,8 +46,8 @@ const Profile = () => {
     const loadChallenges = async () => {
       if (profile?.userID) {
         try {
-          // Use getChallenges with a user_id filter instead of getUserChallenges
-          const userChallenges = await getChallenges({ user_id: profile.userID });
+          // Fixed parameter name from user_id to userId
+          const userChallenges = await getChallenges({ userId: profile.userID });
           setChallenges(userChallenges || []);
         } catch (error) {
           console.error("Failed to load user challenges:", error);

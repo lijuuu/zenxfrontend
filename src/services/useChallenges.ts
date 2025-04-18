@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
 import { Challenge } from '@/api/types';
 
-export const useChallenges = (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; }) => {
+export const useChallenges = (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; userId?: string; }) => {
   return useQuery({
     queryKey: ['challenges', filters],
     queryFn: () => challengeApi.getChallenges(filters),
@@ -114,9 +114,10 @@ export const useSubmissionStatus = (submissionId?: string) => {
     queryKey: ['submission-status', submissionId],
     queryFn: () => challengeApi.getSubmissionStatus(submissionId!),
     enabled: !!submissionId,
+    // Fix: Use proper access of data in refetchInterval function
     refetchInterval: (data) => {
-      // Refetch every 2 seconds if status is pending, stop if completed or error
-      return data?.status === 'pending' ? 2000 : false;
+      // Check the data.status property instead of query.status
+      return data && data.status === 'pending' ? 2000 : false;
     },
     meta: {
       onError: (error: Error) => {
