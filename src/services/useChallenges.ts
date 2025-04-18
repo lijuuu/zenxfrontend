@@ -114,10 +114,13 @@ export const useSubmissionStatus = (submissionId?: string) => {
     queryKey: ['submission-status', submissionId],
     queryFn: () => challengeApi.getSubmissionStatus(submissionId!),
     enabled: !!submissionId,
-    // Fix: Use proper access of data in refetchInterval function
+    // Fix: Directly return the refetchInterval value based on data state
     refetchInterval: (data) => {
-      // Check the data.status property instead of query.status
-      return data && data.status === 'pending' ? 2000 : false;
+      // Check if data exists and has a pending status
+      if (data && 'status' in data && data.status === 'pending') {
+        return 2000; // Refetch every 2 seconds if pending
+      }
+      return false; // Stop refetching if completed or error
     },
     meta: {
       onError: (error: Error) => {
