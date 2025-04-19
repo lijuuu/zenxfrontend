@@ -191,6 +191,10 @@ export interface Challenge {
   isPrivate?: boolean;
   participants?: number;
   participantUsers?: { avatar?: string; name?: string }[];
+  
+  // Response fields for API calls like joinChallenge
+  success?: boolean;
+  challenge?: Challenge; 
 }
 
 // Chat related types
@@ -492,4 +496,34 @@ export interface CompilerResponse {
   error?: string;
   success?: boolean;
   execution_time?: number;
+}
+
+// Adding SubmissionStatus type
+export interface SubmissionStatus {
+  submission_id: string;
+  challenge_id: string;
+  problem_id: string;
+  user_id: string;
+  status: 'pending' | 'completed' | 'failed';
+  code: string;
+  language: string;
+  result?: {
+    output?: string;
+    error?: string;
+    execution_time?: number;
+    memory_usage?: number;
+    test_cases?: {
+      passed: number;
+      failed: number;
+      total: number;
+    };
+  };
+  created_at: number;
+}
+
+// API response wrapper for challenge operations
+export interface ChallengeResponse {
+  success: boolean;
+  challenge?: Challenge;
+  message?: string;
 }

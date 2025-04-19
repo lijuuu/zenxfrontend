@@ -28,8 +28,8 @@ const ChatChallengeInvite: React.FC<ChatChallengeInviteProps> = ({
     setLoading(true);
     try {
       const result = await joinChallenge({
-        challengeId,
-        accessCode: isPrivate ? accessCode : undefined
+        challenge_id: challengeId,
+        access_code: isPrivate ? accessCode : undefined
       });
 
       if (result.success) {

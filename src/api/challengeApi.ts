@@ -1,6 +1,6 @@
 
 import axiosInstance from '@/utils/axiosInstance';
-import { Challenge, UserProfile, SubmissionStatus } from './types';
+import { Challenge, SubmissionStatus, ChallengeResponse } from './types';
 
 export interface CreateChallengeOptions {
   title: string;
@@ -84,7 +84,7 @@ export const createChallenge = async (data: CreateChallengeOptions): Promise<Cha
   }
 };
 
-export const joinChallenge = async (data: ChallengeJoinRequest): Promise<Challenge> => {
+export const joinChallenge = async (data: ChallengeJoinRequest): Promise<ChallengeResponse> => {
   try {
     const response = await axiosInstance.post('/challenges/join', {
       challenge_id: data.challenge_id,

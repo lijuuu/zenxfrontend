@@ -47,6 +47,37 @@ import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
 import { generateMockChallenges } from "@/api/mockChallengeData";
 
+// Mock creator data to use until backend provides this
+interface MockCreator {
+  id: string;
+  username: string;
+  profileImage: string;
+}
+
+// Extended challenge type for display purposes
+interface DisplayChallenge extends Challenge {
+  createdBy: MockCreator;
+  problemCount: number;
+}
+
+const mockCreators: MockCreator[] = [
+  { id: "user1", username: "JohnDoe", profileImage: "https://i.pravatar.cc/150?img=1" },
+  { id: "user2", username: "JaneSmith", profileImage: "https://i.pravatar.cc/150?img=2" },
+  { id: "user3", username: "RobertJohnson", profileImage: "https://i.pravatar.cc/150?img=3" },
+  { id: "user4", username: "SarahWilliams", profileImage: "https://i.pravatar.cc/150?img=4" },
+];
+
+// Helper function to enrich challenge data with mock data for display
+const enrichChallengeWithMockData = (challenge: Challenge): DisplayChallenge => {
+  const creatorIndex = Math.floor(Math.random() * mockCreators.length);
+  return {
+    ...challenge,
+    createdBy: mockCreators[creatorIndex],
+    problemCount: challenge.problem_ids?.length || 0,
+    // Add any other display properties needed
+  };
+};
+
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
@@ -68,17 +99,17 @@ const MinimalChallenges = () => {
 
   const { data: activeChallenges, isLoading: activeChallengesLoading, refetch: refetchChallenges } = useQuery({
     queryKey: ["active-challenges"],
-    queryFn: () => Promise.resolve(mockActiveChallenges),
+    queryFn: () => Promise.resolve(mockActiveChallenges.map(enrichChallengeWithMockData)),
   });
 
   const { data: publicChallenges, isLoading: publicChallengesLoading } = useQuery({
     queryKey: ["public-challenges-history"],
-    queryFn: () => Promise.resolve(mockPublicChallenges),
+    queryFn: () => Promise.resolve(mockPublicChallenges.map(enrichChallengeWithMockData)),
   });
 
   const { data: privateChallenges, isLoading: privateChallengesLoading } = useQuery({
     queryKey: ["private-challenges-history"],
-    queryFn: () => Promise.resolve(mockPrivateChallenges),
+    queryFn: () => Promise.resolve(mockPrivateChallenges.map(enrichChallengeWithMockData)),
   });
 
   const loadChallenge = async (id: string) => {
@@ -190,7 +221,7 @@ const MinimalChallenges = () => {
             <ChallengeInterface
               challenge={activeChallenge}
               isPrivate={activeChallenge?.isPrivate}
-              accessCode={activeChallenge?.accessCode}
+              accessCode={activeChallenge?.access_code}
             />
           </div>
         </main>

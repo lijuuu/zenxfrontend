@@ -122,7 +122,7 @@ export const useSubmissionStatus = (submissionId?: string) => {
     queryFn: () => challengeApi.getSubmissionStatus(submissionId!),
     enabled: !!submissionId,
     refetchInterval: (data) => {
-      if (data?.status === 'pending') {
+      if (data && data.status === 'pending') {
         return 2000; // Refetch every 2 seconds if pending
       }
       return false; // Stop refetching if completed or error

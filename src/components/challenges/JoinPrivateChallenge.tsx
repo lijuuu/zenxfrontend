@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { joinChallenge } from "@/api/challengeApi";
+import { ChallengeResponse } from "@/api/types";
 
 interface JoinPrivateChallengeProps {
   isOpen: boolean;
@@ -39,8 +40,8 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     setLoading(true);
     try {
       const result = await joinChallenge({
-        challengeId: "", // Empty ID indicates we're just validating the code
-        accessCode: accessCode.trim()
+        challenge_id: "", // Empty ID indicates we're just validating the code
+        access_code: accessCode.trim()
       });
       
       if (result.success && result.challenge) {
@@ -74,8 +75,8 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     setLoading(true);
     try {
       const result = await joinChallenge({
-        challengeId: challengeId,
-        accessCode: accessCode.trim()
+        challenge_id: challengeId,
+        access_code: accessCode.trim()
       });
       
       if (result.success && result.challenge) {
