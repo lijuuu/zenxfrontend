@@ -498,7 +498,7 @@ export interface CompilerResponse {
   execution_time?: number;
 }
 
-// Adding SubmissionStatus type
+// Adding SubmissionStatus type - ensuring it's properly exported
 export interface SubmissionStatus {
   submission_id: string;
   challenge_id: string;
