@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -6,30 +5,17 @@ import {
   Eye, 
   EyeOff, 
   Clock, 
-  Award, 
   Send, 
-  MessageSquare, 
-  ArrowRight,
-  UserCheck,
-  Zap,
-  Check,
-  X,
-  Lock,
-  Share2,
-  Users,
-  User,
-  Copy,
-  BarChart3,
   UserX,
-  LucideProps,
-  AlertTriangle,
-  ChevronDown,
-  ChevronRight,
-  Code,
-  Trophy,
+  Lock,
+  Copy,
+  ListChecks,
   CheckCircle,
   FileOutput,
-  ListChecks
+  Code,
+  Trophy,
+  BarChart3,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,26 +35,23 @@ import {
   TabsTrigger
 } from '@/components/ui/tabs';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { cn } from '@/lib/utils';
 import { Challenge } from '@/api/types';
 import { toast } from 'sonner';
+import { 
+  useChallenge, 
+  useStartChallenge, 
+  useEndChallenge, 
+  useSubmitSolution,
+  useChallengeSubmissions,
+  useChallengeUserStats
+} from '@/services/useChallenges';
+import { useOwner } from '@/hooks/useOwner';
 
 interface ChallengeInterfaceProps {
   challenge?: Challenge;
@@ -78,15 +61,24 @@ interface ChallengeInterfaceProps {
 
 const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPrivate = false, accessCode }) => {
   const { toast } = useToast();
+  const { ownerUserID } = useOwner();
   const [timeRemaining, setTimeRemaining] = useState('30:00');
-  const [opponentProgress, setOpponentProgress] = useState(0);
-  const [myProgress, setMyProgress] = useState(0);
   const [showOpponentCode, setShowOpponentCode] = useState(false);
   const [exitWarningOpen, setExitWarningOpen] = useState(false);
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+
+  const { data: challengeData } = useChallenge(challenge?.id);
+  const { data: submissions } = useChallengeSubmissions(challenge?.id);
+  const { data: userStats } = useChallengeUserStats(challenge?.id, ownerUserID);
   
-  // Simulate time decreasing
+  const startChallengeMutation = useStartChallenge();
+  const endChallengeMutation = useEndChallenge();
+  const submitSolutionMutation = useSubmitSolution();
+
+  // Timer effect
   useEffect(() => {
+    if (!challengeData?.time_limit) return;
+
     const interval = setInterval(() => {
       const [minutes, seconds] = timeRemaining.split(':').map(Number);
       let newMinutes = minutes;
@@ -99,36 +91,15 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
       
       if (newMinutes < 0) {
         clearInterval(interval);
-        toast({
-          title: "Challenge completed",
-          description: "Time's up! Your results are being calculated...",
-        });
+        endChallengeMutation.mutate(challengeData.id);
         return;
       }
       
       setTimeRemaining(`${newMinutes.toString().padStart(2, '0')}:${newSeconds.toString().padStart(2, '0')}`);
     }, 1000);
     
-    // Simulate opponent progress
-    const progressInterval = setInterval(() => {
-      setOpponentProgress(prev => {
-        const increase = Math.random() * 5;
-        const newValue = prev + increase;
-        return newValue > 100 ? 100 : newValue;
-      });
-      
-      setMyProgress(prev => {
-        const increase = Math.random() * 3;
-        const newValue = prev + increase;
-        return newValue > 100 ? 100 : newValue;
-      });
-    }, 3000);
-    
-    return () => {
-      clearInterval(interval);
-      clearInterval(progressInterval);
-    };
-  }, [toast, timeRemaining]);
+    return () => clearInterval(interval);
+  }, [timeRemaining, challengeData?.time_limit, endChallengeMutation]);
   
   const copyAccessCode = () => {
     if (accessCode) {
@@ -145,39 +116,24 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
   };
   
   const confirmForfeit = () => {
-    toast({
-      title: "Challenge forfeited",
-      description: "You have exited the challenge. This will not be counted in your stats.",
-      variant: "destructive"
-    });
+    if (challengeData?.id) {
+      endChallengeMutation.mutate(challengeData.id);
+    }
     setExitWarningOpen(false);
-    // In a real app, this would navigate away from the challenge
   };
   
   const cancelForfeit = () => {
     setExitWarningOpen(false);
   };
-  
-  // Mock problems in the challenge
-  const problems = [
-    { id: 'p1', title: 'Two Sum', difficulty: 'Easy', completed: true },
-    { id: 'p2', title: 'Valid Parentheses', difficulty: 'Easy', completed: false },
-    { id: 'p3', title: 'Merge Two Sorted Lists', difficulty: 'Medium', completed: false },
-    { id: 'p4', title: 'LRU Cache', difficulty: 'Hard', completed: false },
-  ];
-  
+
+  const problems = challengeData?.problem_ids?.map((id, index) => ({
+    id,
+    title: `Problem ${index + 1}`,
+    difficulty: challengeData.difficulty,
+    completed: submissions?.some(s => s.problem_id === id && s.status === 'completed') || false
+  })) || [];
+
   const currentProblem = problems[currentProblemIndex];
-  
-  // Mock participants
-  const participants = [
-    { id: '1', name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=1', progress: 75, completed: 2, status: 'active' },
-    { id: '2', name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=2', progress: 50, completed: 1, status: 'active' },
-    { id: '3', name: 'Bob Johnson', avatar: 'https://i.pravatar.cc/150?img=3', progress: 25, completed: 0, status: 'active' },
-    { id: '4', name: 'Alice Brown', avatar: 'https://i.pravatar.cc/150?img=4', progress: 0, completed: 0, status: 'exited' },
-  ];
-  
-  // Mock leaderboard
-  const leaderboard = participants.sort((a, b) => b.progress - a.progress);
   
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
@@ -191,7 +147,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
         return <Badge variant="outline">{difficulty}</Badge>;
     }
   };
-  
+
   return (
     <div className="h-full flex flex-col">
       {/* Top bar with challenge info and actions */}
@@ -408,9 +364,9 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
                     <div>
                       <div className="flex justify-between mb-1">
                         <span className="text-sm">Overall</span>
-                        <span className="text-sm font-medium">{Math.round(myProgress)}%</span>
+                        <span className="text-sm font-medium">{Math.round(50)}%</span>
                       </div>
-                      <Progress value={myProgress} className="h-2" />
+                      <Progress value={50} className="h-2" />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
@@ -441,7 +397,13 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
                 </CardHeader>
                 <CardContent className="py-0 px-4 pb-3">
                   <div className="space-y-3">
-                    {participants.map((participant) => (
+                    {/* Mock participants */}
+                    {[
+                      { id: '1', name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=1', progress: 75, completed: 2, status: 'active' },
+                      { id: '2', name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=2', progress: 50, completed: 1, status: 'active' },
+                      { id: '3', name: 'Bob Johnson', avatar: 'https://i.pravatar.cc/150?img=3', progress: 25, completed: 0, status: 'active' },
+                      { id: '4', name: 'Alice Brown', avatar: 'https://i.pravatar.cc/150?img=4', progress: 0, completed: 0, status: 'exited' },
+                    ].map((participant) => (
                       <div key={participant.id} className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={participant.avatar} alt={participant.name} />
@@ -535,7 +497,13 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
                 </CardHeader>
                 <CardContent className="py-0 px-4 pb-3">
                   <div className="space-y-3">
-                    {leaderboard.map((participant, index) => (
+                    {/* Mock leaderboard */}
+                    {[
+                      { id: '1', name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=1', progress: 75, completed: 2, status: 'active' },
+                      { id: '2', name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=2', progress: 50, completed: 1, status: 'active' },
+                      { id: '3', name: 'Bob Johnson', avatar: 'https://i.pravatar.cc/150?img=3', progress: 25, completed: 0, status: 'active' },
+                      { id: '4', name: 'Alice Brown', avatar: 'https://i.pravatar.cc/150?img=4', progress: 0, completed: 0, status: 'exited' },
+                    ].sort((a, b) => b.progress - a.progress).map((participant, index) => (
                       <div 
                         key={participant.id} 
                         className={cn(
@@ -587,7 +555,13 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
                 </CardHeader>
                 <CardContent className="py-0 px-4 pb-3">
                   <div className="space-y-3">
-                    {problems.map((problem, index) => (
+                    {/* Mock problems */}
+                    {[
+                      { id: 'p1', title: 'Two Sum', difficulty: 'Easy', completed: true },
+                      { id: 'p2', title: 'Valid Parentheses', difficulty: 'Easy', completed: false },
+                      { id: 'p3', title: 'Merge Two Sorted Lists', difficulty: 'Medium', completed: false },
+                      { id: 'p4', title: 'LRU Cache', difficulty: 'Hard', completed: false },
+                    ].map((problem, index) => (
                       <div key={problem.id} className="border border-border/50 rounded-md p-3">
                         <div className="flex justify-between items-center">
                           <span className="font-medium">{problem.title}</span>

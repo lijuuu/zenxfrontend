@@ -1,84 +1,50 @@
+
 import axiosInstance from '@/utils/axiosInstance';
-import { Challenge, UserProfile } from './types';
+import { Challenge, UserProfile, SubmissionStatus } from './types';
 
 export interface CreateChallengeOptions {
   title: string;
   difficulty: string;
-  problemIds: string[];
-  isPrivate: boolean;
-  timeLimit?: number; // in seconds
-  accessCode?: string;
-  startAt?: Date;
+  problem_ids: string[];
+  is_private: boolean;
+  time_limit?: number;
+  access_code?: string;
+  start_at?: Date;
 }
 
 export interface ChallengeJoinRequest {
-  challengeId: string;
-  accessCode?: string;
+  challenge_id: string;
+  access_code?: string;
 }
 
 export interface ChallengeSubmission {
-  challengeId: string;
-  problemId: string;
+  challenge_id: string;
+  problem_id: string;
   code: string;
   language: string;
 }
 
-export interface SubmissionStatus {
-  status: 'pending' | 'completed' | 'error';
-  result?: {
-    success: boolean;
-    message: string;
-    testCases?: Array<{
-      passed: boolean;
-      input: string;
-      expectedOutput: string;
-      actualOutput: string;
-    }>;
-  };
-}
-
-export interface ChallengeInvite {
-  challengeId: string;
-  challengeTitle: string;
-  invitedBy: string;
-  isPrivate: boolean;
-  accessCode?: string;
-}
-
-export const getChallenges = async (filters?: { 
-  active?: boolean; 
-  difficulty?: string; 
-  page?: number; 
-  pageSize?: number; 
+export const getChallenges = async (filters?: {
+  active?: boolean;
+  difficulty?: string;
+  page?: number;
+  pageSize?: number;
   isPrivate?: boolean;
-  userId?: string; // Added userId parameter
+  userId?: string;
 }) => {
   try {
-    const params: Record<string, any> = { ...filters };
-    
-    // Convert userId to user_id for the API
-    if (filters?.userId) {
-      params.userid = filters.userId;
-      delete params.userId;
-    }
-    
+    const params: Record<string, any> = {};
+    if (filters?.active !== undefined) params.is_active = filters.active;
+    if (filters?.difficulty) params.difficulty = filters.difficulty;
+    if (filters?.page) params.page = filters.page;
+    if (filters?.pageSize) params.page_size = filters.pageSize;
+    if (filters?.isPrivate !== undefined) params.is_private = filters.isPrivate;
+    if (filters?.userId) params.userid = filters.userId;
+
     const response = await axiosInstance.get('/challenges/public', { params });
     return response.data.payload.challenges;
   } catch (error) {
     console.error('Error fetching challenges:', error);
-    throw error;
-  }
-};
-
-// This function can be used as getUserChallenges with a userId filter
-export const getUserChallenges = async (userId: string) => {
-  try {
-    const response = await axiosInstance.get('/challenges/public', {
-      params: { user_id: userId }
-    });
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error fetching user challenges:', error);
     throw error;
   }
 };
@@ -100,12 +66,12 @@ export const createChallenge = async (data: CreateChallengeOptions): Promise<Cha
     const payload = {
       title: data.title,
       difficulty: data.difficulty,
-      problem_ids: data.problemIds,
-      is_private: data.isPrivate,
-      time_limit: data.timeLimit || 3600, // Default 1 hour
-      access_code: data.accessCode,
-      start_at: data.startAt ? {
-        seconds: Math.floor(data.startAt.getTime() / 1000),
+      problem_ids: data.problem_ids,
+      is_private: data.is_private,
+      time_limit: data.time_limit || 3600,
+      access_code: data.access_code,
+      start_at: data.start_at ? {
+        seconds: Math.floor(data.start_at.getTime() / 1000),
         nanos: 0
       } : undefined
     };
@@ -118,16 +84,13 @@ export const createChallenge = async (data: CreateChallengeOptions): Promise<Cha
   }
 };
 
-export const joinChallenge = async (data: ChallengeJoinRequest): Promise<{ success: boolean; challenge: Challenge }> => {
+export const joinChallenge = async (data: ChallengeJoinRequest): Promise<Challenge> => {
   try {
     const response = await axiosInstance.post('/challenges/join', {
-      challenge_id: data.challengeId,
-      access_code: data.accessCode
+      challenge_id: data.challenge_id,
+      access_code: data.access_code
     });
-    return {
-      success: true,
-      challenge: response.data.payload
-    };
+    return response.data.payload;
   } catch (error) {
     console.error('Error joining challenge:', error);
     throw error;
@@ -161,8 +124,8 @@ export const endChallenge = async (challengeId: string) => {
 export const submitSolution = async (submission: ChallengeSubmission) => {
   try {
     const response = await axiosInstance.post('/challenges/submit', {
-      challenge_id: submission.challengeId,
-      problem_id: submission.problemId,
+      challenge_id: submission.challenge_id,
+      problem_id: submission.problem_id,
       code: submission.code,
       language: submission.language
     });
@@ -224,43 +187,12 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
   }
 };
 
-// Mock function since API might not be implemented yet
-export const getChallengeInvites = async (): Promise<ChallengeInvite[]> => {
+export const getChallengeInvites = async () => {
   try {
     const response = await axiosInstance.get('/challenges/invites');
-    return response.data.payload || [];
+    return response.data.payload;
   } catch (error) {
     console.error('Error fetching challenge invites:', error);
-    // Return empty array to not break UI
     return [];
-  }
-};
-
-// Add function for searching users
-export const searchUsers = async (query: string): Promise<UserProfile[]> => {
-  try {
-    const response = await axiosInstance.get('/users/search', {
-      params: { query }
-    });
-    return response.data.payload || [];
-  } catch (error) {
-    console.error('Error searching users:', error);
-    return []; // Return empty array on error to prevent UI breaks
-  }
-};
-
-// Utility function for accessing private challenges via code
-export const joinChallengeWithCode = async (accessCode: string): Promise<{ success: boolean; challenge: Challenge }> => {
-  try {
-    const response = await axiosInstance.post('/challenges/join', {
-      access_code: accessCode
-    });
-    return {
-      success: true,
-      challenge: response.data.payload
-    };
-  } catch (error) {
-    console.error('Error joining challenge with code:', error);
-    throw error;
   }
 };

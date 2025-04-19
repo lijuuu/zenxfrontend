@@ -2,9 +2,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
-import { Challenge } from '@/api/types';
+import { Challenge, SubmissionStatus } from '@/api/types';
 
-export const useChallenges = (filters?: { active?: boolean; difficulty?: string; page?: number; pageSize?: number; isPrivate?: boolean; userId?: string; }) => {
+export const useChallenges = (filters?: { 
+  active?: boolean; 
+  difficulty?: string; 
+  page?: number; 
+  pageSize?: number; 
+  isPrivate?: boolean; 
+  userId?: string; 
+}) => {
   return useQuery({
     queryKey: ['challenges', filters],
     queryFn: () => challengeApi.getChallenges(filters),
@@ -38,7 +45,7 @@ export const useCreateChallenge = () => {
   
   return useMutation({
     mutationFn: challengeApi.createChallenge,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
       toast.success('Challenge created successfully');
     },
@@ -55,7 +62,7 @@ export const useJoinChallenge = () => {
   
   return useMutation({
     mutationFn: challengeApi.joinChallenge,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
       toast.success('Successfully joined the challenge');
     },
@@ -114,10 +121,8 @@ export const useSubmissionStatus = (submissionId?: string) => {
     queryKey: ['submission-status', submissionId],
     queryFn: () => challengeApi.getSubmissionStatus(submissionId!),
     enabled: !!submissionId,
-    // Fix: Directly return the refetchInterval value based on data state
     refetchInterval: (data) => {
-      // Check if data exists and has a pending status
-      if (data && 'status' in data && data.status === 'pending') {
+      if (data?.status === 'pending') {
         return 2000; // Refetch every 2 seconds if pending
       }
       return false; // Stop refetching if completed or error
