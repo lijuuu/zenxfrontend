@@ -40,7 +40,17 @@ export const getChallenges = async (filters?: {
     if (filters?.isPrivate !== undefined) params.is_private = filters.isPrivate;
     if (filters?.userId) params.userid = filters.userId;
 
-    const response = await axiosInstance.get('/challenges/public', { params });
+    const response = await axiosInstance.get('/challenges/public', { 
+      params,
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
+    
+    if (!response.data?.payload?.challenges) {
+      return [];
+    }
+    
     return response.data.payload.challenges;
   } catch (error) {
     console.error('Error fetching challenges:', error);
@@ -51,7 +61,10 @@ export const getChallenges = async (filters?: {
 export const getChallenge = async (id: string): Promise<Challenge> => {
   try {
     const response = await axiosInstance.get('/challenges', {
-      params: { id }
+      params: { id },
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -75,7 +88,11 @@ export const createChallenge = async (data: CreateChallengeOptions): Promise<Cha
       } : undefined
     };
 
-    const response = await axiosInstance.post('/challenges', payload);
+    const response = await axiosInstance.post('/challenges', payload, {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
     return response.data.payload;
   } catch (error) {
     console.error('Error creating challenge:', error);
@@ -88,6 +105,10 @@ export const joinChallenge = async (data: ChallengeJoinRequest): Promise<Challen
     const response = await axiosInstance.post('/challenges/join', {
       challenge_id: data.challenge_id,
       access_code: data.access_code
+    }, {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -100,6 +121,10 @@ export const startChallenge = async (challengeId: string) => {
   try {
     const response = await axiosInstance.post('/challenges/start', {
       challenge_id: challengeId
+    }, {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -112,6 +137,10 @@ export const endChallenge = async (challengeId: string) => {
   try {
     const response = await axiosInstance.post('/challenges/end', {
       challenge_id: challengeId
+    }, {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -127,6 +156,10 @@ export const submitSolution = async (submission: ChallengeSubmission) => {
       problem_id: submission.problem_id,
       code: submission.code,
       language: submission.language
+    }, {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -138,8 +171,16 @@ export const submitSolution = async (submission: ChallengeSubmission) => {
 export const getSubmissionStatus = async (submissionId: string): Promise<SubmissionStatus> => {
   try {
     const response = await axiosInstance.get('/challenges/submissions/status', {
-      params: { submission_id: submissionId }
+      params: { submission_id: submissionId },
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
+    
+    if (!response.data?.payload) {
+      throw new Error('No submission data received');
+    }
+    
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching submission status:', error);
@@ -150,7 +191,10 @@ export const getSubmissionStatus = async (submissionId: string): Promise<Submiss
 export const getChallengeSubmissions = async (challengeId: string) => {
   try {
     const response = await axiosInstance.get('/challenges/submissions', {
-      params: { challenge_id: challengeId }
+      params: { challenge_id: challengeId },
+       headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -162,7 +206,10 @@ export const getChallengeSubmissions = async (challengeId: string) => {
 export const getUserChallengeStats = async (userId: string) => {
   try {
     const response = await axiosInstance.get('/challenges/stats/user', {
-      params: { user_id: userId }
+      params: { user_id: userId },
+       headers: {
+        'X-Requires-Auth': 'true'
+      }
     });
     return response.data.payload;
   } catch (error) {
@@ -177,6 +224,9 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
       params: {
         challenge_id: challengeId,
         user_id: userId
+      },
+       headers: {
+        'X-Requires-Auth': 'true'
       }
     });
     return response.data.payload;
@@ -188,7 +238,11 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
 
 export const getChallengeInvites = async () => {
   try {
-    const response = await axiosInstance.get('/challenges/invites');
+    const response = await axiosInstance.get('/challenges/invites', {
+       headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching challenge invites:', error);
@@ -207,7 +261,12 @@ export const searchUsers = async (query: string, pageToken?: string, limit: numb
       params.page_token = pageToken;
     }
 
-    const response = await axiosInstance.get('/users/search', { params });
+    const response = await axiosInstance.get('/users/search', { 
+      params,
+       headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
     return response.data.payload.users || [];
   } catch (error) {
     console.error('Error searching users:', error);
