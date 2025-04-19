@@ -11,7 +11,7 @@ export const getFriends = async (): Promise<Friend[]> => {
       ...friend,
       status: friend.status as "online" | "offline" | "in-match" | "coding"
     }));
-    
+
     setTimeout(() => resolve(typedFriends), 500);
   });
 };
@@ -19,13 +19,13 @@ export const getFriends = async (): Promise<Friend[]> => {
 export const getOnlineFriends = async (): Promise<Friend[]> => {
   return new Promise(resolve => {
     const onlineFriends = mockFriends.filter(f => f.status === "online");
-    
+
     // Ensure friends have properly typed status
     const typedFriends = onlineFriends.map(friend => ({
       ...friend,
       status: friend.status as "online" | "offline" | "in-match" | "coding"
     }));
-    
+
     setTimeout(() => resolve(typedFriends), 500);
   });
 };
@@ -37,7 +37,7 @@ export const getRecentlyActiveFriends = async (): Promise<Friend[]> => {
       ...friend,
       status: friend.status as "online" | "offline" | "in-match" | "coding"
     }));
-    
+
     setTimeout(() => resolve(typedFriends), 500);
   });
 };
@@ -50,28 +50,44 @@ export const setUpTwoFactorAuth = async (): Promise<{ qrCode: string }> => {
 };
 
 
-export const getUserProfile = async (userID?: string): Promise<UserProfile> => {
+export const getUserProfile = async ({
+  userID,
+  username,
+}: {
+  userID?: string
+  username?: string
+} = {}): Promise<UserProfile> => {
   try {
-    const url = userID ? `/users/public/profile/${userID}` : `/users/profile`;
-    const requiresAuth = !userID; // If userID is provided, it's a public profile and doesn't require auth
-    
+    let url = '/users/profile'
+    const params: Record<string, string> = {}
+    let requiresAuth = true
+
+    if (userID || username) {
+      url = '/users/public/profile'
+      requiresAuth = false
+      if (username) params.username = username
+      if (userID) params.userid = userID
+    }
+
     const res = await axiosInstance.get(url, {
+      params,
       headers: {
         'X-Requires-Auth': requiresAuth ? 'true' : 'false',
       },
-    });
+    })
 
-    // Store current user ID in localStorage for later use if it's the authenticated user's profile
-    if (!userID && res.data.payload.userProfile?.userID) {
-      localStorage.setItem("userid", res.data.payload.userProfile.userID);
+    if (requiresAuth && res.data.payload.userProfile?.userID) {
+      localStorage.setItem('userid', res.data.payload.userProfile.userID)
     }
 
-    return res.data.payload.userProfile;
+    return res.data.payload.userProfile
   } catch (error) {
-    console.error("Error fetching user profile:", error);
-    throw new Error("Failed to fetch user profile");
+    console.error('Error fetching user profile:', error)
+    throw new Error('Failed to fetch user profile')
   }
-};
+}
+
+
 
 
 export const updateUserProfile = async (
@@ -79,7 +95,7 @@ export const updateUserProfile = async (
 ): Promise<UserProfile> => {
   const res = await axiosInstance.put(`/users/profile/update`, profileData, {
     headers: {
-      'X-Requires-Auth': 'true', 
+      'X-Requires-Auth': 'true',
     },
   });
   return res.data;
@@ -98,11 +114,11 @@ export const searchUsers = async (
   limit: number = 10
 ): Promise<SearchUsersResponse> => {
   let url = `/users/search?query=${encodeURIComponent(query)}&limit=${limit}`;
-  
+
   if (pageToken) {
     url += `&pageToken=${encodeURIComponent(pageToken)}`;
   }
-  
+
   const res = await axiosInstance.get(url, {
     headers: {
       'X-Requires-Auth': 'true',

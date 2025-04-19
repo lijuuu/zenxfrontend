@@ -35,9 +35,10 @@ interface ProfileHeaderProps {
   profile: UserProfile;
   userID?: string;
   showStats?: boolean;
+  isOwner?:boolean
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true,isOwner=false }) => {
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -206,7 +207,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
               alt={profile.country}
               className="h-5 rounded"
             />
-            <p>{profile.country}</p>
+            <p>{profile.country.toUpperCase()}</p>
            </>
           )}
         </div>

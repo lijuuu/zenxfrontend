@@ -180,28 +180,17 @@ export interface Comment {
 export interface Challenge {
   id: string;
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  createdBy: {
-    id: string;
-    username: string;
-    profileImage?: string;
-  };
-  participants: number;
-  participantUsers?: {
-    id?: string;
-    avatar?: string;
-    name?: string;
-  }[];
-  problemCount: number;
-  createdAt: string;
-  isActive: boolean;
-  problems?: string[];
-  description?: string;
-  date?: string;
-  type?: string;
+  creator_id?: string;
+  difficulty: string;
+  access_code?: string;
+  problem_ids?: string[];
+  time_limit?: number;
+  created_at: number;
+  participant_ids?: string[];
+  status?: string;
   isPrivate?: boolean;
-  accessCode?: string;
-  timeLimit?: number;
+  participants?: number;
+  participantUsers?: { avatar?: string; name?: string }[];
 }
 
 // Chat related types

@@ -82,7 +82,7 @@ const Leaderboard = () => {
         </div>
       </TableCell>
       <TableCell>
-        <Link to={`/profile/${user.UserId}`} className="flex items-center group">
+        <Link to={`/profile/${user.UserName}`} className="flex items-center group">
           <div className="h-10 w-10 rounded-full overflow-hidden border border-zinc-700">
             <img src={user.AvatarURL} alt={user.UserName} className="h-full w-full object-cover" />
           </div>

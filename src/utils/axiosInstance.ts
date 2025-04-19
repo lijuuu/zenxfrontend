@@ -70,9 +70,10 @@ const refreshAccessToken = async () => {
   catch (error) {
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
+    localStorage.removeItem("userid")
     throw error;
   }
-};
+}
 
 //response interceptor
 axiosInstance.interceptors.response.use(

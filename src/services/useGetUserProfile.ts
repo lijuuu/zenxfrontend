@@ -1,14 +1,20 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { getUserProfile } from '@/api/userApi';
 
-export const useGetUserProfile = (userID?: string) => {
+type Props = {
+  userID?: string;
+  username?: string;
+};
+
+export const useGetUserProfile = ({ userID, username }: Props = {}) => {
+  const queryKey = ['userProfile', userID || username];
+
   return useQuery({
-    queryKey: ['userProfile', userID],
-    queryFn: () => getUserProfile(userID),
+    queryKey,
+    queryFn: () => getUserProfile({ userID, username }),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
     retry: 1,
-    enabled: true, // Always run the query (will fetch current user if no userID provided)
+    enabled: true,
   });
 };

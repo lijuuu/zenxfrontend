@@ -58,12 +58,12 @@ export const getChallenges = async (filters?: {
     
     // Convert userId to user_id for the API
     if (filters?.userId) {
-      params.user_id = filters.userId;
+      params.userid = filters.userId;
       delete params.userId;
     }
     
     const response = await axiosInstance.get('/challenges/public', { params });
-    return response.data.payload;
+    return response.data.payload.challenges;
   } catch (error) {
     console.error('Error fetching challenges:', error);
     throw error;

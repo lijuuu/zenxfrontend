@@ -53,7 +53,8 @@ const AppContent = () => {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/problems" element={<Problems />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/profile/:username" element={<Profile />} />
+        <Route path="/profile/:userid" element={<Profile />} />
         <Route path="/challenges" element={<MinimalChallenge />} />
         <Route path="/challenges2" element={<Challenges />} />
         <Route path="/quick-match" element={<QuickMatch />} />
