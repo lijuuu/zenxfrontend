@@ -1,6 +1,5 @@
-
 import axiosInstance from '@/utils/axiosInstance';
-import { Challenge, SubmissionStatus, ChallengeResponse } from './types';
+import { Challenge, SubmissionStatus, ChallengeResponse, UserProfile } from './types';
 
 export interface CreateChallengeOptions {
   title: string;
@@ -193,6 +192,25 @@ export const getChallengeInvites = async () => {
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching challenge invites:', error);
+    return [];
+  }
+};
+
+export const searchUsers = async (query: string, pageToken?: string, limit: number = 10): Promise<UserProfile[]> => {
+  try {
+    const params: Record<string, any> = {
+      query,
+      limit
+    };
+    
+    if (pageToken) {
+      params.page_token = pageToken;
+    }
+
+    const response = await axiosInstance.get('/users/search', { params });
+    return response.data.payload.users || [];
+  } catch (error) {
+    console.error('Error searching users:', error);
     return [];
   }
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -58,6 +57,8 @@ interface MockCreator {
 interface DisplayChallenge extends Challenge {
   createdBy: MockCreator;
   problemCount: number;
+  isActive: boolean;
+  createdAt?: string; // Add this as a computed property to map from created_at
 }
 
 const mockCreators: MockCreator[] = [
@@ -68,12 +69,14 @@ const mockCreators: MockCreator[] = [
 ];
 
 // Helper function to enrich challenge data with mock data for display
-const enrichChallengeWithMockData = (challenge: Challenge): DisplayChallenge => {
+const enrichChallengeWithMockData = (challenge: Challenge, isActive: boolean = false): DisplayChallenge => {
   const creatorIndex = Math.floor(Math.random() * mockCreators.length);
   return {
     ...challenge,
     createdBy: mockCreators[creatorIndex],
     problemCount: challenge.problem_ids?.length || 0,
+    isActive,
+    createdAt: challenge.created_at ? new Date(challenge.created_at).toISOString() : undefined,
     // Add any other display properties needed
   };
 };
@@ -99,17 +102,17 @@ const MinimalChallenges = () => {
 
   const { data: activeChallenges, isLoading: activeChallengesLoading, refetch: refetchChallenges } = useQuery({
     queryKey: ["active-challenges"],
-    queryFn: () => Promise.resolve(mockActiveChallenges.map(enrichChallengeWithMockData)),
+    queryFn: () => Promise.resolve(mockActiveChallenges.map(c => enrichChallengeWithMockData(c, true))),
   });
 
   const { data: publicChallenges, isLoading: publicChallengesLoading } = useQuery({
     queryKey: ["public-challenges-history"],
-    queryFn: () => Promise.resolve(mockPublicChallenges.map(enrichChallengeWithMockData)),
+    queryFn: () => Promise.resolve(mockPublicChallenges.map(c => enrichChallengeWithMockData(c, false))),
   });
 
   const { data: privateChallenges, isLoading: privateChallengesLoading } = useQuery({
     queryKey: ["private-challenges-history"],
-    queryFn: () => Promise.resolve(mockPrivateChallenges.map(enrichChallengeWithMockData)),
+    queryFn: () => Promise.resolve(mockPrivateChallenges.map(c => enrichChallengeWithMockData(c, false))),
   });
 
   const loadChallenge = async (id: string) => {
@@ -189,8 +192,8 @@ const MinimalChallenges = () => {
     });
   };
 
-  const copyRoomInfo = (challenge: Challenge) => {
-    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"}\nDifficulty: ${challenge.difficulty}`;
+  const copyRoomInfo = (challenge: DisplayChallenge) => {
+    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.access_code || "None (Public)"}\nDifficulty: ${challenge.difficulty}`;
     navigator.clipboard.writeText(roomInfo);
     toast.success("Room information copied to clipboard!");
   };
@@ -371,7 +374,7 @@ const MinimalChallenges = () => {
                             </div>
                           </div>
                           <CardDescription className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> Created: {new Date(challenge.createdAt).toLocaleDateString()}
+                            <Clock className="h-3 w-3" /> Created: {new Date(challenge.createdAt!).toLocaleDateString()}
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -468,7 +471,7 @@ const MinimalChallenges = () => {
                                 <p className="text-sm font-medium">{challenge.createdBy.username}</p>
                                 <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                   <Calendar className="h-3 w-3" />
-                                  <span>{new Date(challenge.createdAt).toLocaleDateString()}</span>
+                                  <span>{new Date(challenge.createdAt!).toLocaleDateString()}</span>
                                 </div>
                               </div>
                             </div>
@@ -546,7 +549,7 @@ const MinimalChallenges = () => {
                                 <p className="text-sm font-medium">{challenge.createdBy.username}</p>
                                 <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                   <Calendar className="h-3 w-3" />
-                                  <span>{new Date(challenge.createdAt).toLocaleDateString()}</span>
+                                  <span>{new Date(challenge.createdAt!).toLocaleDateString()}</span>
                                 </div>
                               </div>
                             </div>
@@ -560,7 +563,7 @@ const MinimalChallenges = () => {
                           </div>
                           <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
                             <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <span>Password: {challenge.accessCode ? "••••••" : "None"}</span>
+                            <span>Password: {challenge.access_code ? "••••••" : "None"}</span>
                           </div>
                         </CardContent>
                         <CardFooter className="flex justify-end">
