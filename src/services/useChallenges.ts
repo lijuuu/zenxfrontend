@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
@@ -120,7 +121,9 @@ export const useSubmissionStatus = (submissionId?: string) => {
     queryKey: ['submission-status', submissionId],
     queryFn: () => challengeApi.getSubmissionStatus(submissionId!),
     enabled: !!submissionId,
-    refetchInterval: (data: SubmissionStatus | undefined) => {
+    refetchInterval: (query) => {
+      // Access data directly from the query object
+      const data = query.state.data;
       if (data?.status === 'pending') {
         return 2000; // Refetch every 2 seconds if pending
       }
