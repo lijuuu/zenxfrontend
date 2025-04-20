@@ -85,7 +85,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
 
   // Timer effect
   useEffect(() => {
-    if (!challengeData?.time_limit) return;
+    if (!challengeData?.timeLimit) return;
 
     const interval = setInterval(() => {
       const [minutes, seconds] = timeRemaining.split(':').map(Number);
@@ -107,7 +107,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [timeRemaining, challengeData?.time_limit, endChallengeMutation]);
+  }, [timeRemaining, challengeData?.timeLimit, endChallengeMutation]);
   
   const copyAccessCode = () => {
     if (accessCode) {
@@ -134,7 +134,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({ challenge, isPr
     setExitWarningOpen(false);
   };
 
-  const problems = challengeData?.problem_ids?.map((id, index) => ({
+  const problems = challengeData?.problemIds?.map((id, index) => ({
     id,
     title: `Problem ${index + 1}`,
     difficulty: challengeData.difficulty,

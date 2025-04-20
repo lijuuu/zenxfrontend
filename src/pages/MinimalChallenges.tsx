@@ -58,7 +58,7 @@ interface DisplayChallenge extends Challenge {
   createdBy: MockCreator;
   problemCount: number;
   isActive: boolean;
-  createdAt?: string; // Add this as a computed property to map from created_at
+  createdAt: number; // Add this as a computed property to map from created_at
 }
 
 const mockCreators: MockCreator[] = [
@@ -74,9 +74,9 @@ const enrichChallengeWithMockData = (challenge: Challenge, isActive: boolean = f
   return {
     ...challenge,
     createdBy: mockCreators[creatorIndex],
-    problemCount: challenge.problem_ids?.length || 0,
+    problemCount: challenge.problemIds?.length || 0,
     isActive,
-    createdAt: challenge.created_at ? new Date(challenge.created_at).toISOString() : undefined,
+    createdAt: challenge.createdAt,
     // Add any other display properties needed
   };
 };
@@ -193,7 +193,7 @@ const MinimalChallenges = () => {
   };
 
   const copyRoomInfo = (challenge: DisplayChallenge) => {
-    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.access_code || "None (Public)"}\nDifficulty: ${challenge.difficulty}`;
+    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"}\nDifficulty: ${challenge.difficulty}`;
     navigator.clipboard.writeText(roomInfo);
     toast.success("Room information copied to clipboard!");
   };
@@ -224,7 +224,7 @@ const MinimalChallenges = () => {
             <ChallengeInterface
               challenge={activeChallenge}
               isPrivate={activeChallenge?.isPrivate}
-              accessCode={activeChallenge?.access_code}
+              accessCode={activeChallenge?.accessCode}
             />
           </div>
         </main>
@@ -390,7 +390,7 @@ const MinimalChallenges = () => {
                               <p className="text-sm font-medium">Problems: {challenge.problemCount}</p>
                               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                                 <span className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" /> {challenge.participants} participants
+                                  <Users className="h-3 w-3" /> {challenge.participantIds.length} participants
                                 </span>
                               </p>
                             </div>
@@ -477,7 +477,7 @@ const MinimalChallenges = () => {
                             </div>
                             <div className="text-right">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm">{challenge.participants} participants</span>
+                                <span className="text-sm">{challenge.participantIds.length} participants</span>
                                 <Users className="h-4 w-4 text-zinc-500" />
                               </div>
                               <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
@@ -555,7 +555,7 @@ const MinimalChallenges = () => {
                             </div>
                             <div className="text-right">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm">{challenge.participants} participants</span>
+                                <span className="text-sm">{challenge.participantIds.length} participants</span>
                                 <Users className="h-4 w-4 text-zinc-500" />
                               </div>
                               <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
@@ -563,7 +563,7 @@ const MinimalChallenges = () => {
                           </div>
                           <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
                             <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <span>Password: {challenge.access_code ? "••••••" : "None"}</span>
+                            <span>Password: {challenge.accessCode ? "••••••" : "None"}</span>
                           </div>
                         </CardContent>
                         <CardFooter className="flex justify-end">

@@ -11,7 +11,7 @@ import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 import Problems from "./pages/Problems";
 import Profile from "./pages/Profile";
-import Challenges from "./pages/Challenges";
+// import Challenges from "./pages/Challenges";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import Compiler from "./pages/Compiler";
@@ -56,7 +56,7 @@ const AppContent = () => {
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/profile/:userid" element={<Profile />} />
         <Route path="/challenges" element={<MinimalChallenge />} />
-        <Route path="/challenges2" element={<Challenges />} />
+        {/* <Route path="/challenges2" element={<Challenges />} /> */}
         <Route path="/quick-match" element={<QuickMatch />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
