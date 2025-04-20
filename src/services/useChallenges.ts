@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
@@ -21,12 +20,12 @@ export const useChallenges = (filters?: {
   return useQuery({
     queryKey: ['challenges', filters],
     queryFn: () => challengeApi.getChallenges({
-      active: filters?.active ?? true,
+      active: filters?.active,
       difficulty: filters?.difficulty,
       isPrivate: false, // Always false for public challenges
       userId: filters?.userId,
-      page: 1, // Always get first page
-      pageSize: 10 // Limit to 10 challenges
+      page: filters?.page || 1,
+      pageSize: filters?.pageSize || 10
     }),
     meta: {
       onError: (error: Error) => {
@@ -280,10 +279,16 @@ export const useUserChallengeHistory = (params?: ChallengeHistoryParams) => {
     enabled: !!userId,
     meta: {
       onError: (error: Error) => {
-        // We'll handle this error gracefully and not show a toast
+        // Handle error gracefully without showing toast
         console.error('Failed to fetch challenge history:', error);
       }
     },
-    placeholderData: { challenges: [], total_count: 0, page: 1, page_size: 10, message: "" }
+    placeholderData: { 
+      challenges: [], 
+      total_count: 0, 
+      page: 1, 
+      page_size: 10, 
+      message: "" 
+    }
   });
 };

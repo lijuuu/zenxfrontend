@@ -1,4 +1,3 @@
-
 // Challenge API types with snake_case for API communication and camelCase for frontend
 
 // Import from existing types
