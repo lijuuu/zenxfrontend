@@ -39,15 +39,15 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
 
     setLoading(true);
     try {
-      const result = await joinChallenge(challengeId,accessCode.trim());
-
+      // For now, we'll assume the access code is the challenge ID
+      // In a real implementation, we would have an API to find a challenge by access code
+      const tempChallengeId = accessCode.trim();
+      const result = await joinChallenge(tempChallengeId, accessCode.trim());
 
       if (result.success) {
-        // Assume we have manually fetched challenge details based on the access code
-        // This would require a separate API endpoint in a real implementation
         setCodeFound(true);
         setChallengeName(`Challenge with code ${accessCode}`);
-        setChallengeId("temp-id");
+        setChallengeId(tempChallengeId);
         toast({
           title: "Challenge Found",
           description: `Found challenge with access code: ${accessCode}`,
@@ -74,7 +74,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
   const handleJoin = async () => {
     setLoading(true);
     try {
-      const result = await joinChallenge(challengeId,accessCode.trim());
+      const result = await joinChallenge(challengeId, accessCode.trim());
 
       if (result.success) {
         toast({

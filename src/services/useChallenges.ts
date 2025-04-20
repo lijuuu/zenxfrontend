@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
@@ -75,7 +76,8 @@ export const useJoinChallenge = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: challengeApi.joinChallenge,
+    mutationFn: ({ challengeId, accessCode }: { challengeId: string, accessCode?: string }) => 
+      challengeApi.joinChallenge(challengeId, accessCode),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
       toast.success(data.message || 'Successfully joined the challenge');

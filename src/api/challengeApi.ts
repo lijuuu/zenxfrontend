@@ -38,7 +38,7 @@ export const createChallenge = async (data: {
       is_private: data.isPrivate,
       time_limit: data.timeLimit,
       access_code: data.accessCode,
-      start_time : data.startTime
+      start_time: data.startTime
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
@@ -195,5 +195,58 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
   } catch (error) {
     console.error('Error fetching challenge-user stats:', error);
     return null;
+  }
+};
+
+// These are placeholder implementations for missing functions
+export const getChallengeWithMetadata = async (id: string, userId: string) => {
+  try {
+    const challenge = await getChallenge(id);
+    // In a real implementation, we would fetch metadata related to this user and challenge
+    return {
+      challenge,
+      userMetadata: null // Replace with actual metadata
+    };
+  } catch (error) {
+    console.error('Error fetching challenge with metadata:', error);
+    throw error;
+  }
+};
+
+export const submitSolution = async (data: { 
+  challengeId: string;
+  problemId: string;
+  code: string;
+  language: string;
+}) => {
+  try {
+    const response = await axiosInstance.post('/challenges/submit', {
+      challenge_id: data.challengeId,
+      problem_id: data.problemId,
+      code: data.code,
+      language: data.language
+    }, {
+      headers: { 'X-Requires-Auth': 'true' }
+    });
+    return response.data.payload;
+  } catch (error) {
+    console.error('Error submitting solution:', error);
+    throw error;
+  }
+};
+
+export const fetchParticipantProfiles = async (userIds: string[]) => {
+  try {
+    if (!userIds.length) return [];
+    
+    const response = await axiosInstance.get('/users/batch', {
+      params: { user_ids: userIds.join(',') },
+      headers: { 'X-Requires-Auth': 'true' }
+    });
+    
+    return response.data?.payload?.users || [];
+  } catch (error) {
+    console.error('Error fetching participant profiles:', error);
+    return [];
   }
 };

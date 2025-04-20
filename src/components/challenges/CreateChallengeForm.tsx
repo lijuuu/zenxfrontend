@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, XCircle, Calendar as CalendarIcon } from "lucide-react";
@@ -100,13 +101,9 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     setLoading(true);
     try {
       // Convert the date to seconds and nanos format
-      let startAt;
+      let startTime;
       if (formData.scheduledStart) {
-        const timestamp = formData.scheduledStart.getTime() / 1000;
-        startAt = {
-          seconds: Math.floor(timestamp),
-          nanos: ((timestamp - Math.floor(timestamp)) * 1000000000) | 0
-        };
+        startTime = Math.floor(formData.scheduledStart.getTime() / 1000);
       }
 
       const newChallenge = await createChallenge({
@@ -116,7 +113,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         isPrivate: formData.isPrivate,
         timeLimit: formData.timeLimit,
         accessCode: formData.isPrivate ? formData.accessCode : undefined,
-        startTime: startAt
+        startTime
       });
 
       toast({
