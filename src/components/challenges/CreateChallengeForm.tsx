@@ -112,11 +112,11 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       const newChallenge = await createChallenge({
         title: formData.title,
         difficulty: formData.difficulty,
-        problem_ids: selectedProblems.map(p => p.id),
-        is_private: formData.isPrivate,
-        time_limit: formData.timeLimit,
-        access_code: formData.isPrivate ? formData.accessCode : undefined,
-        start_at: startAt
+        problemIds: selectedProblems.map(p => p.id),
+        isPrivate: formData.isPrivate,
+        timeLimit: formData.timeLimit,
+        accessCode: formData.isPrivate ? formData.accessCode : undefined,
+        startTime: startAt
       });
 
       toast({

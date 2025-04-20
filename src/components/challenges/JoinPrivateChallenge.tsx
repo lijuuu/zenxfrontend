@@ -32,18 +32,16 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
   const [codeFound, setCodeFound] = useState(false);
   const [challengeName, setChallengeName] = useState("");
   const [challengeId, setChallengeId] = useState("");
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accessCode.trim()) return;
-    
+
     setLoading(true);
     try {
-      const result = await joinChallenge({
-        challenge_id: "", // Empty ID indicates we're just validating the code
-        access_code: accessCode.trim()
-      });
-      
+      const result = await joinChallenge(challengeId,accessCode.trim());
+
+
       if (result.success) {
         // Assume we have manually fetched challenge details based on the access code
         // This would require a separate API endpoint in a real implementation
@@ -72,21 +70,18 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
       setLoading(false);
     }
   };
-  
+
   const handleJoin = async () => {
     setLoading(true);
     try {
-      const result = await joinChallenge({
-        challenge_id: challengeId,
-        access_code: accessCode.trim()
-      });
-      
+      const result = await joinChallenge(challengeId,accessCode.trim());
+
       if (result.success) {
         toast({
           title: "Success",
           description: `You've joined the challenge successfully!`,
         });
-        
+
         // Fetch the actual challenge details if needed
         if (onSuccess) {
           // We would normally fetch challenge details here
@@ -104,10 +99,10 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
             isActive: true,
             participantIds: []
           };
-          
+
           onSuccess(challenge);
         }
-        
+
         onClose();
       } else {
         toast({
@@ -127,17 +122,17 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
       setLoading(false);
     }
   };
-  
+
   const resetForm = () => {
     setAccessCode("");
     setCodeFound(false);
     setChallengeName("");
     setChallengeId("");
   };
-  
+
   return (
-    <Dialog 
-      open={isOpen} 
+    <Dialog
+      open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
           resetForm();
@@ -152,7 +147,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
             Enter the access code to join a private coding challenge.
           </DialogDescription>
         </DialogHeader>
-        
+
         {!codeFound ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -175,7 +170,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
                 Access codes are case sensitive. Make sure to enter exactly as provided.
               </p>
             </div>
-            
+
             <DialogFooter>
               <Button
                 type="button"
@@ -209,11 +204,11 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
                 </p>
               </div>
             </div>
-            
+
             <p className="text-sm text-center">
               You can now join this private challenge.
             </p>
-            
+
             <DialogFooter className="gap-2 sm:gap-0">
               <Button
                 type="button"

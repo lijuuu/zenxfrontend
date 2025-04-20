@@ -41,7 +41,6 @@ import { getChallenges, getChallenge } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
-import ChallengeInterface from "@/components/challenges/ChallengeInterface";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
 import { generateMockChallenges } from "@/api/mockChallengeData";
@@ -220,13 +219,13 @@ const MinimalChallenges = () => {
             </Button>
           </div>
 
-          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden shadow-sm h-[calc(100vh-180px)] min-h-[600px]">
+          {/* <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden shadow-sm h-[calc(100vh-180px)] min-h-[600px]">
             <ChallengeInterface
               challenge={activeChallenge}
               isPrivate={activeChallenge?.isPrivate}
               accessCode={activeChallenge?.accessCode}
             />
-          </div>
+          </div> */}
         </main>
       ) : (
         <main className="page-container py-8">

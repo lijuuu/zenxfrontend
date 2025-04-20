@@ -28,6 +28,7 @@ export const createChallenge = async (data: {
   isPrivate: boolean;
   timeLimit?: number;
   accessCode?: string;
+  startTime?: number
 }) => {
   try {
     const response = await axiosInstance.post('/challenges', {
@@ -36,7 +37,8 @@ export const createChallenge = async (data: {
       problem_ids: data.problemIds,
       is_private: data.isPrivate,
       time_limit: data.timeLimit,
-      access_code: data.accessCode
+      access_code: data.accessCode,
+      start_time : data.startTime
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
@@ -94,7 +96,7 @@ export const joinChallenge = async (challengeId: string, accessCode?: string) =>
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
-    
+
     return {
       success: response.data.payload.success,
       message: response.data.payload.message
@@ -112,7 +114,7 @@ export const startChallenge = async (challengeId: string) => {
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
-    
+
     return {
       success: response.data.payload.success,
       startTime: response.data.payload.start_time
@@ -130,7 +132,7 @@ export const endChallenge = async (challengeId: string) => {
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
-    
+
     return {
       success: response.data.payload.success,
       leaderboard: response.data.payload.leaderboard || []
