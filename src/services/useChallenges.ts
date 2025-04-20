@@ -21,12 +21,12 @@ export const useChallenges = (filters?: {
   return useQuery({
     queryKey: ['challenges', filters],
     queryFn: () => challengeApi.getChallenges({
-      is_active: filters?.active ?? true,
+      active: filters?.active ?? true,
       difficulty: filters?.difficulty,
-      include_private: false, // Always false for public challenges
-      user_id: filters?.userId,
+      isPrivate: false, // Always false for public challenges
+      userId: filters?.userId,
       page: 1, // Always get first page
-      page_size: 10 // Limit to 10 challenges
+      pageSize: 10 // Limit to 10 challenges
     }),
     meta: {
       onError: (error: Error) => {
