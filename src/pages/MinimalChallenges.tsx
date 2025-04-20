@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -15,6 +16,7 @@ import {
   Filter,
   Copy,
   Loader2,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import MainNavbar from "@/components/common/MainNavbar";
@@ -31,24 +33,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { Challenge } from "@/api/types";
+import { Challenge } from "@/api/challengeTypes";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
-import { useChallenges } from "@/services/useChallenges";
-import { getUserProfile } from "@/api/userApi";
-
-// Extended challenge type for display purposes
-interface DisplayChallenge extends Challenge {
-  createdBy: {
-    username: string;
-    profileImage: string;
-  };
-  problemCount: number;
-  isActive: boolean;
-  createdAt: number;
-}
+import { useChallenges, useUserChallengeHistory } from "@/services/useChallenges";
+import { useAppSelector } from "@/hooks/useAppSelector";
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -56,6 +47,7 @@ const MinimalChallenges = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const navigate = useNavigate();
+  const user = useAppSelector(state => state.auth.userProfile);
 
   const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
 
@@ -66,8 +58,16 @@ const MinimalChallenges = () => {
   const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({
     isPrivate: false,
   });
-  const { data: privateChallenges, isLoading: privateChallengesLoading } = useChallenges({
-    isPrivate: true,
+  
+  // Challenge history
+  const { data: publicChallengeHistory, isLoading: publicHistoryLoading } = useUserChallengeHistory({
+    userId: user?.userID,
+    isPrivate: false
+  });
+  
+  const { data: privateChallengeHistory, isLoading: privateHistoryLoading } = useUserChallengeHistory({
+    userId: user?.userID,
+    isPrivate: true
   });
 
   // Calculate total problems completed
@@ -80,7 +80,8 @@ const MinimalChallenges = () => {
       const challenge = [
         ...(activeChallenges || []),
         ...(publicChallenges || []),
-        ...(privateChallenges || []),
+        ...(publicChallengeHistory?.challenges || []),
+        ...(privateChallengeHistory?.challenges || []),
       ].find((c) => c.id === id);
 
       if (challenge) {
@@ -92,9 +93,15 @@ const MinimalChallenges = () => {
     }
   };
 
-  const handleChallengeCreated = (newChallenge: Challenge) => {};
+  const handleChallengeCreated = (newChallenge: Challenge) => {
+    // Refresh challenge list
+    toast.success(`Challenge "${newChallenge.title}" created successfully!`);
+  };
 
-  const handleJoinSuccess = (challenge: Challenge) => {};
+  const handleJoinSuccess = (challenge: Challenge) => {
+    // Refresh challenge list and potentially navigate to the challenge
+    toast.success(`Joined challenge "${challenge.title}" successfully!`);
+  };
 
   const handleQuickMatch = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
     // Generate a unique room ID and password
@@ -146,13 +153,82 @@ const MinimalChallenges = () => {
     });
   };
 
-  const copyRoomInfo = (challenge: DisplayChallenge) => {
+  const copyRoomInfo = (challenge: Challenge) => {
     const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${
       challenge.accessCode || "None (Public)"
     }\nDifficulty: ${challenge.difficulty}`;
     navigator.clipboard.writeText(roomInfo);
     toast.success("Room information copied to clipboard!");
   };
+
+  // Render challenge card
+  const renderChallengeCard = (challenge: Challenge, actions?: React.ReactNode) => (
+    <Card
+      key={challenge.id}
+      className="cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => loadChallenge(challenge.id)}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            {challenge.title}
+            {challenge.isPrivate && (
+              <Lock className="h-4 w-4 text-amber-500" />
+            )}
+          </CardTitle>
+          <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
+            {challenge.difficulty}
+          </div>
+        </div>
+        <CardDescription className="flex items-center gap-1">
+          <Clock className="h-3 w-3" /> Created:{" "}
+          {new Date(challenge.createdAt).toLocaleDateString()}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Creator ID: {challenge.creatorId.substring(0, 8)}...</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Challenge Creator</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium">Problems: {challenge.problemIds.length}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" /> {challenge.participantIds.length || 0}{" "}
+                participants
+              </span>
+            </p>
+          </div>
+        </div>
+        <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
+          <span>Room ID: {challenge.id.substring(0, 8)}...</span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              copyRoomInfo(challenge);
+            }}
+          >
+            <Copy className="h-3 w-3 mr-1" />
+            Copy Info
+          </Button>
+        </div>
+      </CardContent>
+      {actions && (
+        <CardFooter className="flex justify-end">
+          {actions}
+        </CardFooter>
+      )}
+    </Card>
+  );
 
   return (
     <div className="min-h-screen rounded-lg shadow-lg text-foreground pt-16 pb-8">
@@ -307,7 +383,9 @@ const MinimalChallenges = () => {
                     <Separator />
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">Challenges Completed</span>
-                      <span className="font-semibold">12</span>
+                      <span className="font-semibold">
+                        {publicChallengeHistory?.challenges.length || 0}
+                      </span>
                     </div>
                     <Separator />
                     <div className="flex justify-between items-center">
@@ -326,8 +404,8 @@ const MinimalChallenges = () => {
               <Tabs defaultValue="active" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-4">
                   <TabsTrigger value="active">Active Challenges</TabsTrigger>
-                  <TabsTrigger value="public">Public Challenges</TabsTrigger>
-                  <TabsTrigger value="private">Private Challenges</TabsTrigger>
+                  <TabsTrigger value="public">Public History</TabsTrigger>
+                  <TabsTrigger value="private">Private History</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
@@ -336,76 +414,17 @@ const MinimalChallenges = () => {
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
                   ) : activeChallenges?.filter((c) => c.isActive).length ? (
-                    activeChallenges.filter((c) => c.isActive).map((challenge) => (
-                      <Card
-                        key={challenge.id}
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => loadChallenge(challenge.id)}
-                      >
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                              {challenge.title}
-                              {challenge.isPrivate && (
-                                <Lock className="h-4 w-4 text-amber-500" />
-                              )}
-                            </CardTitle>
-                            <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
-                              {challenge.difficulty}
-                            </div>
-                          </div>
-                          <CardDescription className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> Created:{" "}
-                            {new Date(challenge.createdAt!).toLocaleDateString()}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={challenge.createdBy?.profileImage}
-                                alt={challenge.createdBy?.username}
-                                className="w-8 h-8 rounded-full"
-                              />
-                              <div>
-                                <p className="text-sm font-medium">{challenge.createdBy?.username}</p>
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium">Problems: {challenge.problemCount}</p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                <span className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" /> {challenge.participantIds.length}{" "}
-                                  participants
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
-                            <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                copyRoomInfo(challenge);
-                              }}
-                            >
-                              <Copy className="h-3 w-3 mr-1" />
-                              Copy Info
-                            </Button>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end">
+                    activeChallenges
+                      .filter((c) => c.isActive)
+                      .map((challenge) => 
+                        renderChallengeCard(
+                          challenge, 
                           <Button size="sm" className="bg-green-500 hover:bg-green-600">
                             Join Challenge
                             <ChevronRight className="ml-1 h-4 w-4" />
                           </Button>
-                        </CardFooter>
-                      </Card>
-                    ))
+                        )
+                      )
                   ) : (
                     <div className="text-center py-10">
                       <p className="text-zinc-500 dark:text-zinc-400">No active challenges</p>
@@ -422,160 +441,65 @@ const MinimalChallenges = () => {
 
                 <TabsContent value="public" className="space-y-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium">Public Challenges</h3>
+                    <h3 className="font-medium flex items-center gap-2">
+                      <History className="h-4 w-4 text-primary" />
+                      Public Challenge History
+                    </h3>
                     <Button variant="outline" size="sm" className="h-8">
                       <Filter className="h-3 w-3 mr-1" /> Filter
                     </Button>
                   </div>
 
-                  {publicChallengesLoading ? (
+                  {publicHistoryLoading ? (
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : publicChallenges?.filter((c) => !c.isActive).length ? (
-                    publicChallenges.filter((c) => !c.isActive).map((challenge) => (
-                      <Card
-                        key={challenge.id}
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => loadChallenge(challenge.id)}
-                      >
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle>{challenge.title}</CardTitle>
-                            <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
-                              {challenge.difficulty}
-                            </div>
-                          </div>
-                          <CardDescription className="flex items-center gap-1">
-                            <Unlock className="h-3 w-3 text-green-500" /> Public Challenge
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={challenge.createdBy?.profileImage}
-                                alt={challenge.createdBy?.username}
-                                className="w-8 h-8 rounded-full"
-                              />
-                              <div>
-                                <p className="text-sm font-medium">{challenge.createdBy?.username}</p>
-                                <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>{new Date(challenge.createdAt!).toLocaleDateString()}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">{challenge.participantIds.length} participants</span>
-                                <Users className="h-4 w-4 text-zinc-500" />
-                              </div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {challenge.problemCount} problems
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
-                            <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                copyRoomInfo(challenge);
-                              }}
-                            >
-                              <Copy className="h-3 w-3 mr-1" />
-                              Copy Info
-                            </Button>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end">
-                          <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
-                            Join Challenge
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))
+                  ) : publicChallengeHistory?.challenges.length ? (
+                    publicChallengeHistory.challenges.map((challenge) => 
+                      renderChallengeCard(
+                        challenge,
+                        <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
+                          View Results
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      )
+                    )
                   ) : (
                     <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No public challenges found</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">No public challenge history found</p>
                       <p className="text-xs text-zinc-400 mt-2">Join public challenges to see them here</p>
                     </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="private" className="space-y-4">
-                  {privateChallengesLoading ? (
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-amber-500" />
+                      Private Challenge History
+                    </h3>
+                    <Button variant="outline" size="sm" className="h-8">
+                      <Filter className="h-3 w-3 mr-1" /> Filter
+                    </Button>
+                  </div>
+
+                  {privateHistoryLoading ? (
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : privateChallenges?.filter((c) => !c.isActive).length ? (
-                    privateChallenges.filter((c) => !c.isActive).map((challenge) => (
-                      <Card
-                        key={challenge.id}
-                        className="cursor-pointer hover:shadow-md transition-shadow border-amber-200/30 dark:border-amber-800/30"
-                        onClick={() => loadChallenge(challenge.id)}
-                      >
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                              {challenge.title}
-                              <Lock className="h-4 w-4 text-amber-500" />
-                            </CardTitle>
-                            <div className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded dark:bg-amber-900/30 dark:text-amber-300">
-                              {challenge.difficulty}
-                            </div>
-                          </div>
-                          <CardDescription className="flex items-center gap-1">
-                            <Lock className="h-3 w-3 text-amber-500" /> Private Challenge
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={challenge.createdBy?.profileImage}
-                                alt={challenge.createdBy?.username}
-                                className="w-8 h-8 rounded-full"
-                              />
-                              <div>
-                                <p className="text-sm font-medium">{challenge.createdBy?.username}</p>
-                                <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>{new Date(challenge.createdAt!).toLocaleDateString()}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">{challenge.participantIds.length} participants</span>
-                                <Users className="h-4 w-4 text-zinc-500" />
-                              </div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {challenge.problemCount} problems
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
-                            <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <span>Password: {challenge.accessCode ? "••••••" : "None"}</span>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end">
-                          <Button size="sm" className="bg-amber-500 hover:bg-amber-600">
-                            Join Challenge
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))
+                  ) : privateChallengeHistory?.challenges.length ? (
+                    privateChallengeHistory.challenges.map((challenge) => 
+                      renderChallengeCard(
+                        challenge,
+                        <Button size="sm" className="bg-amber-500 hover:bg-amber-600">
+                          View Results
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      )
+                    )
                   ) : (
                     <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No private challenges found</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">No private challenge history found</p>
                       <p className="text-xs text-zinc-400 mt-2">Join private challenges to see them here</p>
                     </div>
                   )}

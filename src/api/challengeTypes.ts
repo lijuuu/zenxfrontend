@@ -1,6 +1,9 @@
 
 // Challenge API types with snake_case for API communication and camelCase for frontend
 
+// Import from existing types
+import { UserProfile } from '@/api/types';
+
 // Challenge represents a coding challenge
 export interface Challenge {
   id: string;
@@ -160,5 +163,25 @@ export interface LeaderboardEntryAPI {
   rank: number;
 }
 
-// Import from existing types
-import { UserProfile } from './types';
+// User Challenge History interfaces
+export interface GetUserChallengeHistoryRequest {
+  user_id: string;
+  page?: number;
+  page_size?: number;
+  is_private?: boolean;
+}
+
+export interface GetUserChallengeHistoryResponse {
+  challenges: Challenge[];
+  total_count: number;
+  page: number;
+  page_size: number;
+  message: string;
+}
+
+export interface ChallengeHistoryParams {
+  userId?: string;
+  page?: number;
+  pageSize?: number;
+  isPrivate?: boolean;
+}

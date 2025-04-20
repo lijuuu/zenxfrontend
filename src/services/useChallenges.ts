@@ -2,8 +2,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
-import { Challenge, LeaderboardEntry, UserProfile } from '@/api/challengeTypes';
+import { 
+  Challenge, 
+  LeaderboardEntry,
+  ChallengeHistoryParams
+} from '@/api/challengeTypes';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { UserProfile } from '@/api/types';
 
 export const useChallenges = (filters?: { 
   active?: boolean; 
@@ -69,7 +74,6 @@ export const useCreateChallenge = () => {
       isPrivate: boolean;
       timeLimit?: number;
       accessCode?: string;
-      startTime?: number;
     }) => challengeApi.createChallenge({
       ...data,
       // Add creator ID from auth state
@@ -251,5 +255,28 @@ export const useParticipantProfiles = (challengeId?: string, participantIds?: st
       }
     },
     placeholderData: []
+  });
+};
+
+export const useUserChallengeHistory = (params?: ChallengeHistoryParams) => {
+  const user = useAppSelector(state => state.auth.userProfile);
+  const userId = params?.userId || user?.userID;
+  
+  return useQuery({
+    queryKey: ['user-challenge-history', userId, params?.isPrivate, params?.page, params?.pageSize],
+    queryFn: () => challengeApi.getUserChallengeHistory({
+      userId: userId!,
+      isPrivate: params?.isPrivate,
+      page: params?.page || 1,
+      pageSize: params?.pageSize || 10
+    }),
+    enabled: !!userId,
+    meta: {
+      onError: (error: Error) => {
+        // We'll handle this error gracefully and not show a toast
+        console.error('Failed to fetch challenge history:', error);
+      }
+    },
+    placeholderData: { challenges: [], total_count: 0, page: 1, page_size: 10, message: "" }
   });
 };

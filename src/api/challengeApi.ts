@@ -1,6 +1,13 @@
-
 import axiosInstance from "@/utils/axiosInstance";
-import { Challenge, LeaderboardEntry, LeaderboardEntryAPI, UserStats, ChallengeProblemMetadata, ChallengeProblemMetadataAPI } from "./challengeTypes";
+import { 
+  Challenge, 
+  LeaderboardEntry, 
+  LeaderboardEntryAPI, 
+  UserStats, 
+  ChallengeProblemMetadata, 
+  ChallengeProblemMetadataAPI,
+  GetUserChallengeHistoryResponse
+} from "./challengeTypes";
 import { UserProfile } from "./types";
 
 // Transform snake_case to camelCase
@@ -44,7 +51,7 @@ export const createChallenge = async (data: {
   isPrivate: boolean;
   timeLimit?: number;
   accessCode?: string;
-  startTime?: number
+  creatorId: string;
 }) => {
   try {
     const response = await axiosInstance.post('/challenges', {
@@ -54,6 +61,7 @@ export const createChallenge = async (data: {
       is_private: data.isPrivate,
       time_limit: data.timeLimit,
       access_code: data.accessCode,
+      creator_id: data.creatorId
       // start_at commented out as requested
       // start_at: data.startTime ? { seconds: data.startTime, nanos: 0 } : undefined
     }, {
@@ -347,5 +355,44 @@ export const fetchParticipantProfiles = async (userIds: string[]) => {
   } catch (error) {
     console.error('Error fetching participant profiles:', error);
     return [];
+  }
+};
+
+// Add the new user challenge history function
+export const getUserChallengeHistory = async (params: {
+  userId: string;
+  isPrivate?: boolean;
+  page?: number;
+  pageSize?: number;
+}) => {
+  try {
+    const response = await axiosInstance.get('/challenges/history', {
+      params: {
+        user_id: params.userId,
+        is_private: params.isPrivate !== undefined ? String(params.isPrivate) : undefined,
+        page: params.page,
+        page_size: params.pageSize
+      },
+      headers: { 'X-Requires-Auth': 'true' }
+    });
+    
+    const data = response.data.payload;
+    return {
+      challenges: (data.challenges || []).map(transformChallenge),
+      total_count: data.total_count,
+      page: data.page,
+      page_size: data.page_size,
+      message: data.message
+    };
+  } catch (error) {
+    console.error('Error fetching user challenge history:', error);
+    // Return empty data instead of throwing
+    return {
+      challenges: [],
+      total_count: 0,
+      page: 1,
+      page_size: 10,
+      message: "Failed to load challenge history"
+    };
   }
 };
