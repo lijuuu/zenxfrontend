@@ -14,7 +14,7 @@ import {
   Search,
   Filter,
   Copy,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import MainNavbar from "@/components/common/MainNavbar";
@@ -27,12 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -42,41 +37,18 @@ import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
 import { useChallenges } from "@/services/useChallenges";
-
-// Mock creator data to use until backend provides this
-interface MockCreator {
-  id: string;
-  username: string;
-  profileImage: string;
-}
+import { getUserProfile } from "@/api/userApi";
 
 // Extended challenge type for display purposes
 interface DisplayChallenge extends Challenge {
-  createdBy: MockCreator;
+  createdBy: {
+    username: string;
+    profileImage: string;
+  };
   problemCount: number;
   isActive: boolean;
-  createdAt: number; // Add this as a computed property to map from created_at
+  createdAt: number;
 }
-
-const mockCreators: MockCreator[] = [
-  { id: "user1", username: "JohnDoe", profileImage: "https://i.pravatar.cc/150?img=1" },
-  { id: "user2", username: "JaneSmith", profileImage: "https://i.pravatar.cc/150?img=2" },
-  { id: "user3", username: "RobertJohnson", profileImage: "https://i.pravatar.cc/150?img=3" },
-  { id: "user4", username: "SarahWilliams", profileImage: "https://i.pravatar.cc/150?img=4" },
-];
-
-// Helper function to enrich challenge data with mock data for display
-const enrichChallengeWithMockData = (challenge: Challenge, isActive: boolean = false): DisplayChallenge => {
-  const creatorIndex = Math.floor(Math.random() * mockCreators.length);
-  return {
-    ...challenge,
-    createdBy: mockCreators[creatorIndex],
-    problemCount: challenge.problemIds?.length || 0,
-    isActive,
-    createdAt: challenge.createdAt,
-    // Add any other display properties needed
-  };
-};
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -86,28 +58,31 @@ const MinimalChallenges = () => {
   const navigate = useNavigate();
 
   const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
-  const { data: problems, isLoading: problemsLoading } = useProblemList();
 
   // Use real data from API
-  const { data: activeChallenges, isLoading: activeChallengesLoading } = useChallenges({ 
-    active: true 
+  const { data: activeChallenges, isLoading: activeChallengesLoading } = useChallenges({
+    active: true,
   });
-  const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({ 
-    isPrivate: false 
+  const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({
+    isPrivate: false,
   });
-  const { data: privateChallenges, isLoading: privateChallengesLoading } = useChallenges({ 
-    isPrivate: true 
+  const { data: privateChallenges, isLoading: privateChallengesLoading } = useChallenges({
+    isPrivate: true,
   });
 
   // Calculate total problems completed
-  const totalProblemsDone = problemStats ? (
-    problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
-  ) : 0;
+  const totalProblemsDone = problemStats
+    ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
+    : 0;
 
   const loadChallenge = async (id: string) => {
     try {
-      const challenge = [...(activeChallenges || []), ...(publicChallenges || []), ...(privateChallenges || [])].find(c => c.id === id);
-      
+      const challenge = [
+        ...(activeChallenges || []),
+        ...(publicChallenges || []),
+        ...(privateChallenges || []),
+      ].find((c) => c.id === id);
+
       if (challenge) {
         setActiveChallenge(challenge);
         setActiveChallengeId(id);
@@ -117,22 +92,18 @@ const MinimalChallenges = () => {
     }
   };
 
-  const handleChallengeCreated = (newChallenge: Challenge) => {
-    
-  };
+  const handleChallengeCreated = (newChallenge: Challenge) => {};
 
-  const handleJoinSuccess = (challenge: Challenge) => {
-    
-  };
+  const handleJoinSuccess = (challenge: Challenge) => {};
 
   const handleQuickMatch = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
     // Generate a unique room ID and password
     const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
     const password = Math.random().toString(36).substring(2, 8);
-    
+
     // Create a shareable URL
     const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}`;
-    
+
     // Navigate to the room
     navigate(roomUrl);
   };
@@ -141,22 +112,22 @@ const MinimalChallenges = () => {
     // Generate a unique room ID and password
     const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
     const password = Math.random().toString(36).substring(2, 8);
-    
+
     // Create a shareable URL
     const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
-    
+
     // Create a shareable link
     const shareableLink = `${window.location.origin}/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
-    
+
     // Show toast with ability to copy link
     toast("Challenge created! Share this link with your friend.", {
       description: (
         <div className="mt-2">
           <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded mb-2 text-xs font-mono">
             <span className="truncate">{shareableLink}</span>
-            <Button 
-              size="icon" 
-              variant="ghost" 
+            <Button
+              size="icon"
+              variant="ghost"
               className="h-6 w-6"
               onClick={() => {
                 navigator.clipboard.writeText(shareableLink);
@@ -166,11 +137,7 @@ const MinimalChallenges = () => {
               <Copy className="h-3 w-3" />
             </Button>
           </div>
-          <Button 
-            size="sm" 
-            className="w-full" 
-            onClick={() => navigate(roomUrl)}
-          >
+          <Button size="sm" className="w-full" onClick={() => navigate(roomUrl)}>
             Enter Challenge Room
           </Button>
         </div>
@@ -180,7 +147,9 @@ const MinimalChallenges = () => {
   };
 
   const copyRoomInfo = (challenge: DisplayChallenge) => {
-    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"}\nDifficulty: ${challenge.difficulty}`;
+    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${
+      challenge.accessCode || "None (Public)"
+    }\nDifficulty: ${challenge.difficulty}`;
     navigator.clipboard.writeText(roomInfo);
     toast.success("Room information copied to clipboard!");
   };
@@ -192,9 +161,7 @@ const MinimalChallenges = () => {
       {activeChallengeId ? (
         <main className="page-container py-8">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">
-              {activeChallenge?.title || "Active Challenge"}
-            </h1>
+            <h1 className="text-2xl font-bold">{activeChallenge?.title || "Active Challenge"}</h1>
             <Button
               variant="outline"
               onClick={() => {
@@ -222,10 +189,7 @@ const MinimalChallenges = () => {
               <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Challenges</h1>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsJoinModalOpen(true)}
-                  >
+                  <Button variant="outline" onClick={() => setIsJoinModalOpen(true)}>
                     <Lock className="h-4 w-4 mr-2" />
                     Join Private
                   </Button>
@@ -246,9 +210,7 @@ const MinimalChallenges = () => {
                       <Zap className="h-5 w-5 text-green-500" />
                       Quick Match
                     </CardTitle>
-                    <CardDescription>
-                      Start a coding challenge instantly
-                    </CardDescription>
+                    <CardDescription>Start a coding challenge instantly</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="rounded-lg bg-zinc-100/80 dark:bg-zinc-800/80 p-3 flex items-center gap-3">
@@ -257,16 +219,33 @@ const MinimalChallenges = () => {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Random Problem</p>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Solve a random problem with friends</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Solve a random problem with friends
+                        </p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleQuickMatch("Easy")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleQuickMatch("Easy")}
+                        >
                           Easy
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleQuickMatch("Medium")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleQuickMatch("Medium")}
+                        >
                           Medium
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleQuickMatch("Hard")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleQuickMatch("Hard")}
+                        >
                           Hard
                         </Button>
                       </div>
@@ -278,16 +257,33 @@ const MinimalChallenges = () => {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Challenge a Friend</p>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">Create a private room and share the link</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Create a private room and share the link
+                        </p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => startFriendChallenge("Easy")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => startFriendChallenge("Easy")}
+                        >
                           Easy
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => startFriendChallenge("Medium")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => startFriendChallenge("Medium")}
+                        >
                           Medium
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => startFriendChallenge("Hard")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => startFriendChallenge("Hard")}
+                        >
                           Hard
                         </Button>
                       </div>
@@ -301,9 +297,7 @@ const MinimalChallenges = () => {
                       <Trophy className="h-5 w-5 text-blue-500" />
                       Your Stats
                     </CardTitle>
-                    <CardDescription>
-                      Challenge participation statistics
-                    </CardDescription>
+                    <CardDescription>Challenge participation statistics</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
@@ -318,7 +312,7 @@ const MinimalChallenges = () => {
                     <Separator />
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">Win Rate</span>
-                      <span className="font-semibold">68%</span>
+                      <span className="font-semiboldamada">68%</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between items-center">
@@ -341,8 +335,8 @@ const MinimalChallenges = () => {
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : activeChallenges?.filter(c => c.isActive).length ? (
-                    activeChallenges.filter(c => c.isActive).map((challenge) => (
+                  ) : activeChallenges?.filter((c) => c.isActive).length ? (
+                    activeChallenges.filter((c) => c.isActive).map((challenge) => (
                       <Card
                         key={challenge.id}
                         className="cursor-pointer hover:shadow-md transition-shadow"
@@ -361,15 +355,20 @@ const MinimalChallenges = () => {
                             </div>
                           </div>
                           <CardDescription className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> Created: {new Date(challenge.createdAt!).toLocaleDateString()}
+                            <Clock className="h-3 w-3" /> Created:{" "}
+                            {new Date(challenge.createdAt!).toLocaleDateString()}
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <img src={challenge.createdBy.profileImage} alt={challenge.createdBy.username} className="w-8 h-8 rounded-full" />
+                              <img
+                                src={challenge.createdBy?.profileImage}
+                                alt={challenge.createdBy?.username}
+                                className="w-8 h-8 rounded-full"
+                              />
                               <div>
-                                <p className="text-sm font-medium">{challenge.createdBy.username}</p>
+                                <p className="text-sm font-medium">{challenge.createdBy?.username}</p>
                                 <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
                               </div>
                             </div>
@@ -377,16 +376,17 @@ const MinimalChallenges = () => {
                               <p className="text-sm font-medium">Problems: {challenge.problemCount}</p>
                               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                                 <span className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" /> {challenge.participantIds.length} participants
+                                  <Users className="h-3 w-3" /> {challenge.participantIds.length}{" "}
+                                  participants
                                 </span>
                               </p>
                             </div>
                           </div>
                           <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
                             <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
+                            <Button
+                              size="sm"
+                              variant="ghost"
                               className="h-6 p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -427,13 +427,13 @@ const MinimalChallenges = () => {
                       <Filter className="h-3 w-3 mr-1" /> Filter
                     </Button>
                   </div>
-                  
+
                   {publicChallengesLoading ? (
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : publicChallenges?.filter(c => !c.isActive).length ? (
-                    publicChallenges.filter(c => !c.isActive).map((challenge) => (
+                  ) : publicChallenges?.filter((c) => !c.isActive).length ? (
+                    publicChallenges.filter((c) => !c.isActive).map((challenge) => (
                       <Card
                         key={challenge.id}
                         className="cursor-pointer hover:shadow-md transition-shadow"
@@ -453,9 +453,13 @@ const MinimalChallenges = () => {
                         <CardContent>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <img src={challenge.createdBy.profileImage} alt={challenge.createdBy.username} className="w-8 h-8 rounded-full" />
+                              <img
+                                src={challenge.createdBy?.profileImage}
+                                alt={challenge.createdBy?.username}
+                                className="w-8 h-8 rounded-full"
+                              />
                               <div>
-                                <p className="text-sm font-medium">{challenge.createdBy.username}</p>
+                                <p className="text-sm font-medium">{challenge.createdBy?.username}</p>
                                 <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                   <Calendar className="h-3 w-3" />
                                   <span>{new Date(challenge.createdAt!).toLocaleDateString()}</span>
@@ -467,14 +471,16 @@ const MinimalChallenges = () => {
                                 <span className="text-sm">{challenge.participantIds.length} participants</span>
                                 <Users className="h-4 w-4 text-zinc-500" />
                               </div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {challenge.problemCount} problems
+                              </p>
                             </div>
                           </div>
                           <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
                             <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
+                            <Button
+                              size="sm"
+                              variant="ghost"
                               className="h-6 p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -507,8 +513,8 @@ const MinimalChallenges = () => {
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : privateChallenges?.filter(c => !c.isActive).length ? (
-                    privateChallenges.filter(c => !c.isActive).map((challenge) => (
+                  ) : privateChallenges?.filter((c) => !c.isActive).length ? (
+                    privateChallenges.filter((c) => !c.isActive).map((challenge) => (
                       <Card
                         key={challenge.id}
                         className="cursor-pointer hover:shadow-md transition-shadow border-amber-200/30 dark:border-amber-800/30"
@@ -531,9 +537,13 @@ const MinimalChallenges = () => {
                         <CardContent>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <img src={challenge.createdBy.profileImage} alt={challenge.createdBy.username} className="w-8 h-8 rounded-full" />
+                              <img
+                                src={challenge.createdBy?.profileImage}
+                                alt={challenge.createdBy?.username}
+                                className="w-8 h-8 rounded-full"
+                              />
                               <div>
-                                <p className="text-sm font-medium">{challenge.createdBy.username}</p>
+                                <p className="text-sm font-medium">{challenge.createdBy?.username}</p>
                                 <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                   <Calendar className="h-3 w-3" />
                                   <span>{new Date(challenge.createdAt!).toLocaleDateString()}</span>
@@ -545,7 +555,9 @@ const MinimalChallenges = () => {
                                 <span className="text-sm">{challenge.participantIds.length} participants</span>
                                 <Users className="h-4 w-4 text-zinc-500" />
                               </div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemCount} problems</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {challenge.problemCount} problems
+                              </p>
                             </div>
                           </div>
                           <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
@@ -637,7 +649,7 @@ const MinimalChallenges = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -654,7 +666,7 @@ const MinimalChallenges = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
