@@ -89,22 +89,26 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     }
   };
 
-  const filteredProblems = problems?.filter(problem => 
+  const filteredProblems = problems?.filter(problem =>
     problem.title.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
   const getDifficultyIcon = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
+      case "E":
         return <Flag className="h-4 w-4 text-green-500" />;
       case "Medium":
+      case "M":
         return <Brain className="h-4 w-4 text-yellow-500" />;
       case "Hard":
+      case "H":
         return <Trophy className="h-4 w-4 text-red-500" />;
       default:
         return null;
     }
   };
+
 
   const getColorsByDifficulty = (difficulty: string) => {
     switch (difficulty) {
@@ -271,17 +275,17 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
 
             <div className="space-y-4">
               <FormLabel>Select Problems</FormLabel>
-              
+
               <div className="flex items-center border rounded-md px-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search problems..." 
+                <Input
+                  placeholder="Search problems..."
                   className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
+
               {problemsLoading ? (
                 <div className="flex justify-center p-4">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -291,14 +295,13 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                   <div className="space-y-1 p-2">
                     {filteredProblems.map((problem) => (
                       <div
-                        key={problem.id}
-                        className={`flex items-center justify-between rounded-md p-2 cursor-pointer transition-colors hover:bg-accent/50 ${
-                          selectedProblems.find(p => p.id === problem.id) 
-                            ? 'bg-accent/50' 
+                        key={problem.problem_id}
+                        className={`flex items-center justify-between rounded-md p-2 cursor-pointer transition-colors hover:bg-accent/50 ${selectedProblems.find(p => p.id === problem.problem_id)
+                            ? 'bg-accent/50'
                             : ''
-                        }`}
+                          }`}
                         onClick={() => handleProblemSelect({
-                          id: problem.id,
+                          id: problem.problem_id,
                           title: problem.title,
                           difficulty: problem.difficulty
                         })}
@@ -313,13 +316,13 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                           </div>
                         </div>
                         <div className="flex items-center justify-center w-5 h-5 rounded-full border">
-                          {selectedProblems.find(p => p.id === problem.id) && (
+                          {selectedProblems.find(p => p.id === problem.problem_id) && (
                             <Check className="h-3 w-3 text-primary" />
                           )}
                         </div>
                       </div>
                     ))}
-                    
+
                     {filteredProblems.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                         <p>No problems found</p>
@@ -331,7 +334,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                   </div>
                 </ScrollArea>
               )}
-              
+
               {selectedProblems.length > 0 && (
                 <div>
                   <div className="text-sm font-medium mb-2">Selected Problems ({selectedProblems.length})</div>
@@ -362,8 +365,8 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
               <Button type="button" variant="outline" onClick={onClose} disabled={createChallengeMutation.isPending}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createChallengeMutation.isPending || selectedProblems.length === 0}
               >
                 {createChallengeMutation.isPending ? (
