@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import {
   PlusCircle,
   Users,
@@ -37,13 +36,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { getChallenges, getChallenge } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
-import { generateMockChallenges } from "@/api/mockChallengeData";
+import { useChallenges } from "@/services/useChallenges";
 
 // Mock creator data to use until backend provides this
 interface MockCreator {
@@ -86,37 +84,28 @@ const MinimalChallenges = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const navigate = useNavigate();
+
   const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
   const { data: problems, isLoading: problemsLoading } = useProblemList();
+
+  // Use real data from API
+  const { data: activeChallenges, isLoading: activeChallengesLoading } = useChallenges({ 
+    active: true 
+  });
+  const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({ 
+    isPrivate: false 
+  });
+  const { data: privateChallenges, isLoading: privateChallengesLoading } = useChallenges({ 
+    isPrivate: true 
+  });
 
   // Calculate total problems completed
   const totalProblemsDone = problemStats ? (
     problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
   ) : 0;
 
-  // Use mock challenges for now - these would be replaced with actual API calls
-  const mockActiveChallenges = generateMockChallenges(5).map(c => ({...c, isActive: true}));
-  const mockPublicChallenges = generateMockChallenges(8).filter(c => !c.isPrivate).map(c => ({...c, isActive: false}));
-  const mockPrivateChallenges = generateMockChallenges(6).filter(c => c.isPrivate).map(c => ({...c, isActive: false}));
-
-  const { data: activeChallenges, isLoading: activeChallengesLoading, refetch: refetchChallenges } = useQuery({
-    queryKey: ["active-challenges"],
-    queryFn: () => Promise.resolve(mockActiveChallenges.map(c => enrichChallengeWithMockData(c, true))),
-  });
-
-  const { data: publicChallenges, isLoading: publicChallengesLoading } = useQuery({
-    queryKey: ["public-challenges-history"],
-    queryFn: () => Promise.resolve(mockPublicChallenges.map(c => enrichChallengeWithMockData(c, false))),
-  });
-
-  const { data: privateChallenges, isLoading: privateChallengesLoading } = useQuery({
-    queryKey: ["private-challenges-history"],
-    queryFn: () => Promise.resolve(mockPrivateChallenges.map(c => enrichChallengeWithMockData(c, false))),
-  });
-
   const loadChallenge = async (id: string) => {
     try {
-      // For now, just find the challenge in our mock data
       const challenge = [...(activeChallenges || []), ...(publicChallenges || []), ...(privateChallenges || [])].find(c => c.id === id);
       
       if (challenge) {
@@ -129,12 +118,11 @@ const MinimalChallenges = () => {
   };
 
   const handleChallengeCreated = (newChallenge: Challenge) => {
-    refetchChallenges();
+    
   };
 
   const handleJoinSuccess = (challenge: Challenge) => {
-    setActiveChallenge(challenge);
-    setActiveChallengeId(challenge.id);
+    
   };
 
   const handleQuickMatch = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {

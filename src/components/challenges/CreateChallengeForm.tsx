@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, XCircle, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, PlusCircle, CheckCircle2, XCircle, Calendar as CalendarIcon, Trophy, Flag, Brain } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,26 +23,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { useProblemList } from "@/services/useProblemList";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createChallenge } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
-
-interface CreateChallengeFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess?: (challenge: Challenge) => void;
-}
+import { useProblemList } from "@/services/useProblemList";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -56,8 +43,13 @@ const formSchema = z.object({
   timeLimit: z.number().min(300, {
     message: "Time limit must be at least 5 minutes.",
   }).default(3600),
-  scheduledStart: z.date().optional(),
 });
+
+interface CreateChallengeFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (challenge: Challenge) => void;
+}
 
 const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   isOpen,
@@ -77,7 +69,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       isPrivate: false,
       accessCode: "",
       timeLimit: 3600,
-      scheduledStart: undefined,
     },
   });
 
@@ -97,15 +88,31 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     }
   };
 
+  const getDifficultyIcon = (difficulty: string) => {
+    switch (difficulty) {
+      case "Easy":
+        return <Flag className="h-4 w-4 text-green-500" />;
+      case "Medium":
+        return <Brain className="h-4 w-4 text-yellow-500" />;
+      case "Hard":
+        return <Trophy className="h-4 w-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
+    if (selectedProblems.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one problem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Convert the date to seconds and nanos format
-      let startTime;
-      if (formData.scheduledStart) {
-        startTime = Math.floor(formData.scheduledStart.getTime() / 1000);
-      }
-
       const newChallenge = await createChallenge({
         title: formData.title,
         difficulty: formData.difficulty,
@@ -113,7 +120,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         isPrivate: formData.isPrivate,
         timeLimit: formData.timeLimit,
         accessCode: formData.isPrivate ? formData.accessCode : undefined,
-        startTime
       });
 
       toast({
@@ -142,7 +148,10 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
-          <DialogTitle>Create New Challenge</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-primary" />
+            Create New Challenge
+          </DialogTitle>
           <DialogDescription>
             Design your own coding challenge and invite friends to compete!
           </DialogDescription>
@@ -177,9 +186,18 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
+                        <SelectItem value="Easy" className="flex items-center gap-2">
+                          <Flag className="h-4 w-4 text-green-500" />
+                          Easy
+                        </SelectItem>
+                        <SelectItem value="Medium" className="flex items-center gap-2">
+                          <Brain className="h-4 w-4 text-yellow-500" />
+                          Medium
+                        </SelectItem>
+                        <SelectItem value="Hard" className="flex items-center gap-2">
+                          <Trophy className="h-4 w-4 text-red-500" />
+                          Hard
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -195,9 +213,9 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Private Challenge</FormLabel>
-                    <FormDescription>
+                    <DialogDescription>
                       Only users with the access code can join.
-                    </FormDescription>
+                    </DialogDescription>
                   </div>
                   <FormControl>
                     <Checkbox
@@ -236,6 +254,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                       type="number"
                       placeholder="Enter time limit in seconds"
                       {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -243,68 +262,52 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="scheduledStart"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Scheduled Start</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="center" side="bottom">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date < new Date()
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div>
+            <div className="space-y-4">
               <FormLabel>Select Problems</FormLabel>
               {problemsLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <div className="flex justify-center p-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
               ) : (
-                <div className="max-h-48 overflow-y-auto space-y-2 p-2 border rounded-md">
-                  {problems?.map((problem) => (
-                    <div key={problem.id} className="flex items-center justify-between">
-                      <label
-                        htmlFor={`problem-${problem.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed flex-1"
+                <ScrollArea className="h-[200px] rounded-md border p-4">
+                  <div className="space-y-4">
+                    {problems?.map((problem) => (
+                      <div
+                        key={problem.id}
+                        className="flex items-center justify-between space-x-4 rounded-lg border p-3 hover:bg-accent/50 transition-colors"
                       >
-                        {problem.title}
-                      </label>
-                      <Checkbox
-                        id={`problem-${problem.id}`}
-                        checked={selectedProblems.find(p => p.id === problem.id) !== undefined}
-                        onCheckedChange={() => handleProblemSelect(problem.id, problem.title)}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-medium">{problem.title}</h4>
+                            <Badge variant="outline" className="text-xs">
+                              {problem.difficulty}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Checkbox
+                          id={`problem-${problem.id}`}
+                          checked={selectedProblems.find(p => p.id === problem.id) !== undefined}
+                          onCheckedChange={() => handleProblemSelect(problem.id, problem.title)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+              {selectedProblems.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedProblems.map((problem) => (
+                    <Badge
+                      key={problem.id}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {problem.title}
+                      <XCircle
+                        className="h-3 w-3 cursor-pointer hover:text-destructive"
+                        onClick={() => handleProblemSelect(problem.id, problem.title)}
                       />
-                    </div>
+                    </Badge>
                   ))}
                 </div>
               )}
@@ -314,11 +317,17 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
               <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || selectedProblems.length === 0}>
                 {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
                 ) : (
-                  "Create Challenge"
+                  <>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create Challenge
+                  </>
                 )}
               </Button>
             </DialogFooter>
@@ -330,19 +339,3 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
 };
 
 export default CreateChallengeForm;
-
-interface FormDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
-  children?: React.ReactNode;
-}
-
-function FormDescription({
-  className,
-  ...props
-}: FormDescriptionProps) {
-  return (
-    <p
-      className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    />
-  )
-}
