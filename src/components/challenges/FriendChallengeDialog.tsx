@@ -61,8 +61,8 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
         description: `Challenge sent to ${selectedUser.userName}!`,
       });
       
-      if (onChallengeUser) {
-        onChallengeUser(selectedUser.userId || '');
+      if (onChallengeUser && selectedUser.userID) {
+        onChallengeUser(selectedUser.userID);
       }
       
       setIsChallenging(false);
@@ -102,7 +102,7 @@ const FriendChallengeDialog: React.FC<FriendChallengeDialogProps> = ({
                   <div className="divide-y">
                     {searchResults.map((user) => (
                       <div
-                        key={user.userId}
+                        key={user.userID}
                         className="p-3 hover:bg-accent/50 cursor-pointer transition-colors flex items-center gap-3"
                         onClick={() => handleSelectUser(user)}
                       >

@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { Trophy, Users, Lock, Calendar, ArrowUpRight, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -6,23 +7,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useQueries } from "@tanstack/react-query";
 import { getUserProfile } from "@/api/userApi";
-
-// Define types for clarity (assuming these are in "@/api/types")
-interface Challenge {
-  id: string;
-  title: string;
-  isPrivate: boolean;
-  participantIds?: string[];
-  participantUsers?: UserProfile[];
-  createdAt: number;
-  difficulty: "Easy" | "Medium" | "Hard";
-}
-
-interface UserProfile {
-  userID: string;
-  userName?: string;
-  avatarURL?: string;
-}
+import { Challenge, UserProfile } from "@/api/types";
 
 // Custom hook to fetch participant profiles
 const useChallengeParticipantProfiles = (participantIds: string[] | undefined): UserProfile[] => {
@@ -49,7 +34,8 @@ const useChallengeParticipantProfiles = (participantIds: string[] | undefined): 
 const ChallengeItem: React.FC<{ challenge: Challenge }> = ({ challenge }) => {
   const profiles = useChallengeParticipantProfiles(challenge.participantIds);
 
-  // Update challenge with participant users
+  // Update challenge with participant users (converting profiles to expected shape if needed)
+  // This handles the compatibility issue
   challenge.participantUsers = profiles;
 
   return (
