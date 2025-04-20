@@ -1,101 +1,95 @@
 
 import { Link } from "react-router-dom";
+import { format, fromUnixTime } from "date-fns";
+import { Users, FileCode, Clock, Lock, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Users, FileCode, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Challenge } from "@/api/types";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 interface ChallengeCardProps {
-  id: string;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  createdBy: {
-    id: string;
-    username: string;
-    profileImage?: string;
-  };
-  participants: number;
-  problemCount: number;
-  createdAt: string;
+  challenge: Challenge;
+  onJoin?: () => void;
+  variant?: "default" | "private";
 }
 
-const ChallengeCard = ({
-  id,
-  title,
-  difficulty,
-  createdBy,
-  participants,
-  problemCount,
-  createdAt
-}: ChallengeCardProps) => {
-  // Define difficulty class mappings
-  const difficultyClasses = {
-    Easy: "bg-green-500 text-white dark:bg-green-600",
-    Medium: "bg-amber-500 text-white dark:bg-amber-600",
-    Hard: "bg-red-500 text-white dark:bg-red-600"
-  };
-
-  // Format relative time (e.g., "2 hours ago", "1 day ago")
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return 'just now';
-    
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
+export const ChallengeCard = ({ challenge, onJoin, variant = "default" }: ChallengeCardProps) => {
+  const { data: userProfiles } = useUserProfiles([challenge.creatorId, ...(challenge.participantIds || [])]);
+  
+  const creator = userProfiles?.find(profile => profile.userID === challenge.creatorId);
+  
+  const formatDate = (timestamp: number) => {
+    try {
+      const date = fromUnixTime(timestamp);
+      return format(date, "MMM d, yyyy");
+    } catch {
+      return "Invalid date";
+    }
   };
 
   return (
-    <div className="bg-card dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className="text-xl font-bold mb-2">{title}</h3>
-            <div className="flex items-center gap-2">
-              <img 
-                src={createdBy.profileImage || "https://i.pravatar.cc/150?img=1"} 
-                alt={createdBy.username}
-                className="w-6 h-6 rounded-full"
-              />
-              <span className="text-sm text-muted-foreground">Created by {createdBy.username}</span>
+    <Card className={cn(
+      "hover:shadow-md transition-shadow",
+      variant === "private" && "border-amber-200/30 dark:border-amber-800/30"
+    )}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            {challenge.title}
+            {challenge.isPrivate && <Lock className="h-4 w-4 text-amber-500" />}
+          </CardTitle>
+          <div className={cn(
+            "px-2 py-1 text-xs font-medium rounded",
+            variant === "private" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" :
+            "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+          )}>
+            {challenge.difficulty}
+          </div>
+        </div>
+        <CardDescription className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          Created: {formatDate(challenge.createdAt)}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img
+              src={creator?.avatarURL || "https://github.com/shadcn.png"}
+              alt={creator?.userName || "Unknown"}
+              className="w-8 h-8 rounded-full"
+            />
+            <div>
+              <p className="text-sm font-medium">{creator?.userName || "Unknown"}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
             </div>
           </div>
-          <div className={cn(
-            "text-xs font-medium px-3 py-1.5 rounded-full",
-            difficultyClasses[difficulty]
-          )}>
-            {difficulty}
+          <div className="text-right">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">{challenge.participantIds?.length || 0} participants</span>
+              <Users className="h-4 w-4 text-zinc-500" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemIds?.length || 0} problems</span>
+              <FileCode className="h-4 w-4 text-zinc-500" />
+            </div>
           </div>
         </div>
-        
-        <div className="grid grid-cols-2 mb-4 gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Users className="w-4 h-4 text-zinc-500" />
-            <span>{participants} participants</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <FileCode className="w-4 h-4 text-zinc-500" />
-            <span>{problemCount} problems</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm col-span-2">
-            <Clock className="w-4 h-4 text-zinc-500" />
-            <span>Created {formatRelativeTime(createdAt)}</span>
-          </div>
-        </div>
-        
-        <Button variant="default" className="w-full gap-2 bg-green-500 hover:bg-green-600">
-          <span className="h-4 w-4" aria-hidden="true">⚡</span>
-          Start Coding
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        <Button 
+          size="sm" 
+          onClick={onJoin}
+          className={cn(
+            variant === "private" ? "bg-amber-500 hover:bg-amber-600" : "bg-green-500 hover:bg-green-600"
+          )}
+        >
+          {challenge.isActive ? "Continue" : "Join"} Challenge
+          <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 
