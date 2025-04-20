@@ -106,7 +106,7 @@ const ChallengesList: React.FC<ChallengesListProps> = ({ challenges = [] }) => {
               </Badge>
             </div>
 
-            {challenge.participantUsers && challenge.participantUsers.length > 0 && (
+            {challenge.userProblemMetadata && challenge.participantUsers.length > 0 && (
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex -space-x-2">
                   {challenge.participantUsers.slice(0, 3).map((user, idx) => (

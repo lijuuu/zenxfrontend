@@ -176,26 +176,6 @@ export interface Comment {
   replies?: Comment[];
 }
 
-// Challenge related types
-export interface Challenge {
-  id: string;
-  title: string;
-  creator_id?: string;
-  difficulty: string;
-  access_code?: string;
-  problem_ids?: string[];
-  time_limit?: number;
-  created_at: number;
-  participant_ids?: string[];
-  status?: string;
-  isPrivate?: boolean;
-  participants?: number;
-  participantUsers?: { avatar?: string; name?: string }[];
-  
-  // Response fields for API calls like joinChallenge
-  success?: boolean;
-  challenge?: Challenge; 
-}
 
 // Chat related types
 export interface ChatChannel {
@@ -526,4 +506,192 @@ export interface ChallengeResponse {
   success: boolean;
   challenge?: Challenge;
   message?: string;
+}
+
+
+// Challenge represents a coding challenge
+export interface Challenge {
+  id: string;
+  title: string;
+  creatorId: string;
+  difficulty: string;
+  isPrivate: boolean;
+  status: string;
+  password: string; // Only for private challenges
+  problemIds: string[];
+  timeLimit: number;
+  createdAt: number;
+  isActive: boolean;
+  participantIds: string[];
+  userProblemMetadata: { [key: string]: ProblemMetadataList };
+  startTime: number;
+  endTime: number;
+}
+
+// ChallengeProblemMetadata represents metadata for a problem in a challenge
+export interface ChallengeProblemMetadata {
+  problemId: string;
+  score: number;
+  timeTaken: number;
+  completedAt: number;
+}
+
+// ProblemMetadataList holds a list of challenge problem metadata
+export interface ProblemMetadataList {
+  challengeProblemMetadata: ChallengeProblemMetadata[];
+}
+
+// LeaderboardEntry represents a single entry in the leaderboard
+export interface LeaderboardEntry {
+  userId: string;
+  problemsCompleted: number;
+  totalScore: number;
+  rank: number;
+}
+
+// UserStats represents user statistics across challenges
+export interface UserStats {
+  userId: string;
+  problemsCompleted: number;
+  totalTimeTaken: number;
+  challengesCompleted: number;
+  score: number;
+  challengeStats: { [key: string]: ChallengeStat };
+}
+
+// ChallengeStat represents user stats for a specific challenge
+export interface ChallengeStat {
+  rank: number;
+  problemsCompleted: number;
+  totalScore: number;
+}
+
+
+// CreateChallengeRequest represents the request to create a challenge
+export interface CreateChallengeRequest {
+  title: string;
+  creatorId: string;
+  difficulty: string;
+  isPrivate: boolean;
+  problemIds: string[];
+  timeLimit: number;
+  startAt: { seconds: number; nanos: number };
+}
+
+// CreateChallengeResponse represents the response for creating a challenge
+export interface CreateChallengeResponse {
+  id: string;
+  password: string; // Only for private challenges
+  joinUrl: string;
+}
+
+// GetChallengeDetailsRequest represents the request to get challenge details
+export interface GetChallengeDetailsRequest {
+  id: string;
+  userId: string;
+}
+
+// GetChallengeDetailsResponse represents the response for getting challenge details
+export interface GetChallengeDetailsResponse {
+  challenge: Challenge;
+  leaderboard: LeaderboardEntry[];
+  userMetadata: ProblemMetadataList;
+}
+
+// GetPublicChallengesRequest represents the request to get public challenges
+export interface GetPublicChallengesRequest {
+  difficulty: string;
+  isActive: boolean;
+  page: number;
+  pageSize: number;
+  userId: string;
+  includePrivate: boolean;
+}
+
+// GetPublicChallengesResponse represents the response for getting public challenges
+export interface GetPublicChallengesResponse {
+  challenges: Challenge[];
+}
+
+// JoinChallengeRequest represents the request to join a challenge
+export interface JoinChallengeRequest {
+  challengeId: string;
+  userId: string;
+  password?: string; // Optional, required for private challenges
+}
+
+// JoinChallengeResponse represents the response for joining a challenge
+export interface JoinChallengeResponse {
+  challengeId: string;
+  success: boolean;
+  message: string;
+}
+
+// StartChallengeRequest represents the request to start a challenge
+export interface StartChallengeRequest {
+  challengeId: string;
+  userId: string;
+}
+
+// StartChallengeResponse represents the response for starting a challenge
+export interface StartChallengeResponse {
+  success: boolean;
+  startTime: number;
+}
+
+// EndChallengeRequest represents the request to end a challenge
+export interface EndChallengeRequest {
+  challengeId: string;
+  userId: string;
+}
+
+// EndChallengeResponse represents the response for ending a challenge
+export interface EndChallengeResponse {
+  success: boolean;
+  leaderboard: LeaderboardEntry[];
+}
+
+// GetSubmissionStatusRequest represents the request to get submission status
+export interface GetSubmissionStatusRequest {
+  submissionId: string;
+}
+
+// GetSubmissionStatusResponse represents the response for getting submission status
+export interface GetSubmissionStatusResponse {
+  submission: Submission;
+}
+
+// GetChallengeSubmissionsRequest represents the request to get challenge submissions
+export interface GetChallengeSubmissionsRequest {
+  challengeId: string;
+}
+
+// GetChallengeSubmissionsResponse represents the response for getting challenge submissions
+export interface GetChallengeSubmissionsResponse {
+  submissions: Submission[];
+}
+
+// GetUserStatsRequest represents the request to get user stats
+export interface GetUserStatsRequest {
+  userId: string;
+}
+
+// GetUserStatsResponse represents the response for getting user stats
+export interface GetUserStatsResponse {
+  stats: UserStats;
+}
+
+// GetChallengeUserStatsRequest represents the request to get challenge-specific user stats
+export interface GetChallengeUserStatsRequest {
+  challengeId: string;
+  userId: string;
+}
+
+// GetChallengeUserStatsResponse represents the response for getting challenge-specific user stats
+export interface GetChallengeUserStatsResponse {
+  userId: string;
+  problemsCompleted: number;
+  totalScore: number;
+  rank: number;
+  challengeProblemMetadata: ChallengeProblemMetadata[];
 }
