@@ -43,6 +43,7 @@ import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import FriendChallengeDialog from "@/components/challenges/FriendChallengeDialog";
 import { getChallenges, getChallenge, getChallengeInvites } from "@/api/challengeApi";
 import { Challenge } from "@/api/types";
+import ChallengeCard from "@/components/challenges/ChallengeCard";
 
 const Challenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -184,7 +185,7 @@ const Challenges = () => {
                   </Button>
                 </div>
               </div>
-              {/* Other sections omitted for brevity */}
+              
               <Tabs defaultValue="active" className="w-full">
                 <TabsList className="grid grid-cols-4 mb-4">
                   <TabsTrigger value="active">Active</TabsTrigger>
@@ -192,283 +193,111 @@ const Challenges = () => {
                   <TabsTrigger value="private">Private</TabsTrigger>
                   <TabsTrigger value="invites">Invites</TabsTrigger>
                 </TabsList>
+
                 <TabsContent value="active" className="space-y-4">
-                  {!challengesLoading && activeChallengesToRender.map((challenge) => (
-                    <Card
-                      key={challenge.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => loadChallenge(challenge.id)}
-                    >
+                  {challenges?.map((challenge) => (
+                    <div key={challenge.id} onClick={() => loadChallenge(challenge.id)}>
+                      <ChallengeCard challenge={challenge} />
+                    </div>
+                  ))}
+                </TabsContent>
+
+                <TabsContent value="public" className="space-y-4">
+                  {publicChallenges?.map((challenge) => (
+                    <div key={challenge.id} onClick={() => loadChallenge(challenge.id)}>
+                      <ChallengeCard challenge={challenge} />
+                    </div>
+                  ))}
+                </TabsContent>
+
+                <TabsContent value="private" className="space-y-4">
+                  {privateChallenges?.map((challenge) => (
+                    <div key={challenge.id} onClick={() => loadChallenge(challenge.id)}>
+                      <ChallengeCard challenge={challenge} />
+                    </div>
+                  ))}
+                </TabsContent>
+
+                <TabsContent value="invites" className="space-y-4">
+                  {!invitesLoading && invitesToRender.map((invite) => (
+                    <Card key={invite.id} className="cursor-pointer hover:shadow-md transition-shadow">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="flex items-center gap-2">
-                            {challenge.title}
-                            {challenge.isPrivate && (
+                            Challenge Invite: {invite.challengeTitle}
+                            {invite.isPrivate && (
                               <Lock className="h-4 w-4 text-amber-500" />
                             )}
                           </CardTitle>
-                          <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
-                            {challenge.difficulty}
+                          <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded dark:bg-blue-900/30 dark:text-blue-300">
+                            {invite.difficulty}
                           </div>
                         </div>
                         <CardDescription className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> Created: {formatChallengeDate(challenge.createdAt)}
+                          <Users className="h-3 w-3" /> Invited by: {invite.inviterUsername}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={challenge.creatorId?.profileImage || "/default-avatar.png"}
-                              alt={challenge.creatorId?.username || "Unknown"}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <div>
-                              <p className="text-sm font-medium">{challenge.createdId?.username || "Unknown"}</p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium">Problems: {challenge.problemIds?.length || 0}</p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Participants: {challenge.participantIds?.length || 0}</p>
-                          </div>
-                        </div>
+                        <p className="text-sm">
+                          You have been invited to join this challenge. Do you want to accept?
+                        </p>
                       </CardContent>
                       <CardFooter className="flex justify-end gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              Details <ChevronDown className="ml-1 h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-64">
-                            <DropdownMenuLabel>Challenge Details</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem disabled className="flex flex-col items-start">
-                              <span className="font-medium">Participants</span>
-                              {challenge.participantIds?.length ? (
-                                challenge.participantIds.map((id) => (
-                                  <span key={id} className="text-sm text-zinc-600 dark:text-zinc-400">
-                                    User: {id}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className="text-sm text-zinc-600 dark:text-zinc-400">No participants</span>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" className="bg-green-500 hover:bg-green-600">
-                          Join Challenge
+                        <Button variant="outline" size="sm">
+                          Decline
+                        </Button>
+                        <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
+                          Accept Invite
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </CardFooter>
                     </Card>
                   ))}
-                  {(challengesLoading || activeChallengesToRender.length === 0) && (
+                  {invitesLoading && (
                     <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No active challenges</p>
-                      <Button
-                        className="mt-4 bg-green-500 hover:bg-green-600"
-                        onClick={() => setIsCreateModalOpen(true)}
-                      >
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Create Challenge
-                      </Button>
+                      <p className="text-zinc-500 dark:text-zinc-400">Loading invites...</p>
+                    </div>
+                  )}
+                  {!invitesLoading && invitesToRender.length === 0 && (
+                    <div className="text-center py-10">
+                      <p className="text-zinc-500 dark:text-zinc-400">No invites found</p>
                     </div>
                   )}
                 </TabsContent>
-                <TabsContent value="public" className="space-y-4">
-                  {!publicChallengesLoading && activePublicChallengesToRender.map((challenge) => (
-                    <Card
-                      key={challenge.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => loadChallenge(challenge.id)}
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <CardTitle>{challenge.title}</CardTitle>
-                          <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
-                            {challenge.difficulty}
-                          </div>
-                        </div>
-                        <CardDescription className="flex items-center gap-1">
-                          <Unlock className="h-3 w-3 text-green-500" /> Public Challenge
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={challenge.createdBy?.profileImage || "/default-avatar.png"}
-                              alt={challenge.createdBy?.username || "Unknown"}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <div>
-                              <p className="text-sm font-medium">{challenge.createdBy?.username || "Unknown"}</p>
-                              <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                <Calendar className="h-3 w-3" />
-                                <span>{formatChallengeDate(challenge.createdAt)}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">{challenge.participantIds?.length || 0} participants</span>
-                              <Users className="h-4 w-4 text-zinc-500" />
-                            </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemIds?.length || 0} problems</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-end gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              Details <ChevronDown className="ml-1 h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-64">
-                            <DropdownMenuLabel>Challenge Details</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem disabled className="flex flex-col items-start">
-                              <span className="font-medium">Participants</span>
-                              {challenge.participantIds?.length ? (
-                                challenge.participantIds.map((id) => (
-                                  <span key={id} className="text-sm text-zinc-600 dark:text-zinc-400">
-                                    User: {id}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className="text-sm text-zinc-600 dark:text-zinc-400">No participants</span>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" className="bg-green-500 hover:bg-green-600">
-                          Join Challenge
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                  {(publicChallengesLoading || activePublicChallengesToRender.length === 0) && (
-                    <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No public challenges found</p>
-                      <Button
-                        className="mt-4 bg-green-500 hover:bg-green-600"
-                        onClick={() => setIsCreateModalOpen(true)}
-                      >
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Create Public Challenge
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
-                <TabsContent value="private" className="space-y-4">
-                  {!privateChallengesLoading && activePrivateChallengesToRender.map((challenge) => (
-                    <Card
-                      key={challenge.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow border-amber-200/30 dark:border-amber-800/30"
-                      onClick={() => loadChallenge(challenge.id)}
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-2">
-                            {challenge.title}
-                            <Lock className="h-4 w-4 text-amber-500" />
-                          </CardTitle>
-                          <div className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded dark:bg-amber-900/30 dark:text-amber-300">
-                            {challenge.difficulty}
-                          </div>
-                        </div>
-                        <CardDescription className="flex items-center gap-1">
-                          <Lock className="h-3 w-3 text-amber-500" /> Private Challenge
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={challenge.createdBy?.profileImage || "/default-avatar.png"}
-                              alt={challenge.createdBy?.username || "Unknown"}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <div>
-                              <p className="text-sm font-medium">{challenge.createdBy?.username || "Unknown"}</p>
-                              <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                <Calendar className="h-3 w-3" />
-                                <span>{formatChallengeDate(challenge.createdAt)}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">{challenge.participantIds?.length || 0} participants</span>
-                              <Users className="h-4 w-4 text-zinc-500" />
-                            </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemIds?.length || 0} problems</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-end gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              Details <ChevronDown className="ml-1 h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-64">
-                            <DropdownMenuLabel>Challenge Details</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem disabled className="flex flex-col items-start">
-                              <span className="font-medium">Participants</span>
-                              {challenge.participantIds?.length ? (
-                                challenge.participantIds.map((id) => (
-                                  <span key={id} className="text-sm text-zinc-600 dark:text-zinc-400">
-                                    User: {id}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className="text-sm text-zinc-600 dark:text-zinc-400">No participants</span>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" className="bg-amber-500 hover:bg-amber-600">
-                          Continue Challenge
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                  {(privateChallengesLoading || activePrivateChallengesToRender.length === 0) && (
-                    <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No private challenges found</p>
-                      <div className="flex items-center justify-center gap-3 mt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsJoinModalOpen(true)}
-                        >
-                          <Lock className="h-4 w-4 mr-2" />
-                          Join with Code
-                        </Button>
-                        <Button
-                          className="bg-green-500 hover:bg-green-600"
-                          onClick={() => setIsCreateModalOpen(true)}
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Create Private Challenge
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </TabsContent>
-                {/* Invites tab unchanged */}
               </Tabs>
               <SubmissionHistory />
             </div>
-            {/* Right column unchanged */}
+            <div className="lg:col-span-1 space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                  <CardDescription>
+                    Start or join a challenge quickly.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full bg-green-500 hover:bg-green-600">
+                    <Zap className="h-4 w-4 mr-2" />
+                    Quick Match
+                  </Button>
+                  <Button onClick={handleChallengeAFriend} className="w-full">
+                    <Users className="h-4 w-4 mr-2" />
+                    Challenge a Friend
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Activity</CardTitle>
+                  <CardDescription>
+                    Recent activities and submissions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>No recent activity.</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </main>
       )}
