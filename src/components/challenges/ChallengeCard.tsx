@@ -3,21 +3,30 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Users, FileCode, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Challenge } from "@/api/types";
-import { useUserProfile, useUserProfiles } from "@/hooks/useUserProfiles";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ChallengeCardProps {
-  challenge: Challenge;
+  id: string;
+  title: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  createdBy: {
+    id: string;
+    username: string;
+    profileImage?: string;
+  };
+  participants: number;
+  problemCount: number;
+  createdAt: string;
 }
 
-const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
-  // Fetch creator profile
-  const { data: creatorProfile } = useUserProfile(challenge.creatorId);
-  
-  // Fetch participant profiles
-  const { profiles: participantProfiles } = useUserProfiles(challenge.participantIds || []);
-
+const ChallengeCard = ({
+  id,
+  title,
+  difficulty,
+  createdBy,
+  participants,
+  problemCount,
+  createdAt
+}: ChallengeCardProps) => {
   // Define difficulty class mappings
   const difficultyClasses = {
     Easy: "bg-green-500 text-white dark:bg-green-600",
@@ -26,8 +35,8 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
   };
 
   // Format relative time (e.g., "2 hours ago", "1 day ago")
-  const formatRelativeTime = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
+  const formatRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
@@ -48,61 +57,38 @@ const ChallengeCard = ({ challenge }: ChallengeCardProps) => {
       <div className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold mb-2">{challenge.title}</h3>
+            <h3 className="text-xl font-bold mb-2">{title}</h3>
             <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={creatorProfile?.profileImage} />
-                <AvatarFallback>{creatorProfile?.username?.[0] || '?'}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground">
-                Created by {creatorProfile?.username || 'Unknown'}
-              </span>
+              <img 
+                src={createdBy.profileImage || "https://i.pravatar.cc/150?img=1"} 
+                alt={createdBy.username}
+                className="w-6 h-6 rounded-full"
+              />
+              <span className="text-sm text-muted-foreground">Created by {createdBy.username}</span>
             </div>
           </div>
           <div className={cn(
             "text-xs font-medium px-3 py-1.5 rounded-full",
-            difficultyClasses[challenge.difficulty as keyof typeof difficultyClasses]
+            difficultyClasses[difficulty]
           )}>
-            {challenge.difficulty}
+            {difficulty}
           </div>
         </div>
         
         <div className="grid grid-cols-2 mb-4 gap-4">
           <div className="flex items-center gap-2 text-sm">
             <Users className="w-4 h-4 text-zinc-500" />
-            <span>{challenge.participantIds?.length || 0} participants</span>
+            <span>{participants} participants</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <FileCode className="w-4 h-4 text-zinc-500" />
-            <span>{challenge.problemIds?.length || 0} problems</span>
+            <span>{problemCount} problems</span>
           </div>
           <div className="flex items-center gap-2 text-sm col-span-2">
             <Clock className="w-4 h-4 text-zinc-500" />
-            <span>Created {formatRelativeTime(challenge.createdAt)}</span>
+            <span>Created {formatRelativeTime(createdAt)}</span>
           </div>
         </div>
-
-        {challenge.participantIds && challenge.participantIds.length > 0 && (
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex -space-x-2">
-              {challenge.participantIds.slice(0, 3).map((userId) => {
-                const profile = participantProfiles[userId];
-                return (
-                  <Avatar key={userId} className="h-6 w-6 border-2 border-background">
-                    <AvatarImage src={profile?.profileImage} />
-                    <AvatarFallback>{profile?.username?.[0] || '?'}</AvatarFallback>
-                  </Avatar>
-                );
-              })}
-              {challenge.participantIds.length > 3 && (
-                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs border-2 border-background">
-                  +{challenge.participantIds.length - 3}
-                </div>
-              )}
-            </div>
-            <span className="text-xs text-muted-foreground">Participating</span>
-          </div>
-        )}
         
         <Button variant="default" className="w-full gap-2 bg-green-500 hover:bg-green-600">
           <span className="h-4 w-4" aria-hidden="true">⚡</span>
