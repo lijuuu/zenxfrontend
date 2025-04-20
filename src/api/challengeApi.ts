@@ -360,7 +360,6 @@ export const fetchParticipantProfiles = async (userIds: string[]) => {
 
 // Add the new user challenge history function
 export const getUserChallengeHistory = async (params: {
-  userId: string;
   isPrivate?: boolean;
   page?: number;
   pageSize?: number;
@@ -368,8 +367,7 @@ export const getUserChallengeHistory = async (params: {
   try {
     const response = await axiosInstance.get('/challenges/history', {
       params: {
-        user_id: params.userId,
-        is_private: params.isPrivate !== undefined ? String(params.isPrivate) : undefined,
+        is_private: params.isPrivate,
         page: params.page,
         page_size: params.pageSize
       },

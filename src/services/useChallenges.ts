@@ -265,18 +265,14 @@ export const useParticipantProfiles = (challengeId?: string, participantIds?: st
 };
 
 export const useUserChallengeHistory = (params?: ChallengeHistoryParams) => {
-  const user = useAppSelector(state => state.auth.userProfile);
-  const userId = params?.userId || user?.userID;
   
   return useQuery({
-    queryKey: ['user-challenge-history', userId, params?.isPrivate, params?.page, params?.pageSize],
+    queryKey: ['user-challenge-history', params?.isPrivate, params?.page, params?.pageSize],
     queryFn: () => challengeApi.getUserChallengeHistory({
-      userId: userId!,
       isPrivate: params?.isPrivate,
       page: params?.page || 1,
       pageSize: params?.pageSize || 10
     }),
-    enabled: !!userId,
     meta: {
       onError: (error: Error) => {
         // Handle error gracefully without showing toast

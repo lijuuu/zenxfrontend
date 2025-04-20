@@ -69,6 +69,9 @@ const MinimalChallenges = () => {
     isPrivate: true
   });
 
+  console.log('publicChallengeHistory',publicChallengeHistory)
+  console.log('privateChallengeHistory',privateChallengeHistory)
+
   // Calculate total problems completed
   const totalProblemsDone = problemStats
     ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
