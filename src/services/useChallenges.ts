@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
@@ -85,8 +86,10 @@ export const useCreateChallenge = () => {
       // Add creator ID from auth state
       creatorId: user?.userID || ''
     }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate all relevant queries to trigger refetches
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
+      queryClient.invalidateQueries({ queryKey: ['user-challenge-history'] });
       toast.success('Challenge created successfully');
     },
     onError: (error: Error) => {
@@ -106,6 +109,7 @@ export const useJoinChallenge = () => {
       challengeApi.joinChallenge(challengeId, accessCode, user?.userID),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
+      queryClient.invalidateQueries({ queryKey: ['challenge-details'] });
       toast.success(data.message || 'Successfully joined the challenge');
     },
     onError: (error: Error) => {
@@ -125,6 +129,7 @@ export const useStartChallenge = () => {
       challengeApi.startChallenge(challengeId, user?.userID),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenge'] });
+      queryClient.invalidateQueries({ queryKey: ['challenge-details'] });
       toast.success('Challenge started');
     },
     onError: (error: Error) => {

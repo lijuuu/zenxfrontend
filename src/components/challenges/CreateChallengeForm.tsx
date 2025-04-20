@@ -35,7 +35,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Challenge } from "@/api/challengeTypes";
 import { useProblemList } from "@/services/useProblemList";
-import { useCreateChallenge } from "@/services/useChallenges";
+import { useCreateChallenge, useUserChallengeHistory } from "@/services/useChallenges";
+import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -43,9 +46,19 @@ const formSchema = z.object({
   }),
   difficulty: z.enum(["Easy", "Medium", "Hard"]).default("Easy"),
   isPrivate: z.boolean().default(false),
-  accessCode: z.string().min(4, {
-    message: "Access code must be at least 4 characters.",
-  }).optional(),
+  accessCode: z.string().optional()
+    .refine(
+      (val, ctx) => {
+        // Only validate if isPrivate is true
+        if (ctx.path[0] === 'accessCode' && ctx.data.isPrivate) {
+          return val && val.length >= 4;
+        }
+        return true;
+      },
+      {
+        message: "Access code must be at least 4 characters for private challenges.",
+      }
+    ),
   timeLimit: z.number().min(300, {
     message: "Time limit must be at least 5 minutes.",
   }).default(3600),
@@ -73,6 +86,9 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   const [activeTab, setActiveTab] = useState("metadata");
   const { data: problems, isLoading: problemsLoading } = useProblemList();
   const createChallengeMutation = useCreateChallenge();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const user = useAppSelector(state => state.auth.userProfile);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,6 +100,15 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       timeLimit: 3600,
     },
   });
+
+  // Watch isPrivate to conditionally validate accessCode
+  const isPrivate = form.watch("isPrivate");
+
+  useEffect(() => {
+    if (!isPrivate) {
+      form.setValue("accessCode", "");
+    }
+  }, [isPrivate, form]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -176,9 +201,19 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         accessCode: formData.isPrivate ? formData.accessCode : undefined,
       });
 
+      // Invalidate queries to refetch the latest data
+      queryClient.invalidateQueries({ queryKey: ['challenges'] });
+      queryClient.invalidateQueries({ queryKey: ['user-challenge-history'] });
+
       if (onSuccess) {
         onSuccess(newChallenge);
       }
+
+      // Navigate to the challenge room
+      toast.success(`Challenge "${formData.title}" created! Redirecting to challenge room...`);
+      setTimeout(() => {
+        navigate(`/challenge-room/${newChallenge.id}`);
+      }, 1500);
 
       onClose();
     } catch (error) {

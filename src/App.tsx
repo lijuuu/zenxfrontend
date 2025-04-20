@@ -1,97 +1,92 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Routes, Route } from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "@/store";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import Dashboard from "./pages/Dashboard";
-import Home from "./pages/Home";
-import Leaderboard from "./pages/Leaderboard";
-import NotFound from "./pages/NotFound";
-import Problems from "./pages/Problems";
-import Profile from "./pages/Profile";
-// import Challenges from "./pages/Challenges";
-import Chat from "./pages/Chat";
-import Settings from "./pages/Settings";
-import Compiler from "./pages/Compiler";
+
+import { Route, Routes } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
+import { AccentColorProvider } from "./contexts/AccentColorContext";
+import ThemeSwitcher from "./components/common/ThemeSwitcher";
+import { AuthProvider } from "./hooks/useAuth";
+import LoginPage from "./pages/Auth/LoginPage";
+import RegisterPage from "./pages/Auth/Register/RegisterPage";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import VerifyEmail from "./pages/Auth/VerifyEmail";
-import Login from "./pages/Auth/LoginPage";
-import SignupForm from "./pages/Auth/Register/RegisterPage";
-import VerifyInfo from "./pages/Auth/VerifyInfo"
-import QuickMatch from "./components/challenges/QuickMatch";
-import AdminDashboard from "./pages-admin/AdminDashboard";
-import MinimalChallenge from "./pages/MinimalChallenges";
-import { useEffect } from "react";
+import SetUpTwoFactor from "./pages/Auth/SetUpTwoFactor";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import ProblemsPage from "./pages/Problems";
+import NotFound from "./pages/NotFound";
+import Home from "./pages/Home";
+import Compiler from "./pages/Compiler";
+import Settings from "./pages/Settings";
+import MinimalChallenges from "./pages/MinimalChallenges";
+import ChallengeRoom from "./components/challenges/ChallengeRoom";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import VerifyInfo from "./pages/Auth/VerifyInfo";
+import Leaderboard from "./pages/Leaderboard";
+import Chat from "./pages/Chat";
+
+import AdminPanel from "./pages-admin/AdminDashboard";
+import ProblemDetails from "./pages-admin/ProblemsDetails";
+import TestCases from "./pages-admin/TestCases";
+import ApiRouteHistory from "./pages-admin/ApiResponseHistory";
+import LanguagesList from "./pages-admin/Languages";
+import Validate from "./pages-admin/Validate";
+import CodesProblemsList from "./pages-admin/ProblemsList";
 
 // Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // default: true
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-})
+const queryClient = new QueryClient();
 
-const AppContent = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.classList.add('dark');
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/problems" element={<Problems />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/:username" element={<Profile />} />
-        <Route path="/profile/:userid" element={<Profile />} />
-        <Route path="/challenges" element={<MinimalChallenge />} />
-        {/* <Route path="/challenges2" element={<Challenges />} /> */}
-        <Route path="/quick-match" element={<QuickMatch />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/playground" element={<Compiler />} />
-
-        {/* Auth Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignupForm />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-info" element={<VerifyInfo />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-
-        {/*Admin Dashboard*/}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
-        {/* Catch-all route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
-      <Sonner />
-    </div>
-  );
-};
-
-const App = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        <TooltipProvider>
-          <AppContent />
-        </TooltipProvider>
-      </Provider>
+      <ThemeProvider>
+        <AccentColorProvider>
+          <AuthProvider>
+            <Toaster richColors position="top-center" />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/auth/register" element={<RegisterPage />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
+              <Route path="/auth/setup-2fa" element={<SetUpTwoFactor />} />
+              <Route path="/auth/verify-info" element={<VerifyInfo />} />
+
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile/:id" element={<Profile />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/problems" element={<ProblemsPage />} />
+              <Route path="/challenges" element={<MinimalChallenges />} />
+              <Route path="/challenge-room/:challengeId" element={<ChallengeRoom />} />
+              <Route path="/compiler" element={<Compiler />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/chat" element={<Chat />} />
+
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/problem-detail/:id" element={<ProblemDetails />} />
+              <Route path="/admin/testcases/:id" element={<TestCases />} />
+              <Route path="/admin/api-history" element={<ApiRouteHistory />} />
+              <Route path="/admin/languages" element={<LanguagesList />} />
+              <Route path="/admin/validate" element={<Validate />} />
+              <Route path="/admin/problems" element={<CodesProblemsList />} />
+
+              {/* Catch all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <ThemeSwitcher />
+          </AuthProvider>
+        </AccentColorProvider>
+      </ThemeProvider>
+      <ReactQueryDevtools />
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

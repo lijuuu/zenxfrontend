@@ -16,6 +16,7 @@ import {
   Copy,
   Loader2,
   History,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import MainNavbar from "@/components/common/MainNavbar";
@@ -37,7 +38,7 @@ import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
 import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
-import { useChallenges, useUserChallengeHistory } from "@/services/useChallenges";
+import { useChallenges, useUserChallengeHistory, useJoinChallenge } from "@/services/useChallenges";
 import { useAppSelector } from "@/hooks/useAppSelector";
 
 const MinimalChallenges = () => {
@@ -50,15 +51,16 @@ const MinimalChallenges = () => {
 
   const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
 
-  // Use real data from API
+  const joinChallengeMutation = useJoinChallenge();
+
   const { data: activeChallenges, isLoading: activeChallengesLoading } = useChallenges({
     active: true,
+    pageSize: 10
   });
   const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({
     isPrivate: false,
   });
   
-  // Challenge history
   const { data: publicChallengeHistory, isLoading: publicHistoryLoading } = useUserChallengeHistory({
     userId: user?.userID,
     isPrivate: false
@@ -72,7 +74,6 @@ const MinimalChallenges = () => {
   console.log('publicChallengeHistory',publicChallengeHistory)
   console.log('privateChallengeHistory',privateChallengeHistory)
 
-  // Calculate total problems completed
   const totalProblemsDone = problemStats
     ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
     : 0;
@@ -96,39 +97,45 @@ const MinimalChallenges = () => {
   };
 
   const handleChallengeCreated = (newChallenge: Challenge) => {
-    // Refresh challenge list
     toast.success(`Challenge "${newChallenge.title}" created successfully!`);
   };
 
+  const handleJoinChallenge = async (challenge: Challenge) => {
+    if (!challenge.id) return;
+
+    try {
+      await joinChallengeMutation.mutateAsync({ 
+        challengeId: challenge.id,
+        accessCode: challenge.isPrivate ? challenge.accessCode : undefined 
+      });
+      
+      navigate(`/challenge-room/${challenge.id}`);
+    } catch (error) {
+      console.error("Failed to join challenge:", error);
+    }
+  };
+
   const handleJoinSuccess = (challenge: Challenge) => {
-    // Refresh challenge list and potentially navigate to the challenge
     toast.success(`Joined challenge "${challenge.title}" successfully!`);
   };
 
   const handleQuickMatch = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
-    // Generate a unique room ID and password
     const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
     const password = Math.random().toString(36).substring(2, 8);
 
-    // Create a shareable URL
     const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}`;
 
-    // Navigate to the room
     navigate(roomUrl);
   };
 
   const startFriendChallenge = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
-    // Generate a unique room ID and password
     const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
     const password = Math.random().toString(36).substring(2, 8);
 
-    // Create a shareable URL
     const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
 
-    // Create a shareable link
     const shareableLink = `${window.location.origin}/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
 
-    // Show toast with ability to copy link
     toast("Challenge created! Share this link with your friend.", {
       description: (
         <div className="mt-2">
@@ -163,7 +170,6 @@ const MinimalChallenges = () => {
     toast.success("Room information copied to clipboard!");
   };
 
-  // Render challenge card
   const renderChallengeCard = (challenge: Challenge, actions?: React.ReactNode) => (
     <Card
       key={challenge.id}
@@ -251,14 +257,6 @@ const MinimalChallenges = () => {
               Exit Challenge
             </Button>
           </div>
-
-          {/* <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden shadow-sm h-[calc(100vh-180px)] min-h-[600px]">
-            <ChallengeInterface
-              challenge={activeChallenge}
-              isPrivate={activeChallenge?.isPrivate}
-              accessCode={activeChallenge?.accessCode}
-            />
-          </div> */}
         </main>
       ) : (
         <main className="page-container py-8">
@@ -411,18 +409,25 @@ const MinimalChallenges = () => {
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
-                  {publicChallengesLoading ? (
+                  {activeChallengesLoading ? (
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : publicChallenges?.length ? (
+                  ) : activeChallenges?.length ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {publicChallenges.map((challenge) => 
+                      {activeChallenges.map((challenge) => 
                         renderChallengeCard(
                           challenge, 
-                          <Button size="sm" className="bg-green-500 hover:bg-green-600">
+                          <Button 
+                            size="sm" 
+                            className="bg-green-500 hover:bg-green-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleJoinChallenge(challenge);
+                            }}
+                          >
                             Join Challenge
-                            <ChevronRight className="ml-1 h-4 w-4" />
+                            <ArrowRight className="ml-1 h-4 w-4" />
                           </Button>
                         )
                       )}
