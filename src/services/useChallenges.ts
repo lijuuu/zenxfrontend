@@ -20,7 +20,14 @@ export const useChallenges = (filters?: {
 }) => {
   return useQuery({
     queryKey: ['challenges', filters],
-    queryFn: () => challengeApi.getChallenges(filters),
+    queryFn: () => challengeApi.getChallenges({
+      is_active: filters?.active ?? true,
+      difficulty: filters?.difficulty,
+      include_private: false, // Always false for public challenges
+      user_id: filters?.userId,
+      page: 1, // Always get first page
+      page_size: 10 // Limit to 10 challenges
+    }),
     meta: {
       onError: (error: Error) => {
         toast.error('Failed to fetch challenges', {

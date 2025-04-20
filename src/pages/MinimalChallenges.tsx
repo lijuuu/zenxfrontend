@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -409,14 +408,13 @@ const MinimalChallenges = () => {
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
-                  {activeChallengesLoading ? (
+                  {publicChallengesLoading ? (
                     <div className="flex justify-center items-center py-10">
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
-                  ) : activeChallenges?.filter((c) => c.isActive).length ? (
-                    activeChallenges
-                      .filter((c) => c.isActive)
-                      .map((challenge) => 
+                  ) : publicChallenges?.length ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {publicChallenges.map((challenge) => 
                         renderChallengeCard(
                           challenge, 
                           <Button size="sm" className="bg-green-500 hover:bg-green-600">
@@ -424,10 +422,11 @@ const MinimalChallenges = () => {
                             <ChevronRight className="ml-1 h-4 w-4" />
                           </Button>
                         )
-                      )
+                      )}
+                    </div>
                   ) : (
                     <div className="text-center py-10">
-                      <p className="text-zinc-500 dark:text-zinc-400">No active challenges</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">No active public challenges</p>
                       <Button
                         className="mt-4 bg-green-500 hover:bg-green-600"
                         onClick={() => setIsCreateModalOpen(true)}
