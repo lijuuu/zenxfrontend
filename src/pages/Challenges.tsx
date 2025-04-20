@@ -4,14 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   PlusCircle,
   Users,
-  Activity,
-  Zap,
-  Trophy,
   ChevronRight,
   Calendar,
   Clock,
-  User,
-  Cpu,
   Lock,
   Unlock,
   ChevronDown,
@@ -41,7 +36,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import SubmissionHistory from "@/components/common/SubmissionHistory";
 import ChallengeInterface from "@/components/challenges/ChallengeInterface";
 import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
@@ -109,17 +103,17 @@ const Challenges = () => {
 
   // Type guard to ensure challenges is an array
   const activeChallengesToRender = Array.isArray(challenges)
-    ? challenges.filter(c => c.is_active)
+    ? challenges.filter(c => c.isActive)
     : [];
 
   // Type guard to ensure publicChallenges is an array
   const activePublicChallengesToRender = Array.isArray(publicChallenges)
-    ? publicChallenges.filter(c => c.is_active)
+    ? publicChallenges.filter(c => c.isActive)
     : [];
 
   // Type guard to ensure privateChallenges is an array
   const activePrivateChallengesToRender = Array.isArray(privateChallenges)
-    ? privateChallenges.filter(c => c.is_active)
+    ? privateChallenges.filter(c => c.isActive)
     : [];
 
   // Type guard to ensure invites is an array
@@ -163,7 +157,7 @@ const Challenges = () => {
             <ChallengeInterface
               challenge={activeChallenge}
               isPrivate={activeChallenge?.isPrivate}
-              accessCode={activeChallenge?.access_code}
+              accessCode={activeChallenge?.accessCode}
             />
           </div>
         </main>
@@ -209,7 +203,7 @@ const Challenges = () => {
                         <div className="flex items-center justify-between">
                           <CardTitle className="flex items-center gap-2">
                             {challenge.title}
-                            {challenge.is_private && (
+                            {challenge.isPrivate && (
                               <Lock className="h-4 w-4 text-amber-500" />
                             )}
                           </CardTitle>
@@ -218,25 +212,25 @@ const Challenges = () => {
                           </div>
                         </div>
                         <CardDescription className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> Created: {formatChallengeDate(challenge.created_at)}
+                          <Clock className="h-3 w-3" /> Created: {formatChallengeDate(challenge.createdAt)}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <img
-                              src={challenge.createdBy?.profileImage || "/default-avatar.png"}
-                              alt={challenge.createdBy?.username || "Unknown"}
+                              src={challenge.creatorId?.profileImage || "/default-avatar.png"}
+                              alt={challenge.creatorId?.username || "Unknown"}
                               className="w-8 h-8 rounded-full"
                             />
                             <div>
-                              <p className="text-sm font-medium">{challenge.createdBy?.username || "Unknown"}</p>
+                              <p className="text-sm font-medium">{challenge.createdId?.username || "Unknown"}</p>
                               <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium">Problems: {challenge.problem_ids?.length || 0}</p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Participants: {challenge.participant_ids?.length || 0}</p>
+                            <p className="text-sm font-medium">Problems: {challenge.problemIds?.length || 0}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Participants: {challenge.participantIds?.length || 0}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -252,8 +246,8 @@ const Challenges = () => {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem disabled className="flex flex-col items-start">
                               <span className="font-medium">Participants</span>
-                              {challenge.participant_ids?.length ? (
-                                challenge.participant_ids.map((id) => (
+                              {challenge.participantIds?.length ? (
+                                challenge.participantIds.map((id) => (
                                   <span key={id} className="text-sm text-zinc-600 dark:text-zinc-400">
                                     User: {id}
                                   </span>
@@ -314,16 +308,16 @@ const Challenges = () => {
                               <p className="text-sm font-medium">{challenge.createdBy?.username || "Unknown"}</p>
                               <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                 <Calendar className="h-3 w-3" />
-                                <span>{formatChallengeDate(challenge.created_at)}</span>
+                                <span>{formatChallengeDate(challenge.createdAt)}</span>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">{challenge.participant_ids?.length || 0} participants</span>
+                              <span className="text-sm">{challenge.participantIds?.length || 0} participants</span>
                               <Users className="h-4 w-4 text-zinc-500" />
                             </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problem_ids?.length || 0} problems</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemIds?.length || 0} problems</p>
                           </div>
                         </div>
                       </CardContent>
@@ -339,8 +333,8 @@ const Challenges = () => {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem disabled className="flex flex-col items-start">
                               <span className="font-medium">Participants</span>
-                              {challenge.participant_ids?.length ? (
-                                challenge.participant_ids.map((id) => (
+                              {challenge.participantIds?.length ? (
+                                challenge.participantIds.map((id) => (
                                   <span key={id} className="text-sm text-zinc-600 dark:text-zinc-400">
                                     User: {id}
                                   </span>
@@ -404,16 +398,16 @@ const Challenges = () => {
                               <p className="text-sm font-medium">{challenge.createdBy?.username || "Unknown"}</p>
                               <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                 <Calendar className="h-3 w-3" />
-                                <span>{formatChallengeDate(challenge.created_at)}</span>
+                                <span>{formatChallengeDate(challenge.createdAt)}</span>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">{challenge.participant_ids?.length || 0} participants</span>
+                              <span className="text-sm">{challenge.participantIds?.length || 0} participants</span>
                               <Users className="h-4 w-4 text-zinc-500" />
                             </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problem_ids?.length || 0} problems</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemIds?.length || 0} problems</p>
                           </div>
                         </div>
                       </CardContent>
@@ -429,8 +423,8 @@ const Challenges = () => {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem disabled className="flex flex-col items-start">
                               <span className="font-medium">Participants</span>
-                              {challenge.participant_ids?.length ? (
-                                challenge.participant_ids.map((id) => (
+                              {challenge.participantIds?.length ? (
+                                challenge.participantIds.map((id) => (
                                   <span key={id} className="text-sm text-zinc-600 dark:text-zinc-400">
                                     User: {id}
                                   </span>
