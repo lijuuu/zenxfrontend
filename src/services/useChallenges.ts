@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
-import { Challenge, SubmissionStatus, UserProfile, LeaderboardEntry } from '@/api/types';
+import { Challenge, LeaderboardEntry, UserProfile } from '@/api/challengeTypes';
+import { useAppSelector } from '@/hooks/useAppSelector';
 
 export const useChallenges = (filters?: { 
   active?: boolean; 
@@ -21,7 +22,8 @@ export const useChallenges = (filters?: {
           description: error.message
         });
       }
-    }
+    },
+    placeholderData: []
   });
 };
 
@@ -57,9 +59,22 @@ export const useChallengeWithMetadata = (id?: string, userId?: string) => {
 
 export const useCreateChallenge = () => {
   const queryClient = useQueryClient();
+  const user = useAppSelector(state => state.auth.userProfile);
   
   return useMutation({
-    mutationFn: challengeApi.createChallenge,
+    mutationFn: (data: {
+      title: string;
+      difficulty: string;
+      problemIds: string[];
+      isPrivate: boolean;
+      timeLimit?: number;
+      accessCode?: string;
+      startTime?: number;
+    }) => challengeApi.createChallenge({
+      ...data,
+      // Add creator ID from auth state
+      creatorId: user?.userID || ''
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
       toast.success('Challenge created successfully');
@@ -74,10 +89,11 @@ export const useCreateChallenge = () => {
 
 export const useJoinChallenge = () => {
   const queryClient = useQueryClient();
+  const user = useAppSelector(state => state.auth.userProfile);
   
   return useMutation({
     mutationFn: ({ challengeId, accessCode }: { challengeId: string, accessCode?: string }) => 
-      challengeApi.joinChallenge(challengeId, accessCode),
+      challengeApi.joinChallenge(challengeId, accessCode, user?.userID),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
       toast.success(data.message || 'Successfully joined the challenge');
@@ -92,9 +108,11 @@ export const useJoinChallenge = () => {
 
 export const useStartChallenge = () => {
   const queryClient = useQueryClient();
+  const user = useAppSelector(state => state.auth.userProfile);
   
   return useMutation({
-    mutationFn: challengeApi.startChallenge,
+    mutationFn: (challengeId: string) => 
+      challengeApi.startChallenge(challengeId, user?.userID),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenge'] });
       toast.success('Challenge started');
@@ -109,9 +127,11 @@ export const useStartChallenge = () => {
 
 export const useEndChallenge = () => {
   const queryClient = useQueryClient();
+  const user = useAppSelector(state => state.auth.userProfile);
   
   return useMutation({
-    mutationFn: challengeApi.endChallenge,
+    mutationFn: (challengeId: string) => 
+      challengeApi.endChallenge(challengeId, user?.userID),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenge'] });
       toast.success('Challenge ended');
@@ -126,9 +146,18 @@ export const useEndChallenge = () => {
 
 export const useSubmitSolution = () => {
   const queryClient = useQueryClient();
+  const user = useAppSelector(state => state.auth.userProfile);
   
   return useMutation({
-    mutationFn: challengeApi.submitSolution,
+    mutationFn: (data: {
+      challengeId: string;
+      problemId: string;
+      code: string;
+      language: string;
+    }) => challengeApi.submitSolution({
+      ...data,
+      userId: user?.userID
+    }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenge'] });
       toast.success('Solution submitted successfully');
@@ -174,7 +203,8 @@ export const useChallengeSubmissions = (challengeId?: string) => {
           description: error.message
         });
       }
-    }
+    },
+    placeholderData: []
   });
 };
 
@@ -219,6 +249,7 @@ export const useParticipantProfiles = (challengeId?: string, participantIds?: st
           description: error.message
         });
       }
-    }
+    },
+    placeholderData: []
   });
 };

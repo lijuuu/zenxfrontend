@@ -1,6 +1,7 @@
 
 import axiosInstance from "@/utils/axiosInstance";
-import { Challenge, LeaderboardEntry, UserProfile, ProblemMetadataList } from "./types";
+import { Challenge, LeaderboardEntry, LeaderboardEntryAPI, UserStats, ChallengeProblemMetadata, ChallengeProblemMetadataAPI } from "./challengeTypes";
+import { UserProfile } from "./types";
 
 // Transform snake_case to camelCase
 const transformChallenge = (data: any): Challenge => ({
@@ -21,6 +22,21 @@ const transformChallenge = (data: any): Challenge => ({
   endTime: data.end_time
 });
 
+// Transform camelCase to snake_case for API requests
+const transformLeaderboardEntry = (entry: LeaderboardEntryAPI): LeaderboardEntry => ({
+  userId: entry.user_id,
+  problemsCompleted: entry.problems_completed,
+  totalScore: entry.total_score,
+  rank: entry.rank
+});
+
+const transformChallengeProblemMetadata = (metadata: ChallengeProblemMetadataAPI): ChallengeProblemMetadata => ({
+  problemId: metadata.problem_id,
+  score: metadata.score,
+  timeTaken: metadata.time_taken,
+  completedAt: metadata.completed_at
+});
+
 export const createChallenge = async (data: {
   title: string;
   difficulty: string;
@@ -38,7 +54,8 @@ export const createChallenge = async (data: {
       is_private: data.isPrivate,
       time_limit: data.timeLimit,
       access_code: data.accessCode,
-      start_time: data.startTime
+      // start_at commented out as requested
+      // start_at: data.startTime ? { seconds: data.startTime, nanos: 0 } : undefined
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
@@ -67,13 +84,17 @@ export const getChallenges = async (filters?: {
   difficulty?: string;
   isPrivate?: boolean;
   userId?: string;
+  page?: number;
+  pageSize?: number;
 }) => {
   try {
     const params: Record<string, any> = {
       is_active: filters?.active,
       difficulty: filters?.difficulty,
       include_private: filters?.isPrivate,
-      user_id: filters?.userId
+      user_id: filters?.userId,
+      page: filters?.page,
+      page_size: filters?.pageSize
     };
 
     const response = await axiosInstance.get('/challenges/public', {
@@ -88,11 +109,12 @@ export const getChallenges = async (filters?: {
   }
 };
 
-export const joinChallenge = async (challengeId: string, accessCode?: string) => {
+export const joinChallenge = async (challengeId: string, accessCode?: string, userId?: string) => {
   try {
     const response = await axiosInstance.post('/challenges/join', {
       challenge_id: challengeId,
-      access_code: accessCode
+      password: accessCode, // Using password instead of access_code based on API spec
+      user_id: userId
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
@@ -107,10 +129,11 @@ export const joinChallenge = async (challengeId: string, accessCode?: string) =>
   }
 };
 
-export const startChallenge = async (challengeId: string) => {
+export const startChallenge = async (challengeId: string, userId?: string) => {
   try {
     const response = await axiosInstance.post('/challenges/start', {
-      challenge_id: challengeId
+      challenge_id: challengeId,
+      user_id: userId
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
@@ -125,17 +148,19 @@ export const startChallenge = async (challengeId: string) => {
   }
 };
 
-export const endChallenge = async (challengeId: string) => {
+export const endChallenge = async (challengeId: string, userId?: string) => {
   try {
     const response = await axiosInstance.post('/challenges/end', {
-      challenge_id: challengeId
+      challenge_id: challengeId,
+      user_id: userId
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
 
+    const leaderboard = response.data.payload.leaderboard || [];
     return {
       success: response.data.payload.success,
-      leaderboard: response.data.payload.leaderboard || []
+      leaderboard: leaderboard.map(transformLeaderboardEntry)
     };
   } catch (error) {
     console.error('Error ending challenge:', error);
@@ -149,7 +174,20 @@ export const getSubmissionStatus = async (submissionId: string) => {
       params: { submission_id: submissionId },
       headers: { 'X-Requires-Auth': 'true' }
     });
-    return response.data.payload;
+    
+    // Transform response to match frontend expected types
+    const submission = response.data.payload;
+    return {
+      submissionId: submission.submission_id,
+      challengeId: submission.challenge_id,
+      problemId: submission.problem_id,
+      userId: submission.user_id,
+      status: submission.status,
+      code: submission.code,
+      language: submission.language,
+      result: submission.result,
+      createdAt: submission.created_at
+    };
   } catch (error) {
     console.error('Error fetching submission status:', error);
     throw error;
@@ -162,7 +200,24 @@ export const getChallengeSubmissions = async (challengeId: string) => {
       params: { challenge_id: challengeId },
       headers: { 'X-Requires-Auth': 'true' }
     });
-    return response.data.payload.submissions || [];
+    
+    // Transform submissions to match frontend expected types
+    return (response.data.payload.submissions || []).map((submission: any) => ({
+      id: submission.id,
+      problemId: submission.problem_id,
+      userId: submission.user_id,
+      challengeId: submission.challenge_id,
+      submittedAt: submission.submitted_at,
+      score: submission.score,
+      status: submission.status,
+      output: submission.output,
+      language: submission.language,
+      executionTime: submission.execution_time,
+      difficulty: submission.difficulty,
+      isFirst: submission.is_first,
+      title: submission.title,
+      userCode: submission.user_code
+    }));
   } catch (error) {
     console.error('Error fetching challenge submissions:', error);
     return [];
@@ -175,7 +230,31 @@ export const getUserChallengeStats = async (userId: string) => {
       params: { user_id: userId },
       headers: { 'X-Requires-Auth': 'true' }
     });
-    return response.data.payload.stats || null;
+    
+    const apiStats = response.data.payload.stats || null;
+    if (!apiStats) return null;
+    
+    // Transform to frontend format
+    const challengeStats: { [key: string]: any } = {};
+    
+    // Convert challenge stats from snake_case to camelCase
+    Object.keys(apiStats.challenge_stats || {}).forEach(challengeId => {
+      const stat = apiStats.challenge_stats[challengeId];
+      challengeStats[challengeId] = {
+        rank: stat.rank,
+        problemsCompleted: stat.problems_completed,
+        totalScore: stat.total_score
+      };
+    });
+    
+    return {
+      userId: apiStats.user_id,
+      problemsCompleted: apiStats.problems_completed,
+      totalTimeTaken: apiStats.total_time_taken,
+      challengesCompleted: apiStats.challenges_completed,
+      score: apiStats.score,
+      challengeStats
+    };
   } catch (error) {
     console.error('Error fetching user challenge stats:', error);
     return null;
@@ -191,21 +270,39 @@ export const getChallengeUserStats = async (challengeId: string, userId: string)
       },
       headers: { 'X-Requires-Auth': 'true' }
     });
-    return response.data.payload || null;
+    
+    const apiData = response.data.payload || null;
+    if (!apiData) return null;
+    
+    return {
+      userId: apiData.user_id,
+      problemsCompleted: apiData.problems_completed,
+      totalScore: apiData.total_score,
+      rank: apiData.rank,
+      challengeProblemMetadata: (apiData.challenge_problem_metadata || [])
+        .map(transformChallengeProblemMetadata)
+    };
   } catch (error) {
     console.error('Error fetching challenge-user stats:', error);
     return null;
   }
 };
 
-// These are placeholder implementations for missing functions
 export const getChallengeWithMetadata = async (id: string, userId: string) => {
   try {
-    const challenge = await getChallenge(id);
-    // In a real implementation, we would fetch metadata related to this user and challenge
+    const response = await axiosInstance.get('/challenges/details', {
+      params: { 
+        challenge_id: id,
+        user_id: userId 
+      },
+      headers: { 'X-Requires-Auth': 'true' }
+    });
+    
+    const data = response.data.payload;
     return {
-      challenge,
-      userMetadata: null // Replace with actual metadata
+      challenge: transformChallenge(data.challenge),
+      leaderboard: (data.leaderboard || []).map(transformLeaderboardEntry),
+      userMetadata: data.user_metadata
     };
   } catch (error) {
     console.error('Error fetching challenge with metadata:', error);
@@ -218,13 +315,15 @@ export const submitSolution = async (data: {
   problemId: string;
   code: string;
   language: string;
+  userId?: string;
 }) => {
   try {
     const response = await axiosInstance.post('/challenges/submit', {
       challenge_id: data.challengeId,
       problem_id: data.problemId,
       code: data.code,
-      language: data.language
+      language: data.language,
+      user_id: data.userId
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });

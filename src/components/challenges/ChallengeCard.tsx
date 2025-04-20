@@ -5,17 +5,19 @@ import { Users, FileCode, Clock, Lock, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Challenge } from "@/api/types";
+import { Challenge } from "@/api/challengeTypes";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChallengeCardProps {
   challenge: Challenge;
   onJoin?: () => void;
   variant?: "default" | "private";
+  isLoading?: boolean;
 }
 
-export const ChallengeCard = ({ challenge, onJoin, variant = "default" }: ChallengeCardProps) => {
-  const { data: userProfiles } = useUserProfiles([challenge.creatorId, ...(challenge.participantIds || [])]);
+export const ChallengeCard = ({ challenge, onJoin, variant = "default", isLoading = false }: ChallengeCardProps) => {
+  const { data: userProfiles, isLoading: profilesLoading } = useUserProfiles([challenge.creatorId, ...(challenge.participantIds || [])]);
   
   const creator = userProfiles?.find(profile => profile.userID === challenge.creatorId);
   
@@ -27,6 +29,38 @@ export const ChallengeCard = ({ challenge, onJoin, variant = "default" }: Challe
       return "Invalid date";
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card className="hover:shadow-md transition-shadow animate-pulse">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-5 w-16 rounded" />
+          </div>
+          <Skeleton className="h-4 w-1/2 mt-2" />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-8 h-8 rounded-full" />
+              <div>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-16 mt-2" />
+              </div>
+            </div>
+            <div className="text-right">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-20 mt-2" />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Skeleton className="h-8 w-32" />
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card className={cn(
@@ -49,20 +83,33 @@ export const ChallengeCard = ({ challenge, onJoin, variant = "default" }: Challe
         </div>
         <CardDescription className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          Created: {formatDate(challenge.createdAt)}
+          {challenge.createdAt ? `Created: ${formatDate(challenge.createdAt)}` : "Recently created"}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img
-              src={creator?.avatarURL || "https://github.com/shadcn.png"}
-              alt={creator?.userName || "Unknown"}
-              className="w-8 h-8 rounded-full"
-            />
+            {profilesLoading ? (
+              <Skeleton className="w-8 h-8 rounded-full" />
+            ) : (
+              <img
+                src={creator?.avatarURL || "https://github.com/shadcn.png"}
+                alt={creator?.userName || "Unknown"}
+                className="w-8 h-8 rounded-full"
+              />
+            )}
             <div>
-              <p className="text-sm font-medium">{creator?.userName || "Unknown"}</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
+              {profilesLoading ? (
+                <>
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-3 w-16 mt-1" />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium">{creator?.userName || "Unknown"}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
+                </>
+              )}
             </div>
           </div>
           <div className="text-right">

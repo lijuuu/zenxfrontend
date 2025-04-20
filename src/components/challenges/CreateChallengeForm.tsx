@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, CheckCircle2, XCircle, Calendar as CalendarIcon, Trophy, Flag, Brain } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, PlusCircle, XCircle, Flag, Trophy, Brain, Search, Check } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -25,11 +25,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createChallenge } from "@/api/challengeApi";
-import { Challenge } from "@/api/types";
-import { useProblemList } from "@/services/useProblemList";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Challenge } from "@/api/challengeTypes";
+import { useProblemList } from "@/services/useProblemList";
+import { useCreateChallenge } from "@/services/useChallenges";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -56,10 +56,10 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [selectedProblems, setSelectedProblems] = useState<{ id: string; title: string; }[]>([]);
+  const [selectedProblems, setSelectedProblems] = useState<{ id: string; title: string; difficulty: string; }[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: problems, isLoading: problemsLoading } = useProblemList();
+  const createChallengeMutation = useCreateChallenge();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,17 +76,22 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     if (!isOpen) {
       form.reset();
       setSelectedProblems([]);
+      setSearchQuery("");
     }
   }, [isOpen, form]);
 
-  const handleProblemSelect = (problemId: string, problemTitle: string) => {
-    const isSelected = selectedProblems.find(p => p.id === problemId);
+  const handleProblemSelect = (problem: { id: string; title: string; difficulty: string }) => {
+    const isSelected = selectedProblems.find(p => p.id === problem.id);
     if (isSelected) {
-      setSelectedProblems(selectedProblems.filter(p => p.id !== problemId));
+      setSelectedProblems(selectedProblems.filter(p => p.id !== problem.id));
     } else {
-      setSelectedProblems([...selectedProblems, { id: problemId, title: problemTitle }]);
+      setSelectedProblems([...selectedProblems, problem]);
     }
   };
+
+  const filteredProblems = problems?.filter(problem => 
+    problem.title.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   const getDifficultyIcon = (difficulty: string) => {
     switch (difficulty) {
@@ -101,30 +106,33 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
     }
   };
 
+  const getColorsByDifficulty = (difficulty: string) => {
+    switch (difficulty) {
+      case "Easy":
+        return "border-green-200 bg-green-50 dark:border-green-950 dark:bg-green-950/30";
+      case "Medium":
+        return "border-yellow-200 bg-yellow-50 dark:border-yellow-950 dark:bg-yellow-950/30";
+      case "Hard":
+        return "border-red-200 bg-red-50 dark:border-red-950 dark:bg-red-950/30";
+      default:
+        return "border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/30";
+    }
+  };
+
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
     if (selectedProblems.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one problem.",
-        variant: "destructive",
-      });
+      toast.error("Please select at least one problem.");
       return;
     }
 
-    setLoading(true);
     try {
-      const newChallenge = await createChallenge({
+      const newChallenge = await createChallengeMutation.mutateAsync({
         title: formData.title,
         difficulty: formData.difficulty,
         problemIds: selectedProblems.map(p => p.id),
         isPrivate: formData.isPrivate,
         timeLimit: formData.timeLimit,
         accessCode: formData.isPrivate ? formData.accessCode : undefined,
-      });
-
-      toast({
-        title: "Success",
-        description: `Challenge "${formData.title}" created successfully!`,
       });
 
       if (onSuccess) {
@@ -134,13 +142,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       onClose();
     } catch (error) {
       console.error("Failed to create challenge:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create challenge. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -187,16 +188,22 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Easy" className="flex items-center gap-2">
-                          <Flag className="h-4 w-4 text-green-500" />
-                          Easy
+                          <div className="flex items-center gap-2">
+                            <Flag className="h-4 w-4 text-green-500" />
+                            <span>Easy</span>
+                          </div>
                         </SelectItem>
                         <SelectItem value="Medium" className="flex items-center gap-2">
-                          <Brain className="h-4 w-4 text-yellow-500" />
-                          Medium
+                          <div className="flex items-center gap-2">
+                            <Brain className="h-4 w-4 text-yellow-500" />
+                            <span>Medium</span>
+                          </div>
                         </SelectItem>
                         <SelectItem value="Hard" className="flex items-center gap-2">
-                          <Trophy className="h-4 w-4 text-red-500" />
-                          Hard
+                          <div className="flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-red-500" />
+                            <span>Hard</span>
+                          </div>
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -264,61 +271,102 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
 
             <div className="space-y-4">
               <FormLabel>Select Problems</FormLabel>
+              
+              <div className="flex items-center border rounded-md px-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search problems..." 
+                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
               {problemsLoading ? (
                 <div className="flex justify-center p-4">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : (
-                <ScrollArea className="h-[200px] rounded-md border p-4">
-                  <div className="space-y-4">
-                    {problems?.map((problem) => (
+                <ScrollArea className="h-[200px] rounded-md border p-1">
+                  <div className="space-y-1 p-2">
+                    {filteredProblems.map((problem) => (
                       <div
                         key={problem.id}
-                        className="flex items-center justify-between space-x-4 rounded-lg border p-3 hover:bg-accent/50 transition-colors"
+                        className={`flex items-center justify-between rounded-md p-2 cursor-pointer transition-colors hover:bg-accent/50 ${
+                          selectedProblems.find(p => p.id === problem.id) 
+                            ? 'bg-accent/50' 
+                            : ''
+                        }`}
+                        onClick={() => handleProblemSelect({
+                          id: problem.id,
+                          title: problem.title,
+                          difficulty: problem.difficulty
+                        })}
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-medium">{problem.title}</h4>
-                            <Badge variant="outline" className="text-xs">
+                        <div className="flex items-center gap-2 flex-1">
+                          {getDifficultyIcon(problem.difficulty)}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium line-clamp-1">{problem.title}</p>
+                            <Badge variant="outline" className={`text-xs mt-1 ${getColorsByDifficulty(problem.difficulty)}`}>
                               {problem.difficulty}
                             </Badge>
                           </div>
                         </div>
-                        <Checkbox
-                          id={`problem-${problem.id}`}
-                          checked={selectedProblems.find(p => p.id === problem.id) !== undefined}
-                          onCheckedChange={() => handleProblemSelect(problem.id, problem.title)}
-                        />
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full border">
+                          {selectedProblems.find(p => p.id === problem.id) && (
+                            <Check className="h-3 w-3 text-primary" />
+                          )}
+                        </div>
                       </div>
                     ))}
+                    
+                    {filteredProblems.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                        <p>No problems found</p>
+                        {searchQuery && (
+                          <p className="text-xs mt-1">Try different search terms</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               )}
+              
               {selectedProblems.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedProblems.map((problem) => (
-                    <Badge
-                      key={problem.id}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {problem.title}
-                      <XCircle
-                        className="h-3 w-3 cursor-pointer hover:text-destructive"
-                        onClick={() => handleProblemSelect(problem.id, problem.title)}
-                      />
-                    </Badge>
-                  ))}
+                <div>
+                  <div className="text-sm font-medium mb-2">Selected Problems ({selectedProblems.length})</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedProblems.map((problem) => (
+                      <Badge
+                        key={problem.id}
+                        variant="secondary"
+                        className={`flex items-center gap-1 ${getColorsByDifficulty(problem.difficulty)}`}
+                      >
+                        {getDifficultyIcon(problem.difficulty)}
+                        {problem.title}
+                        <XCircle
+                          className="h-3 w-3 cursor-pointer hover:text-destructive ml-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProblemSelect(problem);
+                          }}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={createChallengeMutation.isPending}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading || selectedProblems.length === 0}>
-                {loading ? (
+              <Button 
+                type="submit" 
+                disabled={createChallengeMutation.isPending || selectedProblems.length === 0}
+              >
+                {createChallengeMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating...
