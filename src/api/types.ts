@@ -455,7 +455,7 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
     return [];
 }`,
     python: `def two_sum(nums, target):
-    # Type your code
+    // Type your code
     return []`,
   },
 };
@@ -526,6 +526,7 @@ export interface Challenge {
   userProblemMetadata: { [key: string]: ProblemMetadataList };
   startTime: number;
   endTime: number;
+  participantUsers?: UserProfile[]; // Added to store participant user details
 }
 
 // ChallengeProblemMetadata represents metadata for a problem in a challenge
@@ -547,6 +548,7 @@ export interface LeaderboardEntry {
   problemsCompleted: number;
   totalScore: number;
   rank: number;
+  user?: UserProfile; // Added to store user details
 }
 
 // UserStats represents user statistics across challenges

@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
-import { Challenge, SubmissionStatus } from '@/api/types';
+import { Challenge, SubmissionStatus, UserProfile, LeaderboardEntry } from '@/api/types';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useChallenges = (filters?: { 
   active?: boolean; 
@@ -40,6 +41,21 @@ export const useChallenge = (id?: string) => {
   });
 };
 
+export const useChallengeWithMetadata = (id?: string, userId?: string) => {
+  return useQuery({
+    queryKey: ['challenge-metadata', id, userId],
+    queryFn: () => challengeApi.getChallengeWithMetadata(id!, userId!),
+    enabled: !!id && !!userId,
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch challenge details', {
+          description: error.message
+        });
+      }
+    }
+  });
+};
+
 export const useCreateChallenge = () => {
   const queryClient = useQueryClient();
   
@@ -62,9 +78,9 @@ export const useJoinChallenge = () => {
   
   return useMutation({
     mutationFn: challengeApi.joinChallenge,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
-      toast.success('Successfully joined the challenge');
+      toast.success(data.message || 'Successfully joined the challenge');
     },
     onError: (error: Error) => {
       toast.error('Failed to join challenge', {
@@ -75,9 +91,12 @@ export const useJoinChallenge = () => {
 };
 
 export const useStartChallenge = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: challengeApi.startChallenge,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['challenge'] });
       toast.success('Challenge started');
     },
     onError: (error: Error) => {
@@ -89,9 +108,12 @@ export const useStartChallenge = () => {
 };
 
 export const useEndChallenge = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: challengeApi.endChallenge,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['challenge'] });
       toast.success('Challenge ended');
     },
     onError: (error: Error) => {
@@ -103,9 +125,12 @@ export const useEndChallenge = () => {
 };
 
 export const useSubmitSolution = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: challengeApi.submitSolution,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['challenge'] });
       toast.success('Solution submitted successfully');
     },
     onError: (error: Error) => {
@@ -122,7 +147,6 @@ export const useSubmissionStatus = (submissionId?: string) => {
     queryFn: () => challengeApi.getSubmissionStatus(submissionId!),
     enabled: !!submissionId,
     refetchInterval: (query) => {
-      // Access data directly from the query object
       const data = query.state.data;
       if (data?.status === 'pending') {
         return 2000; // Refetch every 2 seconds if pending
@@ -177,6 +201,21 @@ export const useChallengeUserStats = (challengeId?: string, userId?: string) => 
     meta: {
       onError: (error: Error) => {
         toast.error('Failed to fetch challenge user stats', {
+          description: error.message
+        });
+      }
+    }
+  });
+};
+
+export const useParticipantProfiles = (challengeId?: string, participantIds?: string[]) => {
+  return useQuery({
+    queryKey: ['participant-profiles', challengeId, participantIds],
+    queryFn: () => challengeApi.fetchParticipantProfiles(participantIds || []),
+    enabled: !!challengeId && !!participantIds && participantIds.length > 0,
+    meta: {
+      onError: (error: Error) => {
+        toast.error('Failed to fetch participant profiles', {
           description: error.message
         });
       }

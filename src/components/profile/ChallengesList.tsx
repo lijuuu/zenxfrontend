@@ -1,21 +1,69 @@
-// src/components/ChallengesList.tsx
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { Trophy, Users, Lock, Calendar, ArrowUpRight, User } from "lucide-react";
-import { Challenge } from "@/api/types";
+import { Challenge, UserProfile } from "@/api/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom"; // For navigation
+import { Link } from "react-router-dom";
+import { fetchParticipantProfiles } from "@/api/challengeApi";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChallengesListProps {
   challenges: Challenge[];
+  isLoading?: boolean;
 }
 
-const ChallengesList: React.FC<ChallengesListProps> = ({ challenges = [] }) => {
+const ChallengesList: React.FC<ChallengesListProps> = ({ challenges = [], isLoading = false }) => {
+  const { toast } = useToast();
+  const [participantProfiles, setParticipantProfiles] = useState<{[key: string]: UserProfile[]}>({});
+
   // Group challenges by type (public/private)
   const publicChallenges = challenges.filter((c) => !c.isPrivate);
   const privateChallenges = challenges.filter((c) => c.isPrivate);
 
-  if (challenges.length === 0) {
+  // Fetch participant profiles for each challenge
+  useEffect(() => {
+    const fetchAllParticipants = async () => {
+      const profilesMap: {[key: string]: UserProfile[]} = {};
+      
+      for (const challenge of challenges) {
+        if (challenge.participantIds && challenge.participantIds.length > 0) {
+          try {
+            const profiles = await fetchParticipantProfiles(challenge.participantIds);
+            if (profiles.length > 0) {
+              profilesMap[challenge.id] = profiles;
+              
+              // Update the challenge with participant users
+              challenge.participantUsers = profiles;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch participants for challenge ${challenge.id}:`, error);
+          }
+        }
+      }
+      
+      setParticipantProfiles(profilesMap);
+    };
+    
+    if (challenges.length > 0) {
+      fetchAllParticipants();
+    }
+  }, [challenges]);
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-6">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="h-12 w-12 bg-muted rounded-full"></div>
+          <div className="h-4 w-48 bg-muted rounded"></div>
+          <div className="h-3 w-36 bg-muted rounded"></div>
+          <div className="h-10 w-40 bg-muted rounded-md"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!challenges || challenges.length === 0) {
     return (
       <div className="text-center py-6">
         <Trophy className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-30" />
@@ -84,13 +132,15 @@ const ChallengesList: React.FC<ChallengesListProps> = ({ challenges = [] }) => {
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   <span>
-                    {new Date(challenge.created_at * 1000).toLocaleDateString()}
+                    {new Date(challenge.createdAt * 1000).toLocaleDateString()}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  <span>{challenge.participants || 0} participants</span>
+                  <span>
+                    {challenge.participantIds?.length || 0} participants
+                  </span>
                 </div>
               </div>
 
@@ -106,15 +156,15 @@ const ChallengesList: React.FC<ChallengesListProps> = ({ challenges = [] }) => {
               </Badge>
             </div>
 
-            {challenge.userProblemMetadata && challenge.participantUsers.length > 0 && (
+            {challenge.participantUsers && challenge.participantUsers.length > 0 && (
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex -space-x-2">
                   {challenge.participantUsers.slice(0, 3).map((user, idx) => (
-                    user.avatar ? (
+                    user.avatarURL ? (
                       <img
                         key={idx}
-                        src={user.avatar}
-                        alt={user.name || "Participant"}
+                        src={user.avatarURL}
+                        alt={user.userName || "Participant"}
                         className="w-6 h-6 rounded-full border-2 border-background"
                       />
                     ) : (

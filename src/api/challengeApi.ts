@@ -1,27 +1,99 @@
-import axiosInstance from '@/utils/axiosInstance';
-import { Challenge, SubmissionStatus, ChallengeResponse, UserProfile } from './types';
 
-export interface CreateChallengeOptions {
+import axiosInstance from '@/utils/axiosInstance';
+import { Challenge, LeaderboardEntry, UserProfile, ProblemMetadataList, UserStats, SubmissionStatus } from './types';
+
+// Interfaces for API requests
+export interface CreateChallengeRequest {
   title: string;
   difficulty: string;
   problem_ids: string[];
   is_private: boolean;
   time_limit?: number;
   access_code?: string;
-  start_at?: Date;
+  start_at?: { seconds: number; nanos: number };
 }
 
-export interface ChallengeJoinRequest {
+export interface JoinChallengeRequest {
   challenge_id: string;
   access_code?: string;
 }
 
-export interface ChallengeSubmission {
+export interface StartEndChallengeRequest {
+  challenge_id: string;
+}
+
+export interface SubmitSolutionRequest {
   challenge_id: string;
   problem_id: string;
   code: string;
   language: string;
 }
+
+// Challenge operations
+export const createChallenge = async (data: CreateChallengeRequest): Promise<Challenge> => {
+  try {
+    const response = await axiosInstance.post('/challenges', data, {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
+    return response.data.payload;
+  } catch (error) {
+    console.error('Error creating challenge:', error);
+    throw error;
+  }
+};
+
+export const getChallenge = async (id: string): Promise<Challenge> => {
+  try {
+    const response = await axiosInstance.get('/challenges/details', {
+      params: { challenge_id: id },
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
+    
+    if (!response.data?.payload?.challenge) {
+      throw new Error('Challenge not found');
+    }
+    
+    return response.data.payload.challenge;
+  } catch (error) {
+    console.error('Error fetching challenge:', error);
+    throw error;
+  }
+};
+
+export const getChallengeWithMetadata = async (id: string, userId: string): Promise<{
+  challenge: Challenge;
+  leaderboard: LeaderboardEntry[];
+  userMetadata: ProblemMetadataList;
+}> => {
+  try {
+    const response = await axiosInstance.get('/challenges/details', {
+      params: { 
+        challenge_id: id,
+        user_id: userId 
+      },
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
+    
+    if (!response.data?.payload) {
+      throw new Error('Challenge details not found');
+    }
+    
+    return {
+      challenge: response.data.payload.challenge,
+      leaderboard: response.data.payload.leaderboard || [],
+      userMetadata: response.data.payload.user_metadata || { challengeProblemMetadata: [] }
+    };
+  } catch (error) {
+    console.error('Error fetching challenge with metadata:', error);
+    throw error;
+  }
+};
 
 export const getChallenges = async (filters?: {
   active?: boolean;
@@ -30,16 +102,17 @@ export const getChallenges = async (filters?: {
   pageSize?: number;
   isPrivate?: boolean;
   userId?: string;
-}) => {
+}): Promise<Challenge[]> => {
   try {
     const params: Record<string, any> = {};
+    
     if (filters?.active !== undefined) params.is_active = filters.active;
     if (filters?.difficulty) params.difficulty = filters.difficulty;
     if (filters?.page) params.page = filters.page;
     if (filters?.pageSize) params.page_size = filters.pageSize;
-    if (filters?.isPrivate !== undefined) params.is_private = filters.isPrivate;
-    if (filters?.userId) params.userid = filters.userId;
-
+    if (filters?.userId) params.user_id = filters.userId;
+    if (filters?.isPrivate !== undefined) params.include_private = filters.isPrivate;
+    
     const response = await axiosInstance.get('/challenges/public', { 
       params,
       headers: {
@@ -54,53 +127,11 @@ export const getChallenges = async (filters?: {
     return response.data.payload.challenges;
   } catch (error) {
     console.error('Error fetching challenges:', error);
-    throw error;
+    return [];
   }
 };
 
-export const getChallenge = async (id: string): Promise<Challenge> => {
-  try {
-    const response = await axiosInstance.get('/challenges', {
-      params: { id },
-      headers: {
-        'X-Requires-Auth': 'true'
-      }
-    });
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error fetching challenge:', error);
-    throw error;
-  }
-};
-
-export const createChallenge = async (data: CreateChallengeOptions): Promise<Challenge> => {
-  try {
-    const payload = {
-      title: data.title,
-      difficulty: data.difficulty,
-      problem_ids: data.problem_ids,
-      is_private: data.is_private,
-      time_limit: data.time_limit || 3600,
-      access_code: data.access_code,
-      start_at: data.start_at ? {
-        seconds: Math.floor(data.start_at.getTime() / 1000),
-        nanos: 0
-      } : undefined
-    };
-
-    const response = await axiosInstance.post('/challenges', payload, {
-      headers: {
-        'X-Requires-Auth': 'true'
-      }
-    });
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error creating challenge:', error);
-    throw error;
-  }
-};
-
-export const joinChallenge = async (data: ChallengeJoinRequest): Promise<ChallengeResponse> => {
+export const joinChallenge = async (data: JoinChallengeRequest): Promise<{ success: boolean; message: string }> => {
   try {
     const response = await axiosInstance.post('/challenges/join', {
       challenge_id: data.challenge_id,
@@ -110,14 +141,18 @@ export const joinChallenge = async (data: ChallengeJoinRequest): Promise<Challen
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    
+    return {
+      success: response.data.payload.success,
+      message: response.data.payload.message || 'Successfully joined the challenge'
+    };
   } catch (error) {
     console.error('Error joining challenge:', error);
     throw error;
   }
 };
 
-export const startChallenge = async (challengeId: string) => {
+export const startChallenge = async (challengeId: string): Promise<{ success: boolean; startTime: number }> => {
   try {
     const response = await axiosInstance.post('/challenges/start', {
       challenge_id: challengeId
@@ -126,14 +161,21 @@ export const startChallenge = async (challengeId: string) => {
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    
+    return {
+      success: response.data.payload.success,
+      startTime: response.data.payload.start_time
+    };
   } catch (error) {
     console.error('Error starting challenge:', error);
     throw error;
   }
 };
 
-export const endChallenge = async (challengeId: string) => {
+export const endChallenge = async (challengeId: string): Promise<{ 
+  success: boolean; 
+  leaderboard: LeaderboardEntry[] 
+}> => {
   try {
     const response = await axiosInstance.post('/challenges/end', {
       challenge_id: challengeId
@@ -142,26 +184,35 @@ export const endChallenge = async (challengeId: string) => {
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    
+    return {
+      success: response.data.payload.success,
+      leaderboard: response.data.payload.leaderboard || []
+    };
   } catch (error) {
     console.error('Error ending challenge:', error);
     throw error;
   }
 };
 
-export const submitSolution = async (submission: ChallengeSubmission) => {
+export const submitSolution = async (data: SubmitSolutionRequest): Promise<{ 
+  submissionId: string 
+}> => {
   try {
     const response = await axiosInstance.post('/challenges/submit', {
-      challenge_id: submission.challenge_id,
-      problem_id: submission.problem_id,
-      code: submission.code,
-      language: submission.language
+      challenge_id: data.challenge_id,
+      problem_id: data.problem_id,
+      code: data.code,
+      language: data.language
     }, {
       headers: {
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    
+    return {
+      submissionId: response.data.payload.submission_id
+    };
   } catch (error) {
     console.error('Error submitting solution:', error);
     throw error;
@@ -188,88 +239,101 @@ export const getSubmissionStatus = async (submissionId: string): Promise<Submiss
   }
 };
 
-export const getChallengeSubmissions = async (challengeId: string) => {
+export const getChallengeSubmissions = async (challengeId: string): Promise<SubmissionStatus[]> => {
   try {
     const response = await axiosInstance.get('/challenges/submissions', {
       params: { challenge_id: challengeId },
-       headers: {
+      headers: {
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    
+    if (!response.data?.payload?.submissions) {
+      return [];
+    }
+    
+    return response.data.payload.submissions;
   } catch (error) {
     console.error('Error fetching challenge submissions:', error);
-    throw error;
+    return [];
   }
 };
 
-export const getUserChallengeStats = async (userId: string) => {
+export const getUserChallengeStats = async (userId: string): Promise<UserStats | null> => {
   try {
     const response = await axiosInstance.get('/challenges/stats/user', {
       params: { user_id: userId },
-       headers: {
+      headers: {
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    
+    if (!response.data?.payload?.stats) {
+      return null;
+    }
+    
+    return response.data.payload.stats;
   } catch (error) {
     console.error('Error fetching user challenge stats:', error);
-    throw error;
+    return null;
   }
 };
 
-export const getChallengeUserStats = async (challengeId: string, userId: string) => {
+export const getChallengeUserStats = async (challengeId: string, userId: string): Promise<{
+  userId: string;
+  problemsCompleted: number;
+  totalScore: number;
+  rank: number;
+  challengeProblemMetadata: Array<{
+    problemId: string;
+    score: number;
+    timeTaken: number;
+    completedAt: number;
+  }>;
+} | null> => {
   try {
     const response = await axiosInstance.get('/challenges/stats/challenge-user', {
       params: {
         challenge_id: challengeId,
         user_id: userId
       },
-       headers: {
+      headers: {
         'X-Requires-Auth': 'true'
       }
     });
+    
+    if (!response.data?.payload) {
+      return null;
+    }
+    
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching challenge-user stats:', error);
-    throw error;
+    return null;
   }
 };
 
-export const getChallengeInvites = async () => {
+// Utility to fetch user profiles for challenge participants
+export const fetchParticipantProfiles = async (participantIds: string[]): Promise<UserProfile[]> => {
+  if (!participantIds.length) return [];
+  
   try {
-    const response = await axiosInstance.get('/challenges/invites', {
-       headers: {
+    // This assumes there's an API endpoint to get multiple user profiles
+    // You might need to adjust this based on your actual API
+    const response = await axiosInstance.get('/users/batch', {
+      params: { user_ids: participantIds.join(',') },
+      headers: {
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error fetching challenge invites:', error);
-    return [];
-  }
-};
-
-export const searchUsers = async (query: string, pageToken?: string, limit: number = 10): Promise<UserProfile[]> => {
-  try {
-    const params: Record<string, any> = {
-      query,
-      limit
-    };
     
-    if (pageToken) {
-      params.page_token = pageToken;
+    if (!response.data?.payload?.users) {
+      return [];
     }
-
-    const response = await axiosInstance.get('/users/search', { 
-      params,
-       headers: {
-        'X-Requires-Auth': 'true'
-      }
-    });
-    return response.data.payload.users || [];
+    
+    return response.data.payload.users;
   } catch (error) {
-    console.error('Error searching users:', error);
+    console.error('Error fetching participant profiles:', error);
     return [];
   }
 };
