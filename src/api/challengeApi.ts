@@ -29,6 +29,34 @@ export interface SubmitSolutionRequest {
   language: string;
 }
 
+// Utility function to convert snake_case to camelCase for Challenge
+const transformChallenge = (data: any): Challenge => {
+  return {
+    id: data.id,
+    title: data.title,
+    creatorId: data.creator_id,
+    difficulty: data.difficulty,
+    isPrivate: data.is_private,
+    status: data.status,
+    password: data.password,
+    accessCode: data.access_code,
+    problemIds: data.problem_ids || [],
+    timeLimit: data.time_limit,
+    createdAt: data.created_at,
+    isActive: data.is_active,
+    participantIds: data.participant_ids || [],
+    userProblemMetadata: data.user_problem_metadata,
+    startTime: data.start_time,
+    endTime: data.end_time,
+    participantUsers: data.participant_users
+  };
+};
+
+// Utility function to transform an array of challenges
+const transformChallenges = (challenges: any[]): Challenge[] => {
+  return challenges.map(transformChallenge);
+};
+
 // Challenge operations
 export const createChallenge = async (data: CreateChallengeRequest): Promise<Challenge> => {
   try {
@@ -37,7 +65,7 @@ export const createChallenge = async (data: CreateChallengeRequest): Promise<Cha
         'X-Requires-Auth': 'true'
       }
     });
-    return response.data.payload;
+    return transformChallenge(response.data.payload);
   } catch (error) {
     console.error('Error creating challenge:', error);
     throw error;
@@ -57,7 +85,7 @@ export const getChallenge = async (id: string): Promise<Challenge> => {
       throw new Error('Challenge not found');
     }
     
-    return response.data.payload.challenge;
+    return transformChallenge(response.data.payload.challenge);
   } catch (error) {
     console.error('Error fetching challenge:', error);
     throw error;
@@ -85,7 +113,7 @@ export const getChallengeWithMetadata = async (id: string, userId: string): Prom
     }
     
     return {
-      challenge: response.data.payload.challenge,
+      challenge: transformChallenge(response.data.payload.challenge),
       leaderboard: response.data.payload.leaderboard || [],
       userMetadata: response.data.payload.user_metadata || { challengeProblemMetadata: [] }
     };
@@ -124,7 +152,7 @@ export const getChallenges = async (filters?: {
       return [];
     }
     
-    return response.data.payload.challenges;
+    return transformChallenges(response.data.payload.challenges);
   } catch (error) {
     console.error('Error fetching challenges:', error);
     return [];
@@ -319,7 +347,6 @@ export const fetchParticipantProfiles = async (participantIds: string[]): Promis
   
   try {
     // This assumes there's an API endpoint to get multiple user profiles
-    // You might need to adjust this based on your actual API
     const response = await axiosInstance.get('/users/batch', {
       params: { user_ids: participantIds.join(',') },
       headers: {
@@ -334,6 +361,47 @@ export const fetchParticipantProfiles = async (participantIds: string[]): Promis
     return response.data.payload.users;
   } catch (error) {
     console.error('Error fetching participant profiles:', error);
+    return [];
+  }
+};
+
+// Mock function for searching users (used in FriendChallengeDialog)
+export const searchUsers = async (query: string): Promise<UserProfile[]> => {
+  try {
+    const response = await axiosInstance.get('/users/search', {
+      params: { query },
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
+    
+    if (!response.data?.payload?.users) {
+      return [];
+    }
+    
+    return response.data.payload.users;
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return [];
+  }
+};
+
+// Mock function for challenge invites (placeholder until real API is available)
+export const getChallengeInvites = async (): Promise<any[]> => {
+  try {
+    const response = await axiosInstance.get('/challenges/invites', {
+      headers: {
+        'X-Requires-Auth': 'true'
+      }
+    });
+    
+    if (!response.data?.payload?.invites) {
+      return [];
+    }
+    
+    return response.data.payload.invites;
+  } catch (error) {
+    console.error('Error fetching challenge invites:', error);
     return [];
   }
 };

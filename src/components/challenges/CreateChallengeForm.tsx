@@ -99,6 +99,16 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
+      // Convert the date to seconds and nanos format
+      let startAt;
+      if (formData.scheduledStart) {
+        const timestamp = formData.scheduledStart.getTime() / 1000;
+        startAt = {
+          seconds: Math.floor(timestamp),
+          nanos: ((timestamp - Math.floor(timestamp)) * 1000000000) | 0
+        };
+      }
+
       const newChallenge = await createChallenge({
         title: formData.title,
         difficulty: formData.difficulty,
@@ -106,7 +116,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         is_private: formData.isPrivate,
         time_limit: formData.timeLimit,
         access_code: formData.isPrivate ? formData.accessCode : undefined,
-        start_at: formData.scheduledStart ? new Date(formData.scheduledStart) : undefined
+        start_at: startAt
       });
 
       toast({

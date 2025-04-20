@@ -1,9 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
 import { Challenge, SubmissionStatus, UserProfile, LeaderboardEntry } from '@/api/types';
-import { useAuth } from '@/hooks/useAuth';
 
 export const useChallenges = (filters?: { 
   active?: boolean; 

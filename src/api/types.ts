@@ -217,18 +217,10 @@ export interface ChatMessage {
 // Leaderboard related types
 export interface LeaderboardEntry {
   rank: number;
-  user: {
-    id: string;
-    username: string;
-    fullName: string;
-    profileImage?: string;
-    country?: string;
-    countryCode?: string;
-  };
-  score: number;
-  problemsSolved: number;
-  contestsParticipated: number;
-  streakDays: number;
+  userId: string;
+  problemsCompleted: number;
+  totalScore: number;
+  user?: UserProfile;
 }
 
 // Auth related types
@@ -508,7 +500,6 @@ export interface ChallengeResponse {
   message?: string;
 }
 
-
 // Challenge represents a coding challenge
 export interface Challenge {
   id: string;
@@ -517,15 +508,16 @@ export interface Challenge {
   difficulty: string;
   isPrivate: boolean;
   status: string;
-  password: string; // Only for private challenges
+  password?: string; // Only for private challenges
+  accessCode?: string; // Frontend version of password
   problemIds: string[];
   timeLimit: number;
   createdAt: number;
   isActive: boolean;
   participantIds: string[];
-  userProblemMetadata: { [key: string]: ProblemMetadataList };
-  startTime: number;
-  endTime: number;
+  userProblemMetadata?: { [key: string]: ProblemMetadataList };
+  startTime?: number;
+  endTime?: number;
   participantUsers?: UserProfile[]; // Added to store participant user details
 }
 
@@ -540,15 +532,6 @@ export interface ChallengeProblemMetadata {
 // ProblemMetadataList holds a list of challenge problem metadata
 export interface ProblemMetadataList {
   challengeProblemMetadata: ChallengeProblemMetadata[];
-}
-
-// LeaderboardEntry represents a single entry in the leaderboard
-export interface LeaderboardEntry {
-  userId: string;
-  problemsCompleted: number;
-  totalScore: number;
-  rank: number;
-  user?: UserProfile; // Added to store user details
 }
 
 // UserStats represents user statistics across challenges
@@ -567,7 +550,6 @@ export interface ChallengeStat {
   problemsCompleted: number;
   totalScore: number;
 }
-
 
 // CreateChallengeRequest represents the request to create a challenge
 export interface CreateChallengeRequest {

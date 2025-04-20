@@ -11,7 +11,7 @@ const generateAccessCode = () => Math.random().toString(36).substring(2, 8).toUp
 const generateTimestamp = () => {
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
-  return Math.floor(thirtyDaysAgo + Math.random() * (now - thirtyDaysAgo));
+  return Math.floor((thirtyDaysAgo + Math.random() * (now - thirtyDaysAgo)) / 1000); // Convert to seconds
 };
 
 // Generate random number of participants (1-20)
@@ -35,19 +35,20 @@ export const generateMockChallenges = (count: number): Challenge[] => {
     return {
       id: generateId(),
       title: `Challenge ${index + 1}`,
-      creator_id: generateId(),
+      creatorId: generateId(),
       difficulty: generateDifficulty(),
-      access_code: isPrivate ? generateAccessCode() : undefined,
-      problem_ids: generateProblemIds(),
-      time_limit: 3600, // 1 hour in seconds
-      created_at: generateTimestamp(),
-      participant_ids: Array.from({ length: generateParticipants() }, () => generateId()),
+      accessCode: isPrivate ? generateAccessCode() : undefined,
+      problemIds: generateProblemIds(),
+      timeLimit: 3600, // 1 hour in seconds
+      createdAt: generateTimestamp(),
+      participantIds: Array.from({ length: generateParticipants() }, () => generateId()),
       status: 'active',
       isPrivate,
-      participants: generateParticipants(),
+      isActive: true,
       participantUsers: Array.from({ length: Math.min(4, generateParticipants()) }, () => ({
-        avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-        name: `User ${generateId().substring(0, 4)}`
+        userID: generateId(),
+        userName: `User ${generateId().substring(0, 4)}`,
+        avatarURL: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`
       }))
     };
   });
