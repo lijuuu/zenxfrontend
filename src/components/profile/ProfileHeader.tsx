@@ -29,7 +29,7 @@ import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
 import FollowersModal from "./FollowersModal";
-import { useIsFollowing, useFollowAction, useFollowers, useFollowing } from "@/hooks/useFollow";
+import { useIsFollowing, useFollowAction, useFollowers, useFollowing, useCheckFollow } from "@/hooks/useFollow";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,15 +70,15 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
 
   // Fetch monthly activity data to calculate streak
   const monthlyActivity = useMonthlyActivity(
-    profile.userID || '', 
+    profile.userID || '',
     currentMonth,
     currentYear
   );
 
   // Calculate problems done
-  const problemsDone = problemStats 
+  const problemsDone = problemStats
     ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
-    : profile.stats 
+    : profile.stats
       ? (profile.stats.easy?.solved || 0) + (profile.stats.medium?.solved || 0) + (profile.stats.hard?.solved || 0)
       : profile.problemsSolved || 0;
 
@@ -88,17 +88,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       // Sort days by date in descending order (most recent first)
       const sortedDays = [...monthlyActivity.data.data]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
+
       let currentStreak = 0;
       let currentDate = new Date();
-      
+
       // Check each day going backward from today
       while (true) {
         // Find if there's an activity for this day
-        const dayActivity = sortedDays.find(day => 
+        const dayActivity = sortedDays.find(day =>
           isSameDay(parseISO(day.date), currentDate) && day.count > 0
         );
-        
+
         if (dayActivity) {
           currentStreak++;
           currentDate = subDays(currentDate, 1); // Move to previous day
@@ -106,7 +106,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           break; // Break the streak when finding a day with no activity
         }
       }
-      
+
       setDayStreak(currentStreak);
     }
   }, [monthlyActivity.data]);
@@ -114,7 +114,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   // Follow state logic
   const { data: isFollowingData, refetch: refetchIsFollowing } = useIsFollowing(profile.userID);
   const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
-  
+
   // For showing modals
   const [followersOpen, setFollowersOpen] = useState(false);
   const [followingOpen, setFollowingOpen] = useState(false);
@@ -122,6 +122,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   // For followers/following modal lists
   const { data: followers = [], refetch: refetchFollowers } = useFollowers(profile.userID, followersOpen);
   const { data: following = [], refetch: refetchFollowing } = useFollowing(profile.userID, followingOpen);
+
+  const { data: followCheck = false } = useCheckFollow(profile.userID)
 
   // Use ownership from useOwner hook
   const isOwnProfile = ownerUserID === profile.userID;
@@ -187,9 +189,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   };
 
   // Calculate contest participation
-  const contestsParticipated = (profile.achievements?.weeklyContests || 0) + 
-                              (profile.achievements?.monthlyContests || 0) + 
-                              (profile.achievements?.specialEvents || 0);
+  const contestsParticipated = (profile.achievements?.weeklyContests || 0) +
+    (profile.achievements?.monthlyContests || 0) +
+    (profile.achievements?.specialEvents || 0);
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -242,14 +244,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
 
         <div className="flex gap-2 mt-3">
           {profile.country && (
-           <>
-            <img
-              src={`https://flagcdn.com/24x18/${profile.country?.toLowerCase()}.png`}
-              alt={profile.country}
-              className="h-5 rounded"
-            />
-            <p>{profile.country.toUpperCase()}</p>
-           </>
+            <>
+              <img
+                src={`https://flagcdn.com/24x18/${profile.country?.toLowerCase()}.png`}
+                alt={profile.country}
+                className="h-5 rounded"
+              />
+              <p>{profile.country.toUpperCase()}</p>
+            </>
           )}
         </div>
 
@@ -282,22 +284,21 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           ) : (
             <Button
               variant={isFollowingData ? "outline" : "default"}
-              className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${
-                isFollowingData
+              className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${isFollowingData
                   ? "border border-green-400 text-green-500 hover:bg-green-500/10"
                   : "bg-green-600 hover:bg-green-700 text-white"
-              }`}
+                }`}
               onClick={handleFollow}
               disabled={followActionLoading}
             >
               {followActionLoading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : isFollowingData ? (
+              ) : followCheck ? (
                 <UserMinus className="h-4 w-4 mr-2" />
               ) : (
                 <UserPlus className="h-4 w-4 mr-2" />
               )}
-              {isFollowingData ? "Following" : "Follow"}
+              {followCheck ? "Following" : "Follow"}
             </Button>
           )}
           <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">
@@ -320,17 +321,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
               <span className="text-xl font-bold">{dayStreak}</span>
               <span className="text-xs text-muted-foreground">Day Streak</span>
             </div>
-            
+
             <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
               <Trophy className="h-4 w-4 text-amber-500 mb-1" />
               <span className="text-xl font-bold">#{leaderboardData?.GlobalRank || '-'}</span>
               <span className="text-xs text-muted-foreground">Global Rank</span>
             </div>
-            
+
             <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
               <Award className="h-4 w-4 text-blue-400 mb-1" />
-              <span className="text-xl font-bold">{contestsParticipated}</span> 
-              <span className="text-xs text-muted-foreground">Challenges</span> 
+              <span className="text-xl font-bold">{contestsParticipated}</span>
+              <span className="text-xs text-muted-foreground">Challenges</span>
             </div>
           </div>
         </div>

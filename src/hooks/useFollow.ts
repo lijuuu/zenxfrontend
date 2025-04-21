@@ -65,3 +65,13 @@ export const useFollowing = (userID?: string, enabled: boolean = true) => {
     enabled: !!userID && enabled,
   });
 };
+
+
+/** Fetch users the given user is following */
+export const useCheckFollow = (userID?: string) => {
+  return useQuery({
+    queryKey: ["following", userID],
+    queryFn: () => (userID ? checkFollow(userID) : false),
+    enabled: !!userID,
+  });
+};

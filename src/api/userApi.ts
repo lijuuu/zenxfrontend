@@ -127,12 +127,13 @@ export const searchUsers = async (
   return res.data.payload;
 };
 
-/** Follow a user (POST) */
+/** Follow a user (POST with query param) */
 export const followUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
   const res = await axiosInstance.post(
     "/users/follow",
-    { followeeID },
+    null, // no body
     {
+      params: { followeeID },
       headers: { "X-Requires-Auth": "true" }
     }
   );
@@ -142,17 +143,21 @@ export const followUser = async (followeeID: string): Promise<{ success: boolean
   };
 };
 
-/** Unfollow a user (DELETE) */
+/** Unfollow a user (DELETE with query param) */
 export const unfollowUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
   const res = await axiosInstance.delete(
     "/users/follow",
-    { params: { followeeID }, headers: { "X-Requires-Auth": "true" } }
+    {
+      params: { followeeID },
+      headers: { "X-Requires-Auth": "true" }
+    }
   );
   return {
     success: res.data.Success ?? res.data.success,
     message: res.data.Payload?.message || res.data.Payload?.Message || res.data.Error?.Message || "",
   };
 };
+
 
 /** Get followers (GET) */
 export const getFollowers = async (userID: string, pageToken?: string, limit: number = 10) => {
