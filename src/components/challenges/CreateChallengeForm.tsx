@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, PlusCircle, XCircle, Flag, Trophy, Brain, Search, Check, Sparkles, Settings, Puzzle } from "lucide-react";
@@ -48,9 +49,9 @@ const formSchema = z.object({
   accessCode: z.string().optional()
     .superRefine((val, ctx) => {
       // Check if isPrivate is true from the parent object
-      const isPrivate = ctx.path.length > 0 && ctx.path[0] === 'isPrivate' 
-        ? undefined 
-        : (ctx.parent as any)?.isPrivate;
+      // Use type assertion with unknown first to safely access parent
+      const parentObj = ctx.path.length > 0 ? undefined : ctx as unknown as { parent: { isPrivate: boolean } };
+      const isPrivate = parentObj?.parent?.isPrivate;
       
       if (isPrivate && (!val || val.length < 4)) {
         ctx.addIssue({
