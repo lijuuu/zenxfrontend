@@ -25,6 +25,8 @@ import QuickMatch from "./components/challenges/QuickMatch";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
+import FollowersPage from "./pages/FollowersPage";
+import FollowingPage from "./pages/FollowingPage";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -72,6 +74,8 @@ const AppContent = () => {
 
         {/*Admin Dashboard*/}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/followers/:userid" element={<FollowersPage />} />
+        <Route path="/following/:userid" element={<FollowingPage />} />
 
         {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />

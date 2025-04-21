@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
@@ -267,14 +266,18 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             <span>Joined {new Date(profile.joinedDate || profile.createdAt).toLocaleDateString()}</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="text-sm underline decoration-dotted hover:text-green-400 transition" onClick={() => setFollowersOpen(true)}>
-              <strong>{profile.followers}</strong> followers
-            </button>
-            <button className="text-sm underline decoration-dotted hover:text-green-400 transition" onClick={() => setFollowingOpen(true)}>
-              <strong>{profile.following}</strong> following
-            </button>
-          </div>
+          <a
+            href={`/followers/${profile.userID}`}
+            className="text-sm underline decoration-dotted hover:text-green-400 transition"
+          >
+            <strong>{profile.followers}</strong> followers
+          </a>
+          <a
+            href={`/following/${profile.userID}`}
+            className="text-sm underline decoration-dotted hover:text-green-400 transition"
+          >
+            <strong>{profile.following}</strong> following
+          </a>
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
@@ -340,18 +343,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       )}
 
       {/* Followers/Following Modals */}
-      <FollowersModal
-        open={followersOpen}
-        onOpenChange={setFollowersOpen}
-        users={followers}
-        title={"Followers"}
-      />
-      <FollowersModal
-        open={followingOpen}
-        onOpenChange={setFollowingOpen}
-        users={following}
-        title={"Following"}
-      />
+      
 
       {/* Unfollow Confirmation Dialog */}
       <AlertDialog open={showUnfollowDialog} onOpenChange={setShowUnfollowDialog}>
