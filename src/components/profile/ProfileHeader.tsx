@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +12,6 @@ import {
   BarChart3,
   Clock,
   Trophy,
-  User,
   Award
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router";
-import { useSelector } from "react-redux";
 import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
 import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
@@ -41,19 +40,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useOwner } from "@/hooks/useOwner";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
   userID?: string;
   showStats?: boolean;
-  isOwner?:boolean
+  isOwner?: boolean;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true, isOwner = false }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true }) => {
   const { toast } = useToast();
   const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
   const [dayStreak, setDayStreak] = useState(0);
-  const authState = useSelector((state: any) => state.auth);
+
+  // Hook providing current owner user ID
+  const { ownerUserID } = useOwner();
 
   // Get leaderboard data
   const { data: leaderboardData } = useLeaderboard(profile.userID);
@@ -112,15 +114,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   // Follow state logic
   const { data: isFollowingData, refetch: refetchIsFollowing } = useIsFollowing(profile.userID);
   const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
+  
   // For showing modals
   const [followersOpen, setFollowersOpen] = useState(false);
   const [followingOpen, setFollowingOpen] = useState(false);
+
   // For followers/following modal lists
   const { data: followers = [], refetch: refetchFollowers } = useFollowers(profile.userID, followersOpen);
   const { data: following = [], refetch: refetchFollowing } = useFollowing(profile.userID, followingOpen);
 
-  const isOwnProfile = !userID || userID === profile.userID ||
-    (authState.userProfile && (userID === authState.userProfile.userID || userID === authState.userID));
+  // Use ownership from useOwner hook
+  const isOwnProfile = ownerUserID === profile.userID;
 
   const handleCopyUsername = () => {
     navigator.clipboard.writeText(profile.userName);
