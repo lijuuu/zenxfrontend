@@ -139,7 +139,7 @@ export const followUser = async (followeeID: string): Promise<{ success: boolean
   );
   return {
     success: res.data.Success ?? res.data.success,
-    message: res.data.Payload?.message || res.data.Payload?.Message || res.data.Error?.Message || "",
+    message: res.data.payload?.message || res.data.payload?.Message || res.data.Error?.Message || "",
   };
 };
 
@@ -154,7 +154,7 @@ export const unfollowUser = async (followeeID: string): Promise<{ success: boole
   );
   return {
     success: res.data.Success ?? res.data.success,
-    message: res.data.Payload?.message || res.data.Payload?.Message || res.data.Error?.Message || "",
+    message: res.data.payload?.message || res.data.payload?.Message || res.data.Error?.Message || "",
   };
 };
 
@@ -165,8 +165,10 @@ export const getFollowers = async (userID: string, pageToken?: string, limit: nu
     params: { userID, pageToken, limit },
     headers: { "X-Requires-Auth": "true" }
   });
-  // Returns users in res.data.Payload.users
-  return res.data.Payload?.users || [];
+
+  console.log("res.data.payload?.users ", res.data.payload?.users)
+  // Returns users in res.data.payload.users
+  return res.data.payload?.users || [];
 };
 
 /** Get following (GET) */
@@ -175,7 +177,9 @@ export const getFollowing = async (userID: string, pageToken?: string, limit: nu
     params: { userID, pageToken, limit },
     headers: { "X-Requires-Auth": "true" }
   });
-  return res.data.Payload?.users || [];
+  console.log("res.data.payload?.users ", res.data.payload?.users)
+
+  return res.data.payload?.users || [];
 };
 
 /** Check if following (GET) */
@@ -184,5 +188,5 @@ export const checkFollow = async (userID: string) => {
     params: { userID },
     headers: { "X-Requires-Auth": "true" }
   });
-  return res.data.Payload?.isFollowing || false;
+  return res.data.payload?.isFollowing || false;
 };

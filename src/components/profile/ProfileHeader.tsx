@@ -112,7 +112,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   }, [monthlyActivity.data]);
 
   // Follow state logic using useCheckFollow
-  const { data: isFollowing = false, refetch: refetchIsFollowing } = useCheckFollow(profile.userID);
+  const { data: isFollowing = false, refetch: refetchIsFollowing } = ownerUserID != profile.userID ? useCheckFollow(profile.userID) : false;
   const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
 
   // For showing modals
@@ -190,6 +190,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   const contestsParticipated = (profile.achievements?.weeklyContests || 0) +
     (profile.achievements?.monthlyContests || 0) +
     (profile.achievements?.specialEvents || 0);
+
+
+
+  console.log("following", following)
+  console.log("follower", followers)
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -283,8 +288,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             <Button
               variant={isFollowing ? "outline" : "default"}
               className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${isFollowing
-                  ? "border border-green-400 text-green-500 hover:bg-green-500/10"
-                  : "bg-green-600 hover:bg-green-700 text-white"
+                ? "border border-green-400 text-green-500 hover:bg-green-500/10"
+                : "bg-green-600 hover:bg-green-700 text-white"
                 }`}
               onClick={handleFollow}
               disabled={followActionLoading}

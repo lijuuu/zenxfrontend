@@ -77,7 +77,6 @@ const Profile = () => {
     ? challenges.filter((c) => !c.isPrivate).length
     : 0;
 
-  console.log(challenges)
 
   if (profileLoading) {
     return (
