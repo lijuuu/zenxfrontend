@@ -1,3 +1,4 @@
+
 import { UserProfile } from '@/store/slices/authSlice';
 import { mockUsers, mockFriends } from './mockData';
 import { Friend } from './types';
@@ -166,8 +167,7 @@ export const getFollowers = async (userID: string, pageToken?: string, limit: nu
     headers: { "X-Requires-Auth": "true" }
   });
 
-  console.log("res.data.payload?.users ", res.data.payload?.users)
-  // Returns users in res.data.payload.users
+  // Return users from the payload structure
   return res.data.payload?.users || [];
 };
 
@@ -177,8 +177,8 @@ export const getFollowing = async (userID: string, pageToken?: string, limit: nu
     params: { userID, pageToken, limit },
     headers: { "X-Requires-Auth": "true" }
   });
-  console.log("res.data.payload?.users ", res.data.payload?.users)
 
+  // Return users from the payload structure
   return res.data.payload?.users || [];
 };
 

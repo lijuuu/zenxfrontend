@@ -112,7 +112,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   }, [monthlyActivity.data]);
 
   // Follow state logic using useCheckFollow
-  const { data: isFollowing = false, refetch: refetchIsFollowing } = ownerUserID != profile.userID ? useCheckFollow(profile.userID) : false;
+  const { data: isFollowing = false, refetch: refetchIsFollowing } = 
+    ownerUserID !== profile.userID 
+      ? useCheckFollow(profile.userID) 
+      : { data: false, refetch: () => Promise.resolve({ data: false }) };
+  
   const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
 
   // For showing modals
@@ -190,11 +194,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   const contestsParticipated = (profile.achievements?.weeklyContests || 0) +
     (profile.achievements?.monthlyContests || 0) +
     (profile.achievements?.specialEvents || 0);
-
-
-
-  console.log("following", following)
-  console.log("follower", followers)
 
   return (
     <div className="flex flex-col md:flex-row gap-6">

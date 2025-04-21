@@ -48,10 +48,10 @@ const FollowersModal: React.FC<FollowersModalProps> = ({ open, onOpenChange, use
                   <span className="font-semibold text-foreground text-base truncate">
                     {u.firstName} {u.lastName}
                   </span>
-                  <span className="text-xs text-muted-foreground truncate">@{u.userName}</span>
+                  <span className="text-xs text-muted-foreground truncate">@{u.userName || 'unnamed'}</span>
                 </div>
                 <span className="ml-auto text-xs bg-green-500/20 text-green-500 px-3 py-0.5 rounded-full font-medium group-hover:bg-green-500/40">
-                  {u.country?.toUpperCase() ?? ""}
+                  {u.country?.toUpperCase() || ''}
                 </span>
               </li>
             ))}

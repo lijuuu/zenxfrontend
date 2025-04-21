@@ -54,7 +54,11 @@ export const useFollowAction = (targetUserID: string) => {
 export const useFollowers = (userID?: string, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["followers", userID],
-    queryFn: () => (userID ? getFollowers(userID) : []),
+    queryFn: async () => {
+      if (!userID) return [];
+      const result = await getFollowers(userID);
+      return result;
+    },
     enabled: !!userID && enabled,
   });
 };
@@ -63,7 +67,11 @@ export const useFollowers = (userID?: string, enabled: boolean = true) => {
 export const useFollowing = (userID?: string, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["following", userID],
-    queryFn: () => (userID ? getFollowing(userID) : []),
+    queryFn: async () => {
+      if (!userID) return [];
+      const result = await getFollowing(userID);
+      return result;
+    },
     enabled: !!userID && enabled,
   });
 };
@@ -72,7 +80,10 @@ export const useFollowing = (userID?: string, enabled: boolean = true) => {
 export const useCheckFollow = (userID?: string) => {
   return useQuery({
     queryKey: ["checkFollow", userID],
-    queryFn: () => (userID ? checkFollow(userID) : false),
+    queryFn: async () => {
+      if (!userID) return false;
+      return await checkFollow(userID);
+    },
     enabled: !!userID,
   });
 };
