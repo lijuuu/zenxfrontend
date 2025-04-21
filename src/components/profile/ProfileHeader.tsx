@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
@@ -279,7 +278,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           ) : (
             <Button
               variant={isFollowingData ? "outline" : "default"}
-              className={isFollowingData ? "" : "bg-green-500 hover:bg-green-600 text-white"}
+              className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${
+                isFollowingData
+                  ? "border border-green-400 text-green-500 hover:bg-green-500/10"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
               onClick={handleFollow}
               disabled={followActionLoading}
             >
