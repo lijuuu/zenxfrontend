@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,16 @@ import { parseISO, isSameDay, subDays } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
 import FollowersModal from "./FollowersModal";
 import { useIsFollowing, useFollowAction, useFollowers, useFollowing } from "@/hooks/useFollow";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -41,10 +52,9 @@ interface ProfileHeaderProps {
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true, isOwner = false }) => {
   const { toast } = useToast();
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const authState = useSelector((state: any) => state.auth);
+  const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
   const [dayStreak, setDayStreak] = useState(0);
+  const authState = useSelector((state: any) => state.auth);
 
   // Get leaderboard data
   const { data: leaderboardData } = useLeaderboard(profile.userID);
@@ -101,8 +111,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   }, [monthlyActivity.data]);
 
   // Follow state logic
-  const { data: isFollowing, refetch: refetchIsFollowing } = useIsFollowing(profile.userID);
-  const { follow, unfollow, isLoading } = useFollowAction(profile.userID || "");
+  const { data: isFollowingData, refetch: refetchIsFollowing } = useIsFollowing(profile.userID);
+  const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
   // For showing modals
   const [followersOpen, setFollowersOpen] = useState(false);
   const [followingOpen, setFollowingOpen] = useState(false);
@@ -124,25 +134,40 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   const handleFollow = async () => {
     if (!profile.userID) return;
     try {
-      if (isFollowing) {
-        await unfollow();
-        toast({
-          title: "Unfollowed",
-          description: `You unfollowed @${profile.userName}`,
-        });
+      if (isFollowingData) {
+        setShowUnfollowDialog(true);
       } else {
         await follow();
         toast({
           title: "Followed",
           description: `You are now following @${profile.userName}`,
         });
+        refetchIsFollowing();
+        refetchFollowers();
       }
-      refetchIsFollowing();
-      refetchFollowers();
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmUnfollow = async () => {
+    try {
+      await unfollow();
+      toast({
+        title: "Unfollowed",
+        description: `You unfollowed @${profile.userName}`,
+      });
+      refetchIsFollowing();
+      refetchFollowers();
+      setShowUnfollowDialog(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to unfollow user",
         variant: "destructive",
       });
     }
@@ -253,19 +278,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             </Button>
           ) : (
             <Button
-              variant={isFollowing ? "outline" : "default"}
-              className={isFollowing ? "" : "bg-green-500 hover:bg-green-600 text-white"}
+              variant={isFollowingData ? "outline" : "default"}
+              className={isFollowingData ? "" : "bg-green-500 hover:bg-green-600 text-white"}
               onClick={handleFollow}
-              disabled={isLoading}
+              disabled={followActionLoading}
             >
-              {isLoading ? (
+              {followActionLoading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : isFollowing ? (
+              ) : isFollowingData ? (
                 <UserMinus className="h-4 w-4 mr-2" />
               ) : (
                 <UserPlus className="h-4 w-4 mr-2" />
               )}
-              {isFollowing ? "Following" : "Follow"}
+              {isFollowingData ? "Following" : "Follow"}
             </Button>
           )}
           <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">
@@ -317,6 +342,22 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
         users={following}
         title={"Following"}
       />
+
+      {/* Unfollow Confirmation Dialog */}
+      <AlertDialog open={showUnfollowDialog} onOpenChange={setShowUnfollowDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unfollow {profile.userName}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to unfollow @{profile.userName}? You will no longer see their updates in your feed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmUnfollow}>Unfollow</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

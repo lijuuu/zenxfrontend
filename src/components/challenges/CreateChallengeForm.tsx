@@ -47,18 +47,22 @@ const formSchema = z.object({
   difficulty: z.enum(["Easy", "Medium", "Hard"]).default("Easy"),
   isPrivate: z.boolean().default(false),
   accessCode: z.string().optional()
-    .refine(
-      (val, ctx) => {
-        // Only validate if isPrivate is true
-        if (ctx.path[0] === 'accessCode' && ctx.data.isPrivate) {
-          return val && val.length >= 4;
+    .superRefine((val, ctx) => {
+      // Only validate if isPrivate is true
+      if (ctx.path[0] === 'accessCode' && ctx.data.isPrivate) {
+        if (!val || val.length < 4) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.too_small,
+            minimum: 4,
+            type: "string",
+            inclusive: true,
+            message: "Access code must be at least 4 characters for private challenges."
+          });
+          return false;
         }
-        return true;
-      },
-      {
-        message: "Access code must be at least 4 characters for private challenges.",
       }
-    ),
+      return true;
+    }),
   timeLimit: z.number().min(300, {
     message: "Time limit must be at least 5 minutes.",
   }).default(3600),
