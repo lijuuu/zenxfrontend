@@ -3,34 +3,37 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserProfile } from "@/api/types";
-import { UserPlus } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface FollowersModalProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  users: UserProfile[];
+  users: UserProfile[] | null | undefined;
   title: string;
 }
 
 const FollowersModal: React.FC<FollowersModalProps> = ({ open, onOpenChange, users, title }) => {
+  // Ensure users is an array or default to empty array
+  const usersList = Array.isArray(users) ? users : [];
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg p-0 bg-background rounded-2xl shadow-xl">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="text-xl">{title}</DialogTitle>
           <DialogDescription>
-            {users.length === 0 ? "No users yet." : `Total: ${users.length}`}
+            {usersList.length === 0 ? "No users yet." : `Total: ${usersList.length}`}
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[350px] overflow-y-auto px-3">
-          {users.length === 0 && (
+          {usersList.length === 0 && (
             <div className="py-12 flex flex-col items-center text-muted-foreground">
-              <UserPlus className="w-10 h-10 mb-2" />
+              <Users className="w-10 h-10 mb-2" />
               <span>No users found.</span>
             </div>
           )}
           <ul className="divide-y divide-border">
-            {users.map((u) => (
+            {usersList.map((u) => (
               <li
                 key={u.userID}
                 className="flex items-center gap-3 p-3 group hover:bg-accent/70 transition rounded-md"

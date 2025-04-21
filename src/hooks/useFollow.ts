@@ -29,6 +29,7 @@ export const useFollowAction = (targetUserID: string) => {
       queryClient.invalidateQueries({ queryKey: ["isFollowing"] });
       queryClient.invalidateQueries({ queryKey: ["followers"] });
       queryClient.invalidateQueries({ queryKey: ["following"] });
+      queryClient.invalidateQueries({ queryKey: ["checkFollow"] });
     }
   });
 
@@ -38,6 +39,7 @@ export const useFollowAction = (targetUserID: string) => {
       queryClient.invalidateQueries({ queryKey: ["isFollowing"] });
       queryClient.invalidateQueries({ queryKey: ["followers"] });
       queryClient.invalidateQueries({ queryKey: ["following"] });
+      queryClient.invalidateQueries({ queryKey: ["checkFollow"] });
     }
   });
 
@@ -66,11 +68,10 @@ export const useFollowing = (userID?: string, enabled: boolean = true) => {
   });
 };
 
-
-/** Fetch users the given user is following */
+/** Check if the current user follows a specific user */
 export const useCheckFollow = (userID?: string) => {
   return useQuery({
-    queryKey: ["following", userID],
+    queryKey: ["checkFollow", userID],
     queryFn: () => (userID ? checkFollow(userID) : false),
     enabled: !!userID,
   });

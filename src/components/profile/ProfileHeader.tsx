@@ -29,7 +29,7 @@ import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
 import FollowersModal from "./FollowersModal";
-import { useIsFollowing, useFollowAction, useFollowers, useFollowing, useCheckFollow } from "@/hooks/useFollow";
+import { useFollowAction, useFollowers, useFollowing, useCheckFollow } from "@/hooks/useFollow";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,8 +111,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
     }
   }, [monthlyActivity.data]);
 
-  // Follow state logic
-  const { data: isFollowingData, refetch: refetchIsFollowing } = useIsFollowing(profile.userID);
+  // Follow state logic using useCheckFollow
+  const { data: isFollowing = false, refetch: refetchIsFollowing } = useCheckFollow(profile.userID);
   const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
 
   // For showing modals
@@ -122,8 +122,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   // For followers/following modal lists
   const { data: followers = [], refetch: refetchFollowers } = useFollowers(profile.userID, followersOpen);
   const { data: following = [], refetch: refetchFollowing } = useFollowing(profile.userID, followingOpen);
-
-  const { data: followCheck = false } = useCheckFollow(profile.userID)
 
   // Use ownership from useOwner hook
   const isOwnProfile = ownerUserID === profile.userID;
@@ -139,7 +137,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   const handleFollow = async () => {
     if (!profile.userID) return;
     try {
-      if (isFollowingData) {
+      if (isFollowing) {
         setShowUnfollowDialog(true);
       } else {
         await follow();
@@ -283,8 +281,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             </Button>
           ) : (
             <Button
-              variant={isFollowingData ? "outline" : "default"}
-              className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${isFollowingData
+              variant={isFollowing ? "outline" : "default"}
+              className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${isFollowing
                   ? "border border-green-400 text-green-500 hover:bg-green-500/10"
                   : "bg-green-600 hover:bg-green-700 text-white"
                 }`}
@@ -293,12 +291,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             >
               {followActionLoading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : followCheck ? (
+              ) : isFollowing ? (
                 <UserMinus className="h-4 w-4 mr-2" />
               ) : (
                 <UserPlus className="h-4 w-4 mr-2" />
               )}
-              {followCheck ? "Following" : "Follow"}
+              {isFollowing ? "Following" : "Follow"}
             </Button>
           )}
           <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">

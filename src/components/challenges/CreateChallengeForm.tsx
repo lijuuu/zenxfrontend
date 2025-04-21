@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, PlusCircle, XCircle, Flag, Trophy, Brain, Search, Check, Sparkles, Settings, Puzzle } from "lucide-react";
@@ -47,9 +48,12 @@ const formSchema = z.object({
   isPrivate: z.boolean().default(false),
   accessCode: z.string().optional()
     .superRefine((val, ctx) => {
-      // Only validate if isPrivate is true and accessCode is in the current field path
-      if (ctx.path.includes('accessCode') && (ctx.parent as { isPrivate?: boolean })?.isPrivate) {
-        if (!val || val.length < 4) {
+      // Check if we're validating accessCode and if isPrivate is true
+      if (ctx.path.includes('accessCode')) {
+        const formData = ctx.path[0] ? ctx : { data: undefined };
+        const isPrivate = formData.data?.isPrivate;
+        
+        if (isPrivate && (!val || val.length < 4)) {
           ctx.addIssue({
             code: z.ZodIssueCode.too_small,
             minimum: 4,
