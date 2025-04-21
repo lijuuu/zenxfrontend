@@ -1,4 +1,3 @@
-
 import { UserProfile } from '@/store/slices/authSlice';
 import { mockUsers, mockFriends } from './mockData';
 import { Friend } from './types';
@@ -126,4 +125,59 @@ export const searchUsers = async (
   });
 
   return res.data.payload;
+};
+
+/** Follow a user (POST) */
+export const followUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
+  const res = await axiosInstance.post(
+    "/users/follow",
+    { followeeID },
+    {
+      headers: { "X-Requires-Auth": "true" }
+    }
+  );
+  return {
+    success: res.data.Success ?? res.data.success,
+    message: res.data.Payload?.message || res.data.Payload?.Message || res.data.Error?.Message || "",
+  };
+};
+
+/** Unfollow a user (DELETE) */
+export const unfollowUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
+  const res = await axiosInstance.delete(
+    "/users/follow",
+    { params: { followeeID }, headers: { "X-Requires-Auth": "true" } }
+  );
+  return {
+    success: res.data.Success ?? res.data.success,
+    message: res.data.Payload?.message || res.data.Payload?.Message || res.data.Error?.Message || "",
+  };
+};
+
+/** Get followers (GET) */
+export const getFollowers = async (userID: string, pageToken?: string, limit: number = 10) => {
+  const res = await axiosInstance.get("/users/follow/followers", {
+    params: { userID, pageToken, limit },
+    headers: { "X-Requires-Auth": "true" }
+  });
+  // Returns users in res.data.Payload.users
+  return res.data.Payload?.users || [];
+};
+
+/** Get following (GET) */
+export const getFollowing = async (userID: string, pageToken?: string, limit: number = 10) => {
+  const res = await axiosInstance.get("/users/follow/following", {
+    params: { userID, pageToken, limit },
+    headers: { "X-Requires-Auth": "true" }
+  });
+  return res.data.Payload?.users || [];
+};
+
+/** Check if following (GET) */
+export const checkFollow = async (userID: string) => {
+  const res = await axiosInstance.get("/users/follow/check", {
+    params: { userID },
+    headers: { "X-Requires-Auth": "true" }
+  });
+  return res.data.Payload?.isFollowing || false;
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +29,8 @@ import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
 import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
+import FollowersModal from "./FollowersModal";
+import { useIsFollowing, useFollowAction, useFollowers, useFollowing } from "@/hooks/useFollow";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -38,7 +39,7 @@ interface ProfileHeaderProps {
   isOwner?:boolean
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true,isOwner=false }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true, isOwner = false }) => {
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,6 +100,16 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
     }
   }, [monthlyActivity.data]);
 
+  // Follow state logic
+  const { data: isFollowing, refetch: refetchIsFollowing } = useIsFollowing(profile.userID);
+  const { follow, unfollow, isLoading } = useFollowAction(profile.userID || "");
+  // For showing modals
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const [followingOpen, setFollowingOpen] = useState(false);
+  // For followers/following modal lists
+  const { data: followers = [], refetch: refetchFollowers } = useFollowers(profile.userID, followersOpen);
+  const { data: following = [], refetch: refetchFollowing } = useFollowing(profile.userID, followingOpen);
+
   const isOwnProfile = !userID || userID === profile.userID ||
     (authState.userProfile && (userID === authState.userProfile.userID || userID === authState.userID));
 
@@ -111,27 +122,29 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   };
 
   const handleFollow = async () => {
-    setIsLoading(true);
-
+    if (!profile.userID) return;
     try {
-      // This would be an API call in a real app
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setIsFollowing(!isFollowing);
-      toast({
-        title: isFollowing ? "Unfollowed" : "Followed",
-        description: isFollowing
-          ? `You unfollowed @${profile.userName}`
-          : `You are now following @${profile.userName}`,
-      });
+      if (isFollowing) {
+        await unfollow();
+        toast({
+          title: "Unfollowed",
+          description: `You unfollowed @${profile.userName}`,
+        });
+      } else {
+        await follow();
+        toast({
+          title: "Followed",
+          description: `You are now following @${profile.userName}`,
+        });
+      }
+      refetchIsFollowing();
+      refetchFollowers();
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update follow status",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -222,12 +235,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             <span>Joined {new Date(profile.joinedDate || profile.createdAt).toLocaleDateString()}</span>
           </div>
 
-          {profile.followers !== undefined && (
-            <div className="flex items-center gap-4">
-              <span className="text-sm"><strong>{profile.followers}</strong> followers</span>
-              <span className="text-sm"><strong>{profile.following}</strong> following</span>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <button className="text-sm underline decoration-dotted hover:text-green-400 transition" onClick={() => setFollowersOpen(true)}>
+              <strong>{profile.followers}</strong> followers
+            </button>
+            <button className="text-sm underline decoration-dotted hover:text-green-400 transition" onClick={() => setFollowingOpen(true)}>
+              <strong>{profile.following}</strong> following
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
@@ -253,7 +268,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
               {isFollowing ? "Following" : "Follow"}
             </Button>
           )}
-
           <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">
             Message
           </Button>
@@ -289,6 +303,20 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           </div>
         </div>
       )}
+
+      {/* Followers/Following Modals */}
+      <FollowersModal
+        open={followersOpen}
+        onOpenChange={setFollowersOpen}
+        users={followers}
+        title={"Followers"}
+      />
+      <FollowersModal
+        open={followingOpen}
+        onOpenChange={setFollowingOpen}
+        users={following}
+        title={"Following"}
+      />
     </div>
   );
 };
