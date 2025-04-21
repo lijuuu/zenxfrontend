@@ -71,6 +71,7 @@ const MinimalChallenges = () => {
     isPrivate: true
   });
 
+  console.log("activeChallenges",activeChallenges)
   console.log('publicChallengeHistory',publicChallengeHistory)
   console.log('privateChallengeHistory',privateChallengeHistory)
 
