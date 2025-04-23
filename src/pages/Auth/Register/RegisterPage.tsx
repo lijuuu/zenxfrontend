@@ -119,11 +119,11 @@ function RegisterPage() {
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#121212] text-white relative font-roboto">
+    <div className="flex flex-col min-h-screen bg-zinc-950 text-white relative font-roboto">
       {loading && <LoaderOverlay onCancel={() => {}} />}
-      <div className="w-full bg-[#2C2C2C] h-2">
+      <div className="w-full bg-zinc-800 h-2">
         <div
-          className="bg-[#3CE7B2] h-2 transition-all duration-300 ease-in-out"
+          className="bg-green-500 h-2 transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>

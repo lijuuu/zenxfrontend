@@ -63,25 +63,24 @@ function RegisterStage2({
   };
 
   return (
-    <div className="flex flex-col bg-[#121212] text-white">
-      <div className="flex justify-center items-center flex-1 p-4">
+    <div className="flex flex-col bg-zinc-950 text-white">
+      <div className="flex justify-center items-center flex-1 pt-16">
         <div
           className={cn(
-            'w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700 transition-all duration-300',
+            'w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg hover:border-zinc-700 transition-all duration-300',
             className
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white font-roboto">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-base font-roboto">
+          <p className="text-center text-zinc-500 mb-6 text-sm">
             Please enter your name
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            {/* First Name Input */}
             <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-sm font-medium text-white font-roboto">
+              <Label htmlFor="firstName" className="text-sm text-white">
                 First Name
               </Label>
               <Input
@@ -89,18 +88,14 @@ function RegisterStage2({
                 type="text"
                 placeholder="John"
                 {...register('firstName')}
-                className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base font-roboto',
-                  errors.firstName ? 'border-[#3CE7B2]' : ''
-                )}
+                className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
               />
               {errors.firstName && (
-                <p className="text-sm text-[#3CE7B2]">{errors.firstName.message}</p>
+                <p className="text-green-500 text-sm">{errors.firstName.message}</p>
               )}
             </div>
-            {/* Last Name Input */}
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-sm font-medium text-white font-roboto">
+              <Label htmlFor="lastName" className="text-sm text-white">
                 Last Name
               </Label>
               <Input
@@ -108,27 +103,23 @@ function RegisterStage2({
                 type="text"
                 placeholder="Doe"
                 {...register('lastName')}
-                className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base font-roboto',
-                  errors.lastName ? 'border-[#3CE7B2]' : ''
-                )}
+                className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
               />
               {errors.lastName && (
-                <p className="text-sm text-[#3CE7B2]">{errors.lastName.message}</p>
+                <p className="text-green-500 text-sm">{errors.lastName.message}</p>
               )}
             </div>
-            {/* Navigation Buttons */}
             <div className="flex justify-between space-x-2">
               <Button
                 type="button"
                 onClick={onBack}
-                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md text-base font-roboto transition-colors duration-300"
+                className="w-1/2 bg-zinc-800 text-white hover:bg-green-500 hover:text-black py-3 rounded-md transition-colors duration-200"
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base font-roboto transition-colors duration-300"
+                className="w-1/2 bg-green-500 text-black hover:bg-green-600 py-3 rounded-md font-medium transition-colors duration-200"
               >
                 Next
               </Button>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,7 +51,7 @@ const CountriesWithFlags = ({
     <div className="relative w-full">
       <Label className="block text-sm font-medium text-white">Country</Label>
       <div
-        className="flex items-center justify-between bg-[#2C2C2C] text-white p-3 rounded-md mt-1 cursor-pointer hover:border-[#3CE7B2] border border-[#2C2C2C]"
+        className="flex items-center justify-between bg-zinc-800 text-white p-3 rounded-md mt-1 cursor-pointer hover:border-green-500 border border-zinc-700 transition-all duration-200"
         onClick={() => setDropdownOpen(!dropdownOpen)}
       >
         {value && selectedCountryCode ? (
@@ -70,13 +69,13 @@ const CountriesWithFlags = ({
         <span>▼</span>
       </div>
       {dropdownOpen && (
-        <div className="absolute w-full bg-[#1D1D1D] text-white mt-2 max-h-60 overflow-y-auto rounded-xl shadow-lg z-10 border border-[#2C2C2C]">
+        <div className="absolute w-full bg-zinc-900 text-white mt-2 max-h-60 overflow-y-auto rounded-xl shadow-lg z-10 border border-zinc-800">
           {Object.entries(countries)
             .sort(([, a], [, b]) => a.localeCompare(b))
             .map(([code, name]) => (
               <div
                 key={code}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-[#2C2C2C] cursor-pointer"
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-zinc-800 cursor-pointer transition-colors duration-200"
                 onClick={() => handleSelect(name)}
               >
                 <img
@@ -142,19 +141,19 @@ function RegisterStage3({
   };
 
   return (
-    <div className="flex flex-col bg-[#121212] text-white">
-      <div className="flex justify-center items-center flex-1 p-4">
+    <div className="flex flex-col bg-zinc-950 text-white">
+      <div className="flex justify-center items-center flex-1 pt-16">
         <div
           className={cn(
-            'w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700',
+            'w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg hover:border-zinc-700 transition-all duration-300',
             className
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white font-inter">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-sm font-inter">
+          <p className="text-center text-zinc-500 mb-6 text-sm">
             Please provide your user information
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
@@ -167,7 +166,7 @@ function RegisterStage3({
                 )}
               />
               {errors.country && (
-                <p className="text-xs text-[#3CE7B2]">{errors.country.message}</p>
+                <p className="text-green-500 text-sm">{errors.country.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -177,7 +176,7 @@ function RegisterStage3({
               <select
                 id="profession"
                 {...register('profession')}
-                className="w-full bg-[#2C2C2C] border border-[#2C2C2C] p-2 rounded-md hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2]"
+                className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
               >
                 <option value="">Select a profession</option>
                 {professions.map((profession) => (
@@ -187,20 +186,20 @@ function RegisterStage3({
                 ))}
               </select>
               {errors.profession && (
-                <p className="text-xs text-[#3CE7B2]">{errors.profession.message}</p>
+                <p className="text-green-500 text-sm">{errors.profession.message}</p>
               )}
             </div>
             <div className="flex justify-between space-x-2">
               <Button
                 type="button"
                 onClick={onBack}
-                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md"
+                className="w-1/2 bg-zinc-800 text-white hover:bg-green-500 hover:text-black py-3 rounded-md transition-colors duration-200"
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md"
+                className="w-1/2 bg-green-500 text-black hover:bg-green-600 py-3 rounded-md font-medium transition-colors duration-200"
               >
                 Next
               </Button>
