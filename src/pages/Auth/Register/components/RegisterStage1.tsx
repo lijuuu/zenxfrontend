@@ -62,24 +62,25 @@ function SignupForm({
   };
 
   return (
-    <div className="flex flex-col bg-[#121212] text-white font-roboto">
+    <div className="flex flex-col bg-[#121212] text-white">
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            'w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700',
+            'w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700 transition-all duration-300',
             className
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-roboto">
             Create your account
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-base">
+          <p className="text-center text-gray-400 mb-6 text-base font-roboto">
             Register your account to access all that zenx has to offer
           </p>
+          {/* Form section */}
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-white">
+              <Label htmlFor="email" className="text-sm font-medium text-white font-roboto">
                 Email
               </Label>
               <Input
@@ -88,7 +89,7 @@ function SignupForm({
                 placeholder="m@example.com"
                 {...register('email')}
                 className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
+                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base font-roboto',
                   errors.email ? 'border-[#3CE7B2]' : ''
                 )}
               />
@@ -99,29 +100,29 @@ function SignupForm({
             {error && <p className="text-sm text-[#3CE7B2]">{error.details}</p>}
             <Button
               type="submit"
-              className="w-full bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base"
+              className="w-full bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base font-roboto"
             >
               Continue
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-400">OR</div>
+          <div className="mt-4 text-center text-sm text-gray-400 font-roboto">OR</div>
           <div className="mt-4 space-y-2">
             <Button
               type="button"
-              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center text-base"
+              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center text-base font-roboto transition-colors duration-300"
             >
               Sign up with Google
             </Button>
             <Button
               type="button"
-              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center text-base"
+              className="w-full h-12 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-[100px] flex items-center justify-center text-base font-roboto transition-colors duration-300"
             >
               Sign up with Github
             </Button>
           </div>
-          <p className="mt-4 text-center text-sm text-gray-400">
+          <p className="mt-4 text-center text-sm text-gray-400 font-roboto">
             By creating an account you certify that you agree to the{' '}
-            <a href="#" className="underline hover:text-[#3CE7B2]">
+            <a href="#" className="underline hover:text-[#3CE7B2] transition-colors duration-300">
               Privacy Policy
             </a>
             .

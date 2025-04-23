@@ -48,24 +48,24 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
   };
 
   return (
-    <div className="flex flex-col bg-[#121212] text-white font-roboto">
+    <div className="flex flex-col bg-[#121212] text-white">
       <div className="flex justify-center items-center flex-1 p-4">
         <div
           className={cn(
-            'w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700',
+            'w-full max-w-md bg-[#1D1D1D] border border-[#2C2C2C] rounded-xl p-6 shadow-lg mt-24 hover:border-gray-700 transition-all duration-300',
             className
           )}
           {...props}
         >
-          <h1 className="text-2xl font-bold text-center mb-2 text-white">
+          <h1 className="text-2xl font-bold text-center mb-2 text-white font-roboto">
             Welcome, {email}
           </h1>
-          <p className="text-center text-gray-400 mb-6 text-base">
+          <p className="text-center text-gray-400 mb-6 text-base font-roboto">
             Please set your password
           </p>
           <form className="space-y-4" onSubmit={handleSubmit(onFormSubmit)}>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-white">
+              <Label htmlFor="password" className="text-sm font-medium text-white font-roboto">
                 Password
               </Label>
               <Input
@@ -73,7 +73,7 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
                 type="password"
                 {...register('password')}
                 className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
+                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base font-roboto',
                   errors.password ? 'border-[#3CE7B2]' : ''
                 )}
               />
@@ -82,7 +82,7 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-white">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-white font-roboto">
                 Confirm Password
               </Label>
               <Input
@@ -90,7 +90,7 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
                 type="password"
                 {...register('confirmPassword')}
                 className={cn(
-                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base',
+                  'w-full bg-[#2C2C2C] border border-[#2C2C2C] text-white rounded-md p-2 hover:border-[#3CE7B2] focus:border-[#3CE7B2] focus:ring-[#3CE7B2] text-base font-roboto',
                   errors.confirmPassword ? 'border-[#3CE7B2]' : ''
                 )}
               />
@@ -102,13 +102,13 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
               <Button
                 type="button"
                 onClick={onBack}
-                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md text-base"
+                className="w-1/2 bg-[#2C2C2C] text-white hover:bg-[#3CE7B2] hover:text-[#121212] py-3 rounded-md text-base font-roboto transition-colors duration-300"
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base"
+                className="w-1/2 bg-[#3CE7B2] text-[#121212] hover:bg-[#27A98B] py-3 rounded-md font-medium text-base font-roboto transition-colors duration-300"
               >
                 Submit
               </Button>
