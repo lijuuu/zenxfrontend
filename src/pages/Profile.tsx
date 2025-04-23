@@ -142,7 +142,7 @@ const Profile = () => {
                   profile={profile}
                   userID={profile?.userID}
                   showStats={true}
-                  isOwner={isOwner}
+                // isOwner={isOwner}
                 />
               </CardContent>
             </Card>

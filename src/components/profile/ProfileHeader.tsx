@@ -4,9 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Edit,
   Copy,
-  UserPlus,
-  UserMinus,
-  Loader2,
   CalendarDays,
   BarChart3,
   Clock,
@@ -27,30 +24,16 @@ import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
 import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
-import FollowersModal from "./FollowersModal";
-import { useFollowAction, useFollowers, useFollowing, useCheckFollow } from "@/hooks/useFollow";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useOwner } from "@/hooks/useOwner";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
   userID?: string;
   showStats?: boolean;
-  isOwner?: boolean;
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true }) => {
   const { toast } = useToast();
-  const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
   const [dayStreak, setDayStreak] = useState(0);
 
   // Hook providing current owner user ID
@@ -110,22 +93,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
     }
   }, [monthlyActivity.data]);
 
-  // Follow state logic using useCheckFollow
-  const { data: isFollowing = false, refetch: refetchIsFollowing } = 
-    ownerUserID !== profile.userID 
-      ? useCheckFollow(profile.userID) 
-      : { data: false, refetch: () => Promise.resolve({ data: false }) };
-  
-  const { follow, unfollow, isLoading: followActionLoading } = useFollowAction(profile.userID || "");
-
-  // For showing modals
-  const [followersOpen, setFollowersOpen] = useState(false);
-  const [followingOpen, setFollowingOpen] = useState(false);
-
-  // For followers/following modal lists
-  const { data: followers = [], refetch: refetchFollowers } = useFollowers(profile.userID, followersOpen);
-  const { data: following = [], refetch: refetchFollowing } = useFollowing(profile.userID, followingOpen);
-
   // Use ownership from useOwner hook
   const isOwnProfile = ownerUserID === profile.userID;
 
@@ -135,48 +102,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       title: "Username copied",
       description: `@${profile.userName} copied to clipboard`,
     });
-  };
-
-  const handleFollow = async () => {
-    if (!profile.userID) return;
-    try {
-      if (isFollowing) {
-        setShowUnfollowDialog(true);
-      } else {
-        await follow();
-        toast({
-          title: "Followed",
-          description: `You are now following @${profile.userName}`,
-        });
-        refetchIsFollowing();
-        refetchFollowers();
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update follow status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const confirmUnfollow = async () => {
-    try {
-      await unfollow();
-      toast({
-        title: "Unfollowed",
-        description: `You unfollowed @${profile.userName}`,
-      });
-      refetchIsFollowing();
-      refetchFollowers();
-      setShowUnfollowDialog(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to unfollow user",
-        variant: "destructive",
-      });
-    }
   };
 
   const navigate = useNavigate();
@@ -265,19 +190,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
             <CalendarDays className="h-4 w-4" />
             <span>Joined {new Date(profile.joinedDate || profile.createdAt).toLocaleDateString()}</span>
           </div>
-
-          <a
-            href={`/followers/${profile.userID}`}
-            className="text-sm underline decoration-dotted hover:text-green-400 transition"
-          >
-            <strong>{profile.followers}</strong> followers
-          </a>
-          <a
-            href={`/following/${profile.userID}`}
-            className="text-sm underline decoration-dotted hover:text-green-400 transition"
-          >
-            <strong>{profile.following}</strong> following
-          </a>
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
@@ -287,28 +199,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
               Edit Profile
             </Button>
           ) : (
-            <Button
-              variant={isFollowing ? "outline" : "default"}
-              className={`transition font-semibold px-6 py-2 rounded-lg shadow-sm ${isFollowing
-                ? "border border-green-400 text-green-500 hover:bg-green-500/10"
-                : "bg-green-600 hover:bg-green-700 text-white"
-                }`}
-              onClick={handleFollow}
-              disabled={followActionLoading}
-            >
-              {followActionLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : isFollowing ? (
-                <UserMinus className="h-4 w-4 mr-2" />
-              ) : (
-                <UserPlus className="h-4 w-4 mr-2" />
-              )}
-              {isFollowing ? "Following" : "Follow"}
+            <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">
+              Message
             </Button>
           )}
-          <Button variant="outline" onClick={() => navigate("/chat")} className="text-white">
-            Message
-          </Button>
         </div>
       </div>
 
@@ -341,25 +235,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           </div>
         </div>
       )}
-
-      {/* Followers/Following Modals */}
-      
-
-      {/* Unfollow Confirmation Dialog */}
-      <AlertDialog open={showUnfollowDialog} onOpenChange={setShowUnfollowDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unfollow {profile.userName}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to unfollow @{profile.userName}? You will no longer see their updates in your feed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmUnfollow}>Unfollow</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

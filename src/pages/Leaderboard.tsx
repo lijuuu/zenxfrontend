@@ -44,6 +44,8 @@ const Leaderboard = () => {
   useEffect(() => {
     // Scroll to top on component mount
     window.scrollTo(0, 0);
+    refetch()
+    // refreshLeaderboard()
   }, []);
   
 
