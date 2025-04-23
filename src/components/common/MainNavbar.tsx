@@ -77,7 +77,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     { name: "Compiler", path: "/playground", icon: <Terminal className="h-4 w-4" /> },
     { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true },
     { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" /> },
-    { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
+    // { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
     { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: true },
   ];
 

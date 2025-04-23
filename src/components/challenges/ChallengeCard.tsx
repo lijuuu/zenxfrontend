@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Challenge } from "@/api/challengeTypes";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/utils/formattedDate";
+
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -18,17 +20,13 @@ interface ChallengeCardProps {
 
 export const ChallengeCard = ({ challenge, onJoin, variant = "default", isLoading = false }: ChallengeCardProps) => {
   const { data: userProfiles, isLoading: profilesLoading } = useUserProfiles([challenge.creatorId, ...(challenge.participantIds || [])]);
-  
+
   const creator = userProfiles?.find(profile => profile.userID === challenge.creatorId);
-  
-  const formatDate = (timestamp: number) => {
-    try {
-      const date = fromUnixTime(timestamp);
-      return format(date, "MMM d, yyyy");
-    } catch {
-      return "Invalid date";
-    }
-  };
+
+
+  const formattedDate = formatDate(challenge.createdAt);
+  console.log(formattedDate)
+
 
   if (isLoading) {
     return (
@@ -76,14 +74,14 @@ export const ChallengeCard = ({ challenge, onJoin, variant = "default", isLoadin
           <div className={cn(
             "px-2 py-1 text-xs font-medium rounded",
             variant === "private" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" :
-            "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+              "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
           )}>
             {challenge.difficulty}
           </div>
         </div>
         <CardDescription className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          {challenge.createdAt ? `Created: ${formatDate(challenge.createdAt)}` : "Recently created"}
+          {challenge.createdAt ? `Created: ${formattedDate}` : "Recently created"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -125,8 +123,8 @@ export const ChallengeCard = ({ challenge, onJoin, variant = "default", isLoadin
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           onClick={onJoin}
           className={cn(
             variant === "private" ? "bg-amber-500 hover:bg-amber-600" : "bg-green-500 hover:bg-green-600"

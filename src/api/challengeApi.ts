@@ -99,7 +99,6 @@ export const getChallenges = async (filters?: {
     const params: Record<string, any> = {
       is_active: filters?.active,
       difficulty: filters?.difficulty,
-      include_private: filters?.isPrivate,
       user_id: filters?.userId,
       page: filters?.page,
       page_size: filters?.pageSize

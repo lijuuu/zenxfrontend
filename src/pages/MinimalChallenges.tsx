@@ -40,6 +40,7 @@ import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
 import { useChallenges, useUserChallengeHistory, useJoinChallenge } from "@/services/useChallenges";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { formatDate } from "@/utils/formattedDate";
 
 const MinimalChallenges = () => {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -60,20 +61,20 @@ const MinimalChallenges = () => {
   const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({
     isPrivate: false,
   });
-  
+
   const { data: publicChallengeHistory, isLoading: publicHistoryLoading } = useUserChallengeHistory({
     userId: user?.userID,
     isPrivate: false
   });
-  
+
   const { data: privateChallengeHistory, isLoading: privateHistoryLoading } = useUserChallengeHistory({
     userId: user?.userID,
     isPrivate: true
   });
 
-  console.log("activeChallenges",activeChallenges)
-  console.log('publicChallengeHistory',publicChallengeHistory)
-  console.log('privateChallengeHistory',privateChallengeHistory)
+  // console.log("activeChallenges",activeChallenges)
+  // console.log('publicChallengeHistory',publicChallengeHistory)
+  // console.log('privateChallengeHistory',privateChallengeHistory)
 
   const totalProblemsDone = problemStats
     ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
@@ -105,11 +106,11 @@ const MinimalChallenges = () => {
     if (!challenge.id) return;
 
     try {
-      await joinChallengeMutation.mutateAsync({ 
+      await joinChallengeMutation.mutateAsync({
         challengeId: challenge.id,
-        accessCode: challenge.isPrivate ? challenge.accessCode : undefined 
+        accessCode: challenge.isPrivate ? challenge.accessCode : undefined
       });
-      
+
       navigate(`/challenge-room/${challenge.id}`);
     } catch (error) {
       console.error("Failed to join challenge:", error);
@@ -164,9 +165,8 @@ const MinimalChallenges = () => {
   };
 
   const copyRoomInfo = (challenge: Challenge) => {
-    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${
-      challenge.accessCode || "None (Public)"
-    }\nDifficulty: ${challenge.difficulty}`;
+    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"
+      }\nDifficulty: ${challenge.difficulty}`;
     navigator.clipboard.writeText(roomInfo);
     toast.success("Room information copied to clipboard!");
   };
@@ -191,7 +191,7 @@ const MinimalChallenges = () => {
         </div>
         <CardDescription className="flex items-center gap-1">
           <Clock className="h-3 w-3" /> Created:{" "}
-          {new Date(challenge.createdAt).toLocaleDateString()}
+          {formatDate(challenge.createdAt)}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -416,11 +416,11 @@ const MinimalChallenges = () => {
                     </div>
                   ) : activeChallenges?.length ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {activeChallenges.map((challenge) => 
+                      {activeChallenges.map((challenge) =>
                         renderChallengeCard(
-                          challenge, 
-                          <Button 
-                            size="sm" 
+                          challenge,
+                          <Button
+                            size="sm"
                             className="bg-green-500 hover:bg-green-600"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -463,7 +463,7 @@ const MinimalChallenges = () => {
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
                   ) : publicChallengeHistory?.challenges.length ? (
-                    publicChallengeHistory.challenges.map((challenge) => 
+                    publicChallengeHistory.challenges.map((challenge) =>
                       renderChallengeCard(
                         challenge,
                         <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
@@ -496,7 +496,7 @@ const MinimalChallenges = () => {
                       <Loader2 className="h-10 w-10 animate-spin text-primary" />
                     </div>
                   ) : privateChallengeHistory?.challenges.length ? (
-                    privateChallengeHistory.challenges.map((challenge) => 
+                    privateChallengeHistory.challenges.map((challenge) =>
                       renderChallengeCard(
                         challenge,
                         <Button size="sm" className="bg-amber-500 hover:bg-amber-600">
