@@ -125,7 +125,7 @@ const CompilerLayout = () => {
             onMouseLeave={() => setShowToolTip(false)}
             onClick={() => navigate("/")}
           >
-            <span className="font-medium text-foreground relative">xcode</span>
+            <span className="font-medium text-foreground relative">zenx</span>
             
             {showToolTip && (
               <div className="absolute w-40 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md shadow-md mt-1 z-50">

@@ -179,10 +179,10 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
 
             {isUserAuthenticated ? (
               <>
-                <Button variant="ghost" size="icon" aria-label="Notifications" className="text-zinc-400 hover:text-white relative">
+                {/* <Button variant="ghost" size="icon" aria-label="Notifications" className="text-zinc-400 hover:text-white relative">
                   <Bell className="h-5 w-5" />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
-                </Button>
+                </Button> */}
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

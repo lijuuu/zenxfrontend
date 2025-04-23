@@ -50,7 +50,7 @@ const refreshAccessToken = async () => {
       throw new Error('no refresh token available');
     }
 
-    const response = await axios.post(`${baseURL}/auth/refresh`, { refreshToken });
+    const response = await axios.post(`${baseURL}/auth/token/refresh`, { refreshToken });
     const { accessToken, refreshToken: newRefreshToken, expiresIn } = response.data.payload;
 
     Cookies.set('accessToken', accessToken, {
@@ -65,23 +65,12 @@ const refreshAccessToken = async () => {
       sameSite: 'Strict',
     });
 
-    // Keep isAdmin flag when refreshing token
-    const isAdmin = Cookies.get('isAdmin');
-    if (isAdmin) {
-      Cookies.set('isAdmin', isAdmin, {
-        expires: expiresIn / (24 * 60 * 60),
-        secure: true,
-        sameSite: 'Strict',
-      });
-    }
-
     return accessToken;
   } 
   catch (error) {
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
-    Cookies.remove('isAdmin');
-    localStorage.removeItem("userid")
+    localStorage.removeItem("userid");
     throw error;
   }
 }
@@ -108,14 +97,9 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         console.error('token refresh failed:', refreshError);
 
-        // Redirect admin users to admin login page if on admin routes
-        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
-          window.location.href = '/admin/login';
-        }
-        // Regular login redirect for non-admin pages
-        else if (!['/login', '/admin/login'].includes(window.location.pathname)) {
-          window.location.href = '/login';
-        }
+        // if (window.location.pathname !== '/login') {
+        //   window.location.href = '/login';
+        // }
 
         return Promise.reject(refreshError);
       }

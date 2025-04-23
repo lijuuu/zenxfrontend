@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getChallenges } from "@/api/challengeApi";
-import { Challenge } from "@/api/types";
+import { Challenge } from "@/api/challengeTypes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ChallengesList from "@/components/profile/ChallengesList";
@@ -177,20 +177,6 @@ const Profile = () => {
                   </CardContent>
                 </Card>
 
-                {/* Achievements */}
-                {profile.badges && profile.badges.length > 0 && (
-                  <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Trophy className="h-5 w-5 text-amber-500" /> Achievements
-                      </CardTitle>
-                      <CardDescription>Badges and recognitions</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <ProfileAchievements badges={profile.badges || []} />
-                    </CardContent>
-                  </Card>
-                )}
               </div>
 
               {/* Right Column */}
@@ -304,38 +290,38 @@ const Profile = () => {
                 )}
 
                 {/* Links & Info Card */}
-                {(profile.website || profile.githubProfile || profile.location) && (
+                {(profile?.socials?.website || profile?.socials?.github) && (
                   <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg">Links & Info</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {profile.website && (
+                      {profile?.socials?.website && (
                         <a
-                          href={profile.website}
+                          href={profile?.socials?.website }
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
                           <Globe className="h-4 w-4" />
-                          <span className="text-sm truncate">{profile.website}</span>
+                          <span className="text-sm truncate">{profile?.socials?.website }</span>
                         </a>
                       )}
-                      {profile.githubProfile && (
+                      {profile?.socials?.github && (
                         <a
-                          href={`https://github.com/${profile.githubProfile}`}
+                          href={`https://github.com/${profile?.socials?.github}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
                           <Github className="h-4 w-4" />
-                          <span className="text-sm truncate">{profile.githubProfile}</span>
+                          <span className="text-sm truncate">{profile?.socials?.github}</span>
                         </a>
                       )}
-                      {profile.location && (
+                      {profile?.country && (
                         <div className="flex items-center gap-2 text-zinc-400">
                           <MapPin className="h-4 w-4" />
-                          <span className="text-sm">{profile.location}</span>
+                          <span className="text-sm">{profile?.country}</span>
                         </div>
                       )}
                     </CardContent>

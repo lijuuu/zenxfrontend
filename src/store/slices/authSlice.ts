@@ -2,7 +2,6 @@ import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import { errorMessages } from "@/constants/errorTypes";
-import axios from "axios";
 import { UserProfile } from "@/api/types";
 import {LoginUserResponse,ApiResponse,AuthState} from "@/api/types"; 
 
@@ -105,8 +104,8 @@ export const getUser = createAsyncThunk<
     console.error("Get User Error:", error);
     const type = error.response?.data?.error?.type || "ERR_PROFILE_NOT_FOUND";
     const message = errorMessages[type as keyof typeof errorMessages] || error.response?.data?.error?.message || "Failed to get user";
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
+    // Cookies.remove("accessToken");
+    // Cookies.remove("refreshToken");
     return rejectWithValue({
       type,
       message,
