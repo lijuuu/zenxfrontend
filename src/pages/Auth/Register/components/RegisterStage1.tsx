@@ -3,12 +3,16 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Cookies from 'js-cookie';
+import { loginUser, clearAuthState, setAuthLoading } from "@/store/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import axiosInstance from '@/utils/axiosInstance';
+
 
 // Form Schema
 const stage1Schema = z.object({
@@ -45,6 +49,9 @@ function SignupForm({
     }
   });
 
+  const dispatch = useDispatch();
+
+
   useEffect(() => {
     if (initialData.email) {
       setValue('email', initialData.email);
@@ -59,6 +66,28 @@ function SignupForm({
     Cookies.set('emailtobeverified', data.email, { expires: 7, secure: true, sameSite: 'Strict' });
     setFormData(data);
     onNext();
+  };
+
+  // handle google login
+  const handleGoogleLogin = async () => {
+    try {
+      dispatch(setAuthLoading(true));
+      // check for existing session
+      const accessToken = Cookies.get("accessToken");
+      if (accessToken) {
+        toast.error("You are already logged in. Please log out to use Google login.");
+        dispatch(setAuthLoading(false));
+        return;
+      }
+      // initiate google oauth
+      const response = await axiosInstance.get("/auth/google/login");
+      window.location.href = response.data.payload.url;
+    } catch (err: any) {
+      dispatch(setAuthLoading(false));
+      const errorMessage = err.response?.data?.error?.message || "Failed to initiate Google login";
+      toast.error(errorMessage);
+      dispatch(clearAuthState());
+    }
   };
 
   return (
@@ -108,16 +137,17 @@ function SignupForm({
             <div className="mt-4 space-y-2">
               <Button
                 type="button"
+                onClick={()=>handleGoogleLogin()}
                 className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
               >
                 Sign up with Google
               </Button>
-              <Button
+              {/* <Button
                 type="button"
                 className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
               >
                 Sign up with Github
-              </Button>
+              </Button> */}
             </div>
             <p className="mt-4 text-center text-sm text-gray-400">
               By creating an account you certify that you agree to the{' '}

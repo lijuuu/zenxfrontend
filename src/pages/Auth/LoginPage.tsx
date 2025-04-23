@@ -275,13 +275,13 @@ function LoginForm() {
               >
                 Login with Google
               </Button>
-              <Button
+              {/* <Button
                 type="button"
                 className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
                 disabled={loading}
               >
                 Login with Github
-              </Button>
+              </Button> */}
             </div>
 
             <div className="mt-4 text-center text-sm text-gray-400 flex">

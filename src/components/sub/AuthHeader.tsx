@@ -18,7 +18,7 @@ const SimpleHeader: React.FC<SimpleHeaderProps> = ({ page, name }) => {
       </div>
       <Button
         onClick={() => navigate(page)}
-        className="bg-[#2C2C2C] hover:bg-[#3CE7B2] hover:text-[#121212] text-white rounded-md px-4 py-2 transition-all duration-200 font-roboto"
+        className="bg-[#2C2C2C] hover:bg-[#35a635] hover:text-[#121212] text-white rounded-lg px-8 py-2  transition-all duration-200 font-roboto"
       >
         {name}
       </Button>

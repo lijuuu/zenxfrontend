@@ -11,6 +11,8 @@ import RegisterStage4 from './components/RegisterStage4';
 import AuthHeader from '@/components/sub/AuthHeader';
 import Cookies from 'js-cookie';
 import { handleError } from '@/components/sub/ErrorToast';
+import { Loader2 } from 'lucide-react';
+import SimpleSpinLoader from '@/components/ui/simplespinloader';
 
 // Constants
 const STAGE_COUNT = 4;
@@ -100,7 +102,7 @@ function RegisterPage() {
   // Loader Overlay Component
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50 font-roboto">
-      <Loader1 className="w-12 h-12 mr-10 text-[#3CE7B2]" />
+      <SimpleSpinLoader className="w-12 h-12 text-[#3CE7B2]" />
       <div className="text-white text-xl opacity-80 mt-24">Creating your account</div>
       <button
         onClick={onCancel}
@@ -127,7 +129,7 @@ function RegisterPage() {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <AuthHeader page="/login" name="Sign In" />
+      <AuthHeader page="/login" name="Login" />
       <div className="flex flex-col flex-1">
         {stage === 1 && (
           <SignupForm

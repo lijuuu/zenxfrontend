@@ -4,18 +4,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loader1 from "@/components/ui/loader1";
 import { toast } from "sonner";
+import SimpleSpinLoader from "@/components/ui/simplespinloader";
 
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
   <div className="absolute inset-0 flex items-center justify-center bg-[#121212] bg-opacity-95 z-50 font-roboto">
     <div className="flex flex-col items-center justify-center space-y-4">
-      <Loader1 className="w-12 h-12 text-[#3CE7B2]" />
+      <SimpleSpinLoader className="w-12 h-12 text-green-700" />
       <div className="text-white text-xl opacity-80">
         Processing...
       </div>
       <button
         onClick={onCancel}
-        className="text-white text-base underline hover:text-[#3CE7B2] transition-colors duration-200"
+        className="text-white text-base underline hover:text-green-700 transition-colors duration-200"
       >
         Cancel
       </button>
@@ -93,7 +94,7 @@ const ResetPassword = () => {
           placeholder="New Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 rounded-md bg-[#2C2C2C] text-white border border-[#2C2C2C] hover:border-[#3CE7B2] focus:outline-none focus:border-[#3CE7B2] focus:ring-[#3CE7B2] mb-4 text-base"
+          className="w-full p-3 rounded-md bg-[#2C2C2C] text-white border border-[#2C2C2C] hover:border-green-700 focus:outline-none focus:border-green-700 focus:ring-green-700 mb-4 text-base"
           disabled={loading || !token || !email}
           required
         />
@@ -102,19 +103,19 @@ const ResetPassword = () => {
           placeholder="Confirm Password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full p-3 rounded-md bg-[#2C2C2C] text-white border border-[#2C2C2C] hover:border-[#3CE7B2] focus:outline-none focus:border-[#3CE7B2] focus:ring-[#3CE7B2] mb-4 text-base"
+          className="w-full p-3 rounded-md bg-[#2C2C2C] text-white border border-[#2C2C2C] hover:border-green-700 focus:outline-none focus:border-green-700 focus:ring-green-700 mb-4 text-base"
           disabled={loading || !token || !email}
           required
         />
         <button
           type="submit"
-          className="w-full py-3 bg-[#3CE7B2] text-[#121212] rounded-md hover:bg-[#27A98B] transition-colors duration-200 disabled:bg-[#2C2C2C] text-base font-medium"
+          className="w-full py-3 bg-green-700  text-[#121212] rounded-md hover:bg-green-700 transition-colors duration-200 disabled:bg-[#2C2C2C] text-base font-medium"
           disabled={loading || !token || !email}
         >
           Submit
         </button>
-        {error && <p className="text-[#3CE7B2] text-center mt-4 text-base">{error}</p>}
-        {success && <p className="text-green-400 text-center mt-4 text-base">{success}</p>}
+        {error && <p className="text-green-700 text-center mt-4 text-base">{error}</p>}
+        {success && <p className="text-green-400text-center mt-4 text-base">{success}</p>}
       </form>
     </div>
   );
