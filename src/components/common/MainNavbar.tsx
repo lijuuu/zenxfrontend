@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -33,8 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "@/store/slices/authSlice";
-import { isAuthenticated } from "@/utils/authUtils";
-import {clearAuthState} from "@/store/slices/authSlice"
+import { clearAuthState } from "@/store/slices/authSlice";
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { isPending } from "@reduxjs/toolkit";
 import SimpleSpinLoader from "../ui/simplespinloader";
@@ -69,27 +67,30 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     error
   } = useGetUserProfile();
 
+  // Determine authentication status
+  const isUserAuthenticated = propIsAuthenticated || !!userProfile || !!Cookies.get("accessToken");
+
   const navItems: NavItem[] = [
-    { name: "Home", path: "/", icon: <Home className="h-4 w-4" />,requiresAuth:false },
+    { name: "Home", path: "/", icon: <Home className="h-4 w-4" />, requiresAuth: false },
     { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, requiresAuth: true },
     { name: "Profile", path: "/profile", icon: <User className="h-4 w-4" />, requiresAuth: true },
-    { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" />,requiresAuth:false },
-    { name: "Compiler", path: "/playground", icon: <Terminal className="h-4 w-4" /> },
-    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true },
-    { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" /> },
-    // { name: "Chat", path: "/chat", icon: <MessageSquare className="h-4 w-4" />, requiresAuth: true },
+    { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" />, requiresAuth: false },
+    { name: "Compiler", path: "/playground", icon: <Terminal className="h-4 w-4" />, requiresAuth: false },
+    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true, requiresAuth: false },
+    { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" />, requiresAuth: false },
     { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: true },
   ];
 
+  // Filter nav items based on authentication status
   const filteredNavItems = navItems.filter(
-    (item) => !item.requiresAuth || (item.requiresAuth )
+    (item) => !item.requiresAuth || (item.requiresAuth && isUserAuthenticated)
   );
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
-
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -99,12 +100,12 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   };
 
   const HandleLogout = () => {
-    // queryClient.invalidateQueries({ queryKey: ['userProfile', ""] });
+    queryClient.invalidateQueries({ queryKey: ['userProfile', userProfile?.userID] });
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     localStorage.removeItem("auth");
-    dispatch(clearAuthState())
-    window.location.href = "/login"
+    dispatch(clearAuthState());
+    window.location.href = "/login";
   };
 
   // Generate avatar fallback from user profile
@@ -176,7 +177,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
               <Search className="h-5 w-5" />
             </Button>
 
-            {userProfile ? (
+            {isUserAuthenticated ? (
               <>
                 <Button variant="ghost" size="icon" aria-label="Notifications" className="text-zinc-400 hover:text-white relative">
                   <Bell className="h-5 w-5" />
@@ -188,7 +189,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={userProfile.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                          src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"}
                           alt={userProfile?.firstName || "User"}
                         />
                         <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
@@ -199,15 +200,15 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
-                          {`${userProfile.firstName || ""} ${userProfile.lastName || ""}`.trim().toLowerCase() || "User"}
+                          {`${userProfile?.firstName || ""} ${userProfile?.lastName || ""}`.trim().toLowerCase() || "User"}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {userProfile.email || ""}
+                          {userProfile?.email || ""}
                         </p>
-                        {userProfile.country && (
+                        {userProfile?.country && (
                           <div className="flex items-center text-xs text-muted-foreground mt-1">
                             <Flag className="h-3 w-3 mr-1" />
-                            <span>{userProfile.country.toUpperCase()}</span>
+                            <span>{userProfile?.country.toUpperCase()}</span>
                           </div>
                         )}
                       </div>
@@ -266,7 +267,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
           )}
         >
           <nav className="py-6 px-4 space-y-1 min-h-screen overflow-y-auto">
-            {userProfile && (
+            {isUserAuthenticated && userProfile && (
               <div className="p-4 mb-4 border-b border-zinc-800">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
@@ -312,7 +313,7 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
             })}
 
             <div className="pt-4 border-t border-zinc-800 mt-4">
-              {userProfile?.isVerified ? (
+              {isUserAuthenticated ? (
                 <Button
                   variant="ghost"
                   size="lg"
