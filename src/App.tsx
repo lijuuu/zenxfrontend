@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +23,10 @@ import Login from "./pages/Auth/LoginPage";
 import SignupForm from "./pages/Auth/Register/RegisterPage";
 import VerifyInfo from "./pages/Auth/VerifyInfo"
 import QuickMatch from "./components/challenges/QuickMatch";
-import AdminDashboard from "./pages-admin/AdminDashboard";
+import AdminLogin from "./pages-admin/AdminLogin";
+import AdminDashboardHome from "./pages-admin/AdminDashboardHome";
+import UserManagement from "./pages-admin/UserManagement";
+import AdminLayout from "./components/layout/AdminLayout";
 import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
 import FollowersPage from "./pages/FollowersPage";
@@ -72,8 +76,19 @@ const AppContent = () => {
         <Route path="/verify-info" element={<VerifyInfo />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
-        {/*Admin Dashboard*/}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={
+          <AdminLayout>
+            <AdminDashboardHome />
+          </AdminLayout>
+        } />
+        <Route path="/admin/users" element={
+          <AdminLayout>
+            <UserManagement />
+          </AdminLayout>
+        } />
+
         <Route path="/followers/:userid" element={<FollowersPage />} />
         <Route path="/following/:userid" element={<FollowingPage />} />
 

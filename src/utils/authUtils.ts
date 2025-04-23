@@ -6,6 +6,11 @@ export const isAuthenticated = (): boolean => {
   return !!accessToken;
 };
 
+export const isAdminAuthenticated = (): boolean => {
+  const accessToken = Cookies.get("accessToken");
+  const isAdmin = Cookies.get("isAdmin");
+  return !!accessToken && isAdmin === "true";
+};
 
 export const getFullName = (user: any) => {
   if (!user) return "User";
@@ -26,6 +31,7 @@ export const getFullName = (user: any) => {
 export const logout = () => {
   Cookies.remove("accessToken");
   Cookies.remove("refreshToken");
+  Cookies.remove("isAdmin");
   localStorage.removeItem("auth");
   window.location.href = "/";
 };
