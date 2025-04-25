@@ -35,6 +35,7 @@ export interface UserProfile {
   updatedAt?: string;
   bio?: string;
   country?: string;
+  status?: string; // Added status field for admin purposes
   socials?: {
     github?: string;
     twitter?: string;

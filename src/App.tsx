@@ -52,13 +52,11 @@ function App() {
               <Route path="/" element={<Home />} />
               
               {/* Auth routes */}
-              <Route element={<AuthLayout />}>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-              </Route>
+              <Route path="/login" element={<AuthLayout title="Log in to your account"><LoginPage /></AuthLayout>} />
+              <Route path="/register" element={<AuthLayout title="Create your account"><RegisterPage /></AuthLayout>} />
+              <Route path="/forgot-password" element={<AuthLayout title="Reset your password"><ForgotPassword /></AuthLayout>} />
+              <Route path="/reset-password" element={<AuthLayout title="Create new password"><ResetPassword /></AuthLayout>} />
+              <Route path="/verify-email" element={<AuthLayout title="Verify your email"><VerifyEmail /></AuthLayout>} />
               
               {/* Protected routes */}
               <Route path="/dashboard" element={<Dashboard />} />
@@ -81,7 +79,6 @@ function App() {
           <Toaster position="top-right" />
         </BrowserRouter>
       </Provider>
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   )
 }
