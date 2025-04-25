@@ -1,4 +1,3 @@
-
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosHeaders } from 'axios';
 import Cookies from 'js-cookie';
 

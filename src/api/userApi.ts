@@ -1,86 +1,145 @@
+
+import { UserProfile } from '@/store/slices/authSlice';
 import axiosInstance from '@/utils/axiosInstance';
-import { UserProfile } from '@/types/challengeTypes';
 
-export const getUserProfile = async (userId: string): Promise<UserProfile> => {
+
+export const getUserProfile = async ({
+  userID,
+  username,
+}: {
+  userID?: string
+  username?: string
+} = {}): Promise<UserProfile> => {
   try {
-    const response = await axiosInstance.get(`/users/${userId}`, {
+    let url = '/users/profile'
+    const params: Record<string, string> = {}
+    let requiresAuth = true
+
+    if (userID || username) {
+      url = '/users/public/profile'
+      requiresAuth = false
+      if (username) params.username = username
+      if (userID) params.userid = userID
+    }
+
+    const res = await axiosInstance.get(url, {
+      params,
       headers: {
-        'X-Requires-Auth': 'false',
+        'X-Requires-Auth': requiresAuth ? 'true' : 'false',
       },
-    });
-    return response.data.payload;
+    })
+
+    if (requiresAuth && res.data.payload.userProfile?.userID) {
+      localStorage.setItem('userid', res.data.payload.userProfile.userID)
+    }
+
+    return res.data.payload.userProfile
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    throw error;
+    console.error('Error fetching user profile:', error)
+    throw new Error('Failed to fetch user profile')
   }
+}
+
+
+
+
+export const updateUserProfile = async (
+  profileData: Partial<UserProfile>
+): Promise<UserProfile> => {
+  const res = await axiosInstance.put(`/users/profile/update`, profileData, {
+    headers: {
+      'X-Requires-Auth': 'true',
+    },
+  });
+  return res.data;
 };
 
-export const updateUserProfile = async (userId: string, updates: Partial<UserProfile>): Promise<UserProfile> => {
-  try {
-    const response = await axiosInstance.patch(`/users/${userId}`, updates);
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    throw error;
+export interface SearchUsersResponse {
+  users: UserProfile[];
+  totalCount: number;
+  nextPageToken?: string;
+  message?: string;
+}
+
+export const searchUsers = async (
+  query: string,
+  pageToken?: string,
+  limit: number = 10
+): Promise<SearchUsersResponse> => {
+  let url = `/users/search?query=${encodeURIComponent(query)}&limit=${limit}`;
+
+  if (pageToken) {
+    url += `&pageToken=${encodeURIComponent(pageToken)}`;
   }
+
+  const res = await axiosInstance.get(url, {
+    headers: {
+      'X-Requires-Auth': 'true',
+    },
+  });
+
+  return res.data.payload;
 };
 
-export const getFollowers = async (userId: string): Promise<UserProfile[]> => {
-  try {
-    const response = await axiosInstance.get(`/users/${userId}/followers`);
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error fetching followers:', error);
-    throw error;
-  }
+/** Follow a user (POST with query param) */
+export const followUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
+  const res = await axiosInstance.post(
+    "/users/follow",
+    null, // no body
+    {
+      params: { followeeID },
+      headers: { "X-Requires-Auth": "true" }
+    }
+  );
+  return {
+    success: res.data.Success ?? res.data.success,
+    message: res.data.payload?.message || res.data.payload?.Message || res.data.Error?.Message || "",
+  };
 };
 
-export const getFollowing = async (userId: string): Promise<UserProfile[]> => {
-  try {
-    const response = await axiosInstance.get(`/users/${userId}/following`);
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error fetching following:', error);
-    throw error;
-  }
+/** Unfollow a user (DELETE with query param) */
+export const unfollowUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
+  const res = await axiosInstance.delete(
+    "/users/follow",
+    {
+      params: { followeeID },
+      headers: { "X-Requires-Auth": "true" }
+    }
+  );
+  return {
+    success: res.data.Success ?? res.data.success,
+    message: res.data.payload?.message || res.data.payload?.Message || res.data.Error?.Message || "",
+  };
 };
 
-export const followUser = async (targetUserId: string): Promise<void> => {
-  try {
-    await axiosInstance.post(`/users/follow/${targetUserId}`);
-  } catch (error) {
-    console.error('Error following user:', error);
-    throw error;
-  }
+
+/** Get followers (GET) */
+export const getFollowers = async (userID: string, pageToken?: string, limit: number = 10) => {
+  const res = await axiosInstance.get("/users/follow/followers", {
+    params: { userID, pageToken, limit },
+    headers: { "X-Requires-Auth": "true" }
+  });
+
+  // Return users from the payload structure
+  return res.data.payload?.users || [];
 };
 
-export const unfollowUser = async (targetUserId: string): Promise<void> => {
-  try {
-    await axiosInstance.post(`/users/unfollow/${targetUserId}`);
-  } catch (error) {
-    console.error('Error unfollowing user:', error);
-    throw error;
-  }
+/** Get following (GET) */
+export const getFollowing = async (userID: string, pageToken?: string, limit: number = 10) => {
+  const res = await axiosInstance.get("/users/follow/following", {
+    params: { userID, pageToken, limit },
+    headers: { "X-Requires-Auth": "true" }
+  });
+
+  // Return users from the payload structure
+  return res.data.payload?.users || [];
 };
 
-export const searchUsers = async (query: string): Promise<UserProfile[]> => {
-  try {
-    const response = await axiosInstance.get(`/users/search?q=${query}`);
-    return response.data.payload;
-  } catch (error) {
-    console.error('Error searching users:', error);
-    throw error;
-  }
-};
-
-export const setUpTwoFactorAuth = async (userId: string, enable: boolean) => {
-  try {
-    const response = await axiosInstance.post('/auth/2fa/setup', {
-      user_id: userId,
-      enable: enable
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+/** Check if following (GET) */
+export const checkFollow = async (userID: string) => {
+  const res = await axiosInstance.get("/users/follow/check", {
+    params: { userID },
+    headers: { "X-Requires-Auth": "true" }
+  });
+  return res.data.payload?.isFollowing || false;
 };
