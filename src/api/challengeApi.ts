@@ -1,3 +1,4 @@
+
 import axiosInstance from "@/utils/axiosInstance";
 import { 
   Challenge, 
@@ -52,6 +53,7 @@ export const createChallenge = async (data: {
   timeLimit?: number;
   accessCode?: string;
   creatorId: string;
+  expectedStart?: number;
 }) => {
   try {
     const response = await axiosInstance.post('/challenges', {
@@ -61,13 +63,17 @@ export const createChallenge = async (data: {
       is_private: data.isPrivate,
       time_limit: data.timeLimit,
       access_code: data.accessCode,
-      creator_id: data.creatorId
-      // start_at commented out as requested
-      // start_at: data.startTime ? { seconds: data.startTime, nanos: 0 } : undefined
+      creator_id: data.creatorId,
+      expected_start: data.expectedStart
     }, {
       headers: { 'X-Requires-Auth': 'true' }
     });
-    return transformChallenge(response.data.payload);
+    
+    return {
+      id: response.data.payload.id,
+      password: response.data.payload.password,
+      joinUrl: response.data.payload.join_url
+    };
   } catch (error) {
     console.error('Error creating challenge:', error);
     throw error;
@@ -183,7 +189,7 @@ export const getSubmissionStatus = async (submissionId: string) => {
     });
     
     // Transform response to match frontend expected types
-    const submission = response.data.payload;
+    const submission = response.data.payload.submission;
     return {
       submissionId: submission.submission_id,
       challengeId: submission.challenge_id,
@@ -192,8 +198,9 @@ export const getSubmissionStatus = async (submissionId: string) => {
       status: submission.status,
       code: submission.code,
       language: submission.language,
-      result: submission.result,
-      createdAt: submission.created_at
+      executionTimeMs: submission.execution_time_ms,
+      memoryUsedKb: submission.memory_used_kb,
+      submittedAt: submission.submitted_at
     };
   } catch (error) {
     console.error('Error fetching submission status:', error);
@@ -210,20 +217,16 @@ export const getChallengeSubmissions = async (challengeId: string) => {
     
     // Transform submissions to match frontend expected types
     return (response.data.payload.submissions || []).map((submission: any) => ({
-      id: submission.id,
+      submissionId: submission.submission_id,
+      challengeId: submission.challenge_id,
       problemId: submission.problem_id,
       userId: submission.user_id,
-      challengeId: submission.challenge_id,
-      submittedAt: submission.submitted_at,
-      score: submission.score,
       status: submission.status,
-      output: submission.output,
+      code: submission.code,
       language: submission.language,
-      executionTime: submission.execution_time,
-      difficulty: submission.difficulty,
-      isFirst: submission.is_first,
-      title: submission.title,
-      userCode: submission.user_code
+      executionTimeMs: submission.execution_time_ms,
+      memoryUsedKb: submission.memory_used_kb,
+      submittedAt: submission.submitted_at
     }));
   } catch (error) {
     console.error('Error fetching challenge submissions:', error);
@@ -357,7 +360,6 @@ export const fetchParticipantProfiles = async (userIds: string[]) => {
   }
 };
 
-// Add the new user challenge history function
 export const getUserChallengeHistory = async (params: {
   isPrivate?: boolean;
   page?: number;
