@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -73,6 +72,10 @@ const MinimalChallenges = () => {
     isPrivate: true
   });
 
+  // console.log("activeChallenges",activeChallenges)
+  // console.log('publicChallengeHistory',publicChallengeHistory)
+  // console.log('privateChallengeHistory',privateChallengeHistory)
+
   const totalProblemsDone = problemStats
     ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
     : 0;
@@ -97,7 +100,6 @@ const MinimalChallenges = () => {
 
   const handleChallengeCreated = (newChallenge: Challenge) => {
     toast.success(`Challenge "${newChallenge.title}" created successfully!`);
-    navigate(`/challenge-room/${newChallenge.id}`);
   };
 
   const handleJoinChallenge = async (challenge: Challenge) => {
@@ -109,12 +111,7 @@ const MinimalChallenges = () => {
         accessCode: challenge.isPrivate ? challenge.accessCode : undefined
       });
 
-      // New: Direct users to challenge playground if challenge is active
-      if (challenge.isActive) {
-        navigate(`/challenge-playground/${challenge.id}`);
-      } else {
-        navigate(`/challenge-room/${challenge.id}`);
-      }
+      navigate(`/challenge-room/${challenge.id}`);
     } catch (error) {
       console.error("Failed to join challenge:", error);
     }
@@ -283,6 +280,96 @@ const MinimalChallenges = () => {
                 </div>
               </div>
 
+              {/* <div className=" gap-6">
+                <Card className="bento-card shadow-green-500/5 hover:shadow-green-500/10">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Zap className="h-5 w-5 text-green-500" />
+                      Quick Match
+                    </CardTitle>
+                    <CardDescription>Start a coding challenge instantly</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="rounded-lg bg-zinc-100/80 dark:bg-zinc-800/80 p-3 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
+                        <Zap className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Random Problem</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Solve a random problem with friends
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleQuickMatch("Easy")}
+                        >
+                          Easy
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleQuickMatch("Medium")}
+                        >
+                          Medium
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => handleQuickMatch("Hard")}
+                        >
+                          Hard
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg bg-zinc-100/80 dark:bg-zinc-800/80 p-3 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Challenge a Friend</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Create a private room and share the link
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => startFriendChallenge("Easy")}
+                        >
+                          Easy
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => startFriendChallenge("Medium")}
+                        >
+                          Medium
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs"
+                          onClick={() => startFriendChallenge("Hard")}
+                        >
+                          Hard
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </div> */}
+
               <Tabs defaultValue="active" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-4">
                   <TabsTrigger value="active">Active Challenges</TabsTrigger>
@@ -437,6 +524,8 @@ const MinimalChallenges = () => {
                   </div>
                 </CardContent>
               </Card>
+
+
             </div>
           </div>
         </main>
