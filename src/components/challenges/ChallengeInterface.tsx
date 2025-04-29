@@ -11,6 +11,7 @@ import ZenXPlayground from '../playground/ZenXPlayground';
 import { useToast } from '@/components/ui/use-toast';
 import { useAppSelector } from '@/hooks/useAppSelector';
 
+
 // Mock leaderboard data
 interface LeaderboardEntry {
   userId: string;
@@ -20,7 +21,7 @@ interface LeaderboardEntry {
 }
 
 interface ChallengeInterfaceProps {
-  challenge: Challenge | null;
+  challenge?: Challenge | null;
   isPrivate?: boolean;
   accessCode?: string;
   isLoading?: boolean;
@@ -48,7 +49,7 @@ const MOCK_PROBLEMS = {
 // WebSocket mock service
 class ChallengeSocketService {
   private ws: WebSocket | null = null;
-  private listeners: Map<string, Function[]> = new Map();
+  private listeners: Map<string, any[]> = new Map();
   private challengeId: string | null = null;
   private userId: string | null = null;
   private mockData: Challenge | null = null;
@@ -69,8 +70,7 @@ class ChallengeSocketService {
     return new Promise((resolve) => {
       this.challengeId = challengeId;
       this.userId = userId;
-      
-      // Create mock challenge data
+
       this.mockData = {
         id: challengeId,
         title: 'Mock Challenge',
@@ -79,7 +79,7 @@ class ChallengeSocketService {
         isPrivate: false,
         status: 'active',
         problemIds: ['67d96452d3fe6af39801337b', '67e16a5b48ec539e82f1622e', '67d96452d3fe6af39801337d'],
-        timeLimit: 3600, // 1 hour
+        timeLimit: 3600,
         createdAt: Date.now() - 3600000,
         isActive: true,
         participantIds: ['user1', 'user2', 'user3', userId],
@@ -93,8 +93,7 @@ class ChallengeSocketService {
         this.connected = true;
         this.emit('connect', { status: true, message: 'Connected to challenge socket' });
         resolve({ status: true, message: 'Connected to challenge socket' });
-        
-        // Emit hydrate event after connection
+
         setTimeout(() => {
           this.emit('hydrate', { challenge: this.mockData });
         }, 500);
@@ -103,6 +102,9 @@ class ChallengeSocketService {
   }
 
   public reconnect(): Promise<{ status: boolean, message: string }> {
+    if (this.reconnectAttempts >= 3) {
+      return Promise.resolve({ status: false, message: 'Max reconnection attempts reached' });
+    }
     this.reconnectAttempts++;
     return this.connect(this.challengeId || '', this.userId || '');
   }
@@ -113,7 +115,7 @@ class ChallengeSocketService {
     this.ws = null;
   }
 
-  public on(event: string, callback: Function): void {
+  public on(event: string, callback: any): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
@@ -135,7 +137,7 @@ class ChallengeSocketService {
           this.mockData.startTime = Date.now();
           this.mockData.endTime = Date.now() + this.mockData.timeLimit * 1000;
         }
-        
+
         setTimeout(() => {
           this.emit('startChallenge', { status: true, message: 'Challenge started successfully' });
           this.emit('hydrate', { challenge: this.mockData });
@@ -152,14 +154,12 @@ class ChallengeSocketService {
       setTimeout(() => {
         this.emit('userForfeited', { userId: this.userId, message: 'User forfeited the challenge' });
         resolve({ status: true, message: 'Forfeited the challenge' });
-        
-        // Update leaderboard
+
         if (this.mockData) {
           this.mockData.participantIds = this.mockData.participantIds.filter(id => id !== this.userId);
           this.mockLeaderboard = this.mockLeaderboard.filter(entry => entry.userId !== this.userId);
           this.mockData.leaderboard = this.mockLeaderboard;
-          
-          // Re-hydrate after user forfeits
+
           setTimeout(() => {
             this.emit('hydrate', { challenge: this.mockData });
           }, 500);
@@ -170,27 +170,24 @@ class ChallengeSocketService {
 
   public submitCode(problemId: string, code: string, language: string): Promise<{ status: boolean, message: string }> {
     return new Promise((resolve) => {
-      // Emit userSubmit event
-      this.emit('userSubmit', { 
-        userId: this.userId, 
-        problemId, 
+      this.emit('userSubmit', {
+        userId: this.userId,
+        problemId,
         code,
         language
       });
-      
+
       setTimeout(() => {
-        // Randomly determine if code submission was successful
         const isSuccess = Math.random() > 0.5;
-        
+
         if (isSuccess) {
-          this.emit('userCodeSuccess', { 
-            userId: this.userId, 
+          this.emit('userCodeSuccess', {
+            userId: this.userId,
             problemId,
             score: 100,
-            timeTaken: 120 // seconds
+            timeTaken: 120
           });
-          
-          // Update leaderboard
+
           if (this.mockData) {
             const userEntry = this.mockLeaderboard.find(entry => entry.userId === this.userId);
             if (userEntry) {
@@ -204,34 +201,31 @@ class ChallengeSocketService {
                 rank: this.mockLeaderboard.length + 1
               });
             }
-            
-            // Sort and update ranks
+
             this.mockLeaderboard.sort((a, b) => b.totalScore - a.totalScore);
             this.mockLeaderboard.forEach((entry, index) => {
               entry.rank = index + 1;
             });
-            
+
             this.mockData.leaderboard = this.mockLeaderboard;
-            
-            // Check if user won (completed all problems)
+
             const userCompletedAllProblems = this.mockLeaderboard.find(
               entry => entry.userId === this.userId
             )?.problemsCompleted === this.mockData.problemIds.length;
-            
+
             if (userCompletedAllProblems) {
               this.emit('userWon', { userId: this.userId });
             }
-            
-            // Re-hydrate after submission
+
             setTimeout(() => {
               this.emit('hydrate', { challenge: this.mockData });
             }, 300);
           }
-          
+
           resolve({ status: true, message: 'Code submission successful' });
         } else {
-          this.emit('userCodeFail', { 
-            userId: this.userId, 
+          this.emit('userCodeFail', {
+            userId: this.userId,
             problemId,
             error: 'Test cases failed'
           });
@@ -243,11 +237,10 @@ class ChallengeSocketService {
 
   public simulateTimeExhausted(): void {
     this.emit('timeExhausted', { challengeId: this.challengeId });
-    
+
     if (this.mockData) {
       this.mockData.isActive = false;
-      
-      // Re-hydrate after time exhausted
+
       setTimeout(() => {
         this.emit('hydrate', { challenge: this.mockData });
       }, 300);
@@ -259,8 +252,9 @@ class ChallengeSocketService {
   }
 }
 
-// Create a singleton instance of the socket service
 const socketService = new ChallengeSocketService();
+
+
 
 const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   challenge: initialChallenge,
@@ -273,29 +267,87 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const { toast } = useToast();
   const startChallengeMutation = useStartChallenge();
   const user = useAppSelector(state => state.auth.userProfile);
-  
+
+  initialChallenge = {
+    id: 'ch_123',
+    title: 'Friday Night Blitz',
+    creatorId: 'user_001',
+    difficulty: 'Medium',
+    isPrivate: true,
+    status: 'ongoing',
+    password: 'secret123',
+    problemIds: [
+      '67d96452d3fe6af39801337b',
+      '67e16a5b48ec539e82f1622e',
+      '67d96452d3fe6af39801337d',
+    ],
+    timeLimit: 1800,
+    createdAt: Date.now(),
+    isActive: true,
+    participantIds: ['user_001', 'user_002'],
+    userProblemMetadata: {
+      user_001: {
+        challengeProblemMetadata: [
+          {
+            problemId: '67d96452d3fe6af39801337d',
+            score: 100,
+            timeTaken: 240,
+            completedAt: Date.now() - 60000,
+          },
+        ],
+      },
+      user_002: {
+        challengeProblemMetadata: [
+          {
+            problemId: '67d96452d3fe6af39801337b',
+            score: 80,
+            timeTaken: 300,
+            completedAt: Date.now() - 45000,
+          },
+        ],
+      },
+    },
+    startTime: Date.now() - 60000,
+    endTime: Date.now() + 1740 * 1000,
+    leaderboard: [
+      {
+        userId: 'user_001',
+        problemsCompleted: 1,
+        totalScore: 100,
+        rank: 1,
+      },
+      {
+        userId: 'user_002',
+        problemsCompleted: 1,
+        totalScore: 80,
+        rank: 2,
+      },
+    ],
+  };
+
   const [challenge, setChallenge] = useState<Challenge | null>(initialChallenge);
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [socketError, setSocketError] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState<'overview' | 'playground'>('overview');
-  
-  // Connect to the socket when the component mounts
+
   useEffect(() => {
     if (initialChallenge && user?.userID) {
       connectToSocket(initialChallenge.id, user.userID);
     }
-    
+
     return () => {
       socketService.disconnect();
     };
   }, [initialChallenge, user?.userID]);
-  
+
+  // setChallenge(mockChallenge)
+
   const connectToSocket = async (challengeId: string, userId: string) => {
     try {
       const result = await socketService.connect(challengeId, userId);
       setConnected(result.status);
-      
+
       if (!result.status) {
         setSocketError(result.message);
         toast({
@@ -313,20 +365,16 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       });
     }
   };
-  
-  // Set up event listeners
+
   useEffect(() => {
-    // Handle hydrate event
     socketService.on('hydrate', (data: { challenge: Challenge }) => {
       setChallenge(data.challenge);
-      
-      // Select the first problem if none is selected yet
+
       if (!selectedProblemId && data.challenge.problemIds.length > 0) {
         setSelectedProblemId(data.challenge.problemIds[0]);
       }
     });
-    
-    // Handle user forfeited event
+
     socketService.on('userForfeited', (data: { userId: string, message: string }) => {
       toast({
         title: "User Forfeited",
@@ -334,8 +382,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "default"
       });
     });
-    
-    // Handle code submission events
+
     socketService.on('userSubmit', (data: { userId: string, problemId: string }) => {
       toast({
         title: "Code Submission",
@@ -343,7 +390,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "default"
       });
     });
-    
+
     socketService.on('userCodeSuccess', (data: { userId: string, problemId: string, score: number }) => {
       toast({
         title: "Code Success",
@@ -351,7 +398,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "default"
       });
     });
-    
+
     socketService.on('userCodeFail', (data: { userId: string, problemId: string, error: string }) => {
       if (data.userId === user?.userID) {
         toast({
@@ -361,7 +408,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         });
       }
     });
-    
+
     socketService.on('userWon', (data: { userId: string }) => {
       toast({
         title: "Challenge Complete",
@@ -369,7 +416,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "default"
       });
     });
-    
+
     socketService.on('timeExhausted', () => {
       toast({
         title: "Time Exhausted",
@@ -377,7 +424,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "destructive"
       });
     });
-    
+
     socketService.on('connect', (data: { status: boolean, message: string }) => {
       toast({
         title: "Socket Connected",
@@ -385,7 +432,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "default"
       });
     });
-    
+
     socketService.on('disconnect', (data: { status: boolean, message: string }) => {
       toast({
         title: "Socket Disconnected",
@@ -394,13 +441,13 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       });
     });
   }, [user?.userID, toast]);
-  
+
   const handleStartChallenge = async () => {
     if (!challenge) return;
-    
+
     if (socketService.isConnected()) {
       const result = await socketService.startChallenge();
-      
+
       if (result.status) {
         toast({
           title: "Challenge Started",
@@ -417,20 +464,19 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
     } else {
       try {
         await startChallengeMutation.mutateAsync(challenge.id);
-        // Navigate to the challenge playground or reload the interface
         navigate(`/challenge-playground/${challenge.id}`);
       } catch (error) {
         console.error('Failed to start challenge:', error);
       }
     }
   };
-  
+
   const handleForfeitChallenge = async () => {
     if (!challenge) return;
-    
+
     if (socketService.isConnected()) {
       const result = await socketService.forfeitChallenge();
-      
+
       if (result.status) {
         toast({
           title: "Challenge Forfeited",
@@ -440,13 +486,13 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       }
     }
   };
-  
+
   const handleSubmitCode = async (problemId: string, code: string, language: string) => {
     if (!challenge) return;
-    
+
     if (socketService.isConnected()) {
       const result = await socketService.submitCode(problemId, code, language);
-      
+
       if (!result.status) {
         toast({
           title: "Submission Failed",
@@ -456,14 +502,14 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       }
     }
   };
-  
+
   const reconnectSocket = async () => {
     if (!challenge || !user?.userID) return;
-    
+
     try {
       const result = await socketService.reconnect();
       setConnected(result.status);
-      
+
       if (!result.status) {
         setSocketError(result.message);
         toast({
@@ -488,17 +534,16 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       });
     }
   };
-  
-  // For demonstration: simulate time exhausted after 30 seconds
+
   useEffect(() => {
     if (challenge && challenge.isActive) {
       const timeLeft = (challenge.endTime - Date.now()) / 1000;
-      
+
       if (timeLeft > 0) {
         const timer = setTimeout(() => {
           socketService.simulateTimeExhausted();
-        }, timeLeft * 1000); // Convert seconds to milliseconds
-        
+        }, timeLeft * 1000);
+
         return () => clearTimeout(timer);
       }
     }
@@ -545,7 +590,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       </div>
     );
   }
-  
+
   if (socketError) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -576,18 +621,18 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   {challenge.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Difficulty</p>
                 <Badge variant="outline" className={`
-                  ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500' : 
-                   challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500' : 
-                   'text-red-500 border-red-500'}
+                  ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500' :
+                    challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500' :
+                      'text-red-500 border-red-500'}
                 `}>
                   {challenge.difficulty}
                 </Badge>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Time Limit</p>
                 <div className="flex items-center gap-1">
@@ -595,7 +640,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   <span>{Math.floor(challenge.timeLimit / 60)} minutes</span>
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Problems</p>
                 <div className="flex items-center gap-1">
@@ -603,14 +648,14 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   <span>{challenge.problemIds.length} problems</span>
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Created</p>
                 <div className="flex items-center gap-1">
                   <span>{new Date(challenge.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Visibility</p>
                 <div className="flex items-center gap-1">
@@ -627,7 +672,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   )}
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Participants</p>
                 <div className="flex items-center gap-1">
@@ -635,22 +680,22 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   <span>{challenge.participantIds.length} participants</span>
                 </div>
               </div>
-              
+
               {challenge.isActive && (
                 <div className="col-span-2">
                   <p className="text-sm font-medium text-muted-foreground">Time Remaining</p>
                   <div className="flex items-center gap-2">
                     <Timer className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {challenge.endTime > Date.now() 
-                        ? formatTimeRemaining(challenge.endTime - Date.now()) 
+                      {challenge.endTime > Date.now()
+                        ? formatTimeRemaining(challenge.endTime - Date.now())
                         : 'Time exhausted'}
                     </span>
                   </div>
                 </div>
               )}
             </div>
-            
+
             <div className="pt-2">
               <h4 className="text-sm font-medium text-muted-foreground mb-2">Problems</h4>
               <div className="space-y-2">
@@ -662,16 +707,16 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                       </span>
                       <span>{MOCK_PROBLEMS[problemId]?.title || `Problem ${index + 1}`}</span>
                       <Badge variant="outline" className={`
-                        ${MOCK_PROBLEMS[problemId]?.difficulty === 'Easy' ? 'text-green-500 border-green-500' : 
-                         MOCK_PROBLEMS[problemId]?.difficulty === 'Medium' ? 'text-amber-500 border-amber-500' : 
-                         'text-red-500 border-red-500'}
+                        ${MOCK_PROBLEMS[problemId]?.difficulty === 'Easy' ? 'text-green-500 border-green-500' :
+                          MOCK_PROBLEMS[problemId]?.difficulty === 'Medium' ? 'text-amber-500 border-amber-500' :
+                            'text-red-500 border-red-500'}
                       `}>
                         {MOCK_PROBLEMS[problemId]?.difficulty || 'Unknown'}
                       </Badge>
                     </div>
-                    <Button 
+                    <Button
                       size="sm"
-                      variant="outline" 
+                      variant="outline"
                       onClick={() => {
                         setSelectedProblemId(problemId);
                         setCurrentTab('playground');
@@ -686,7 +731,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           </CardContent>
         </Card>
       </div>
-      
+
       <div className="space-y-6">
         <Card>
           <CardHeader className="pb-2">
@@ -698,23 +743,20 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           <CardContent>
             <div className="space-y-4">
               {challenge.leaderboard?.map((entry) => {
-                // Find if this is the current user
                 const isCurrentUser = entry.userId === user?.userID;
-                
+
                 return (
-                  <div 
-                    key={entry.userId} 
-                    className={`flex items-center justify-between p-2 rounded-md ${
-                      isCurrentUser ? 'bg-primary/10' : 'bg-secondary/20'
-                    }`}
+                  <div
+                    key={entry.userId}
+                    className={`flex items-center justify-between p-2 rounded-md ${isCurrentUser ? 'bg-primary/10' : 'bg-secondary/20'
+                      }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`font-mono text-xs rounded-full w-5 h-5 flex items-center justify-center ${
-                        entry.rank === 1 ? 'bg-amber-500 text-black' :
-                        entry.rank === 2 ? 'bg-zinc-400 text-black' :
-                        entry.rank === 3 ? 'bg-amber-700 text-white' :
-                        'bg-secondary/50'
-                      }`}>
+                      <span className={`font-mono text-xs rounded-full w-5 h-5 flex items-center justify-center ${entry.rank === 1 ? 'bg-amber-500 text-black' :
+                          entry.rank === 2 ? 'bg-zinc-400 text-black' :
+                            entry.rank === 3 ? 'bg-amber-700 text-white' :
+                              'bg-secondary/50'
+                        }`}>
                         {entry.rank}
                       </span>
                       <span>
@@ -730,7 +772,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   </div>
                 );
               })}
-              
+
               {!challenge.leaderboard?.length && (
                 <div className="text-center py-4 text-muted-foreground">
                   No scores yet. Be the first to solve a problem!
@@ -739,7 +781,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <h3 className="text-lg font-semibold">Actions</h3>
@@ -747,19 +789,19 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           <CardContent>
             <div className="space-y-3">
               {user?.userID === challenge.creatorId && !challenge.isActive && (
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={handleStartChallenge}
                 >
                   <Play className="h-4 w-4 mr-2" />
                   Start Challenge
                 </Button>
               )}
-              
+
               {challenge.isActive && (
-                <Button 
+                <Button
                   variant="default"
-                  className="w-full bg-green-600 hover:bg-green-700" 
+                  className="w-full bg-green-600 hover:bg-green-700"
                   onClick={() => {
                     setCurrentTab('playground');
                     setSelectedProblemId(challenge.problemIds[0]);
@@ -769,10 +811,10 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   Continue Challenge
                 </Button>
               )}
-              
-              <Button 
-                variant="outline" 
-                className="w-full" 
+
+              <Button
+                variant="outline"
+                className="w-full"
                 onClick={handleForfeitChallenge}
               >
                 <X className="h-4 w-4 mr-2" />
@@ -790,14 +832,14 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       <div className="flex items-center justify-between mb-4 pb-4 border-b">
         <h2 className="text-2xl font-bold">{challenge.title}</h2>
         <div className="flex items-center gap-2">
-          <Button 
+          <Button
             variant={currentTab === 'overview' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setCurrentTab('overview')}
           >
             Overview
           </Button>
-          <Button 
+          <Button
             variant={currentTab === 'playground' ? 'default' : 'outline'}
             size="sm"
             onClick={() => {
@@ -817,9 +859,8 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       ) : (
         <div className="flex-1">
           {selectedProblemId ? (
-            <ZenXPlayground 
-              onSubmit={(code, language) => handleSubmitCode(selectedProblemId, code, language)}
-              problemId={selectedProblemId}
+            <ZenXPlayground
+              propsProblemID={selectedProblemId}
             />
           ) : (
             <div className="flex items-center justify-center h-full">
@@ -832,13 +873,12 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   );
 };
 
-// Utility function to format time remaining
 function formatTimeRemaining(milliseconds: number): string {
   const totalSeconds = Math.floor(milliseconds / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  
+
   return [
     hours > 0 ? `${hours}h` : '',
     `${minutes}m`,

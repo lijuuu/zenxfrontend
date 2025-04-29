@@ -22,6 +22,7 @@ export interface Challenge {
   startTime?: number;
   endTime?: number;
   participantUsers?: UserProfile[]; // Added to store participant user details
+  leaderboard?:any
 }
 
 // API request/response types with snake_case

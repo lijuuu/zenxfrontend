@@ -537,10 +537,11 @@ const Console: React.FC<ConsoleProps> = ({
 
 interface ZenXPlaygroundProps {
   propsProblemID?: string
+  hideBackButton?:boolean
 }
 
 
-const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID }) => {
+const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBackButton }) => {
   const [problemId, setProblemId] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [code, setCode] = useState<string>('');
@@ -778,10 +779,10 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID }) => {
     <div className="min-h-screen bg-zinc-950 flex flex-col ">
       <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <ArrowLeft
+          {hideBackButton && <ArrowLeft
             className="h-5 w-5 text-zinc-500 cursor-pointer hover:text-green-500 transition-colors"
             onClick={() => navigate("/problems")}
-          />
+          />}
           {/* <h1 className="text-sm sm:text-base text-zinc-200 font-medium truncate">
             {problem.title}
             <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full inline-block ${problem.difficulty === "Easy" ? "bg-green-600/20 text-green-400" :

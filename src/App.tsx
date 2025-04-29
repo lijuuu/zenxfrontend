@@ -32,6 +32,7 @@ import { useEffect } from "react";
 import FollowersPage from "./pages/FollowersPage";
 import FollowingPage from "./pages/FollowingPage";
 import AdminDashboard from "./pages-admin/AdminDashboard";
+import { ChallengeInterface } from "./components/challenges/ChallengeInterface";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -65,6 +66,7 @@ const AppContent = () => {
         <Route path="/challenges" element={<MinimalChallenge />} />
         {/* <Route path="/challenges2" element={<Challenges />} /> */}
         <Route path="/quick-match" element={<QuickMatch />} />
+        <Route path="/challenge-room" element={<ChallengeInterface/>}></Route>
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/playground" element={<Compiler />} />
