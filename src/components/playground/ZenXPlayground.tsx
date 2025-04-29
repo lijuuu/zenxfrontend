@@ -535,7 +535,12 @@ const Console: React.FC<ConsoleProps> = ({
   );
 };
 
-const ZenXPlayground: React.FC = () => {
+interface ZenXPlaygroundProps {
+  propsProblemID?: string
+}
+
+
+const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID }) => {
   const [problemId, setProblemId] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [code, setCode] = useState<string>('');
@@ -552,7 +557,7 @@ const ZenXPlayground: React.FC = () => {
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const urlProblemId = queryParams.get('problem_id') || '';
+    const urlProblemId = propsProblemID || queryParams.get('problem_id') || '';
     setProblemId(urlProblemId);
 
     if (!urlProblemId) {
@@ -604,7 +609,7 @@ const ZenXPlayground: React.FC = () => {
     }
   }, [code, problemId, language]);
 
-    const {data: userProfile} = useGetUserProfile();
+  const { data: userProfile } = useGetUserProfile();
 
   const handleCodeExecution = useCallback(async (type: string) => {
     if (!problem) return;
