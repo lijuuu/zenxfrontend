@@ -509,6 +509,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
+              className="w-full"
             >
               <div className="flex items-center justify-between mb-4">
                 <Button 

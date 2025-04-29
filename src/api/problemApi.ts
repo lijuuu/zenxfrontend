@@ -156,12 +156,11 @@ export const runTestCases = async (problemId: string, code: string, language: st
   });
 };
 
-// Add these new functions for the problem execution
+// Update these functions for the problem execution
 export const fetchProblemByIdAPI = async (problemId: string) => {
-  // Always return the Two Sum problem data for ZenXPlayground
-  
-  // Map the mock data to the expected format
-  return twoSumProblem;
+  // Return problem data based on problemId, or fallback to Two Sum
+  const mockProblem = MOCK_PROBLEMS[problemId] || twoSumProblem;
+  return mockProblem;
 };
 
 export const executeCode = async (
@@ -226,4 +225,26 @@ export const executeCode = async (
       }
     }, 1500);
   });
+};
+
+// Mock problems data for reference
+const MOCK_PROBLEMS = {
+  '67d96452d3fe6af39801337b': {
+    id: '67d96452d3fe6af39801337b',
+    title: 'Two Sum',
+    difficulty: 'Easy',
+    description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.'
+  },
+  '67e16a5b48ec539e82f1622e': {
+    id: '67e16a5b48ec539e82f1622e',
+    title: 'Add Two Numbers',
+    difficulty: 'Medium',
+    description: 'You are given two non-empty linked lists representing two non-negative integers.'
+  },
+  '67d96452d3fe6af39801337d': {
+    id: '67d96452d3fe6af39801337d',
+    title: 'Longest Substring Without Repeating Characters',
+    difficulty: 'Medium',
+    description: 'Given a string s, find the length of the longest substring without repeating characters.'
+  }
 };
