@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Challenge } from '@/api/challengeTypes';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, FileCode, Clock, Lock, Timer, Trophy, Users, Play, X, ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
+import { Loader2, AlertCircle, FileCode, Clock, Lock, Timer, Trophy, Users, Play, X, ArrowLeft, ChevronRight } from 'lucide-react';
 import { useStartChallenge } from '@/services/useChallenges';
 import { Badge } from '@/components/ui/badge';
 import ZenXPlayground from '../playground/ZenXPlayground';
@@ -14,38 +13,27 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import ChallengeTimer from './ChallengeTimer';
 import EventNotification from './EventNotification';
 import LeaderboardCard from './LeaderboardCard';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Mock leaderboard data
-interface LeaderboardEntry {
-  userId: string;
-  problemsCompleted: number;
-  totalScore: number;
-  rank: number;
-}
-
-interface ChallengeInterfaceProps {
-  challenge?: Challenge | null;
-  isPrivate?: boolean;
-  accessCode?: string;
-  isLoading?: boolean;
-  error?: Error | null;
-}
-
+// Mock problems data
 const MOCK_PROBLEMS = {
   "67d96452d3fe6af39801337b": {
     id: "67d96452d3fe6af39801337b",
     title: "Two Sum",
-    difficulty: "Easy"
+    difficulty: "Easy",
+    description: "Given an array of integers and a target sum, return indices of the two numbers such that they add up to the target."
   },
   "67e16a5b48ec539e82f1622e": {
     id: "67e16a5b48ec539e82f1622e",
     title: "Add Two Numbers",
-    difficulty: "Medium"
+    difficulty: "Medium",
+    description: "You are given two non-empty linked lists representing two non-negative integers. Add the two numbers and return the sum as a linked list."
   },
   "67d96452d3fe6af39801337d": {
     id: "67d96452d3fe6af39801337d",
     title: "Valid Parentheses",
-    difficulty: "Medium"
+    difficulty: "Medium",
+    description: "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid."
   }
 };
 
@@ -57,7 +45,7 @@ class ChallengeSocketService {
   private userId: string | null = null;
   private mockData: Challenge | null = null;
   private mockProblems: any = MOCK_PROBLEMS;
-  private mockLeaderboard: LeaderboardEntry[] = [];
+  private mockLeaderboard: any[] = [];
   private connected: boolean = false;
   private reconnectAttempts: number = 0;
 
@@ -76,7 +64,7 @@ class ChallengeSocketService {
 
       this.mockData = {
         id: challengeId,
-        title: 'Mock Challenge',
+        title: 'Friday Night Blitz',
         creatorId: 'creator123',
         difficulty: 'Medium',
         isPrivate: false,
@@ -257,6 +245,14 @@ class ChallengeSocketService {
 
 const socketService = new ChallengeSocketService();
 
+interface ChallengeInterfaceProps {
+  challenge?: Challenge | null;
+  isPrivate?: boolean;
+  accessCode?: string;
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
 const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   challenge: initialChallenge,
   isPrivate,
@@ -269,6 +265,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const startChallengeMutation = useStartChallenge();
   const user = useAppSelector(state => state.auth.userProfile);
 
+  // For demo/development purposes
   initialChallenge = {
     id: 'ch_123',
     title: 'Friday Night Blitz',
@@ -334,11 +331,11 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const [events, setEvents] = useState<{ type: string; message: string; username?: string; problemName?: string; id: number }[]>([]);
   const [eventId, setEventId] = useState(0);
 
-  // Add a new event to the events list
+  // Add a new event to the events list (limited to recent 10)
   const addEvent = (type: string, message: string, username?: string, problemName?: string) => {
     const newEventId = eventId + 1;
     setEventId(newEventId);
-    setEvents(prev => [...prev, { type, message, username, problemName, id: newEventId }].slice(-5));
+    setEvents(prev => [...prev, { type, message, username, problemName, id: newEventId }].slice(-10));
   };
 
   // Remove an event from the events list
@@ -444,23 +441,6 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         variant: "destructive"
       });
       addEvent('timeUp', 'Time limit reached for the challenge');
-    });
-
-    socketService.on('connect', (data: { status: boolean, message: string }) => {
-      toast({
-        title: "Socket Connected",
-        description: data.message,
-        variant: "default"
-      });
-    });
-
-    socketService.on('disconnect', (data: { status: boolean, message: string }) => {
-      toast({
-        title: "Socket Disconnected",
-        description: data.message,
-        variant: "default"
-      });
-      addEvent('disconnect', 'Disconnected from challenge');
     });
   }, [user?.userID, toast, selectedProblemId]);
 
@@ -670,7 +650,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   }
 
   const renderEventFeed = () => (
-    <div className="space-y-1 mb-4">
+    <div className="space-y-1 mb-4 max-h-[300px] overflow-y-auto">
       <AnimatePresence>
         {events.map((event) => (
           <EventNotification
@@ -692,88 +672,71 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
     >
-      <div className="md:col-span-2 space-y-6">
-        <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
-          <CardHeader className="pb-2 border-b border-zinc-800/60">
-            <CardTitle className="text-lg flex items-center">
-              <FileCode className="h-5 w-5 text-primary mr-2" />
-              Challenge Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            {renderEventFeed()}
+      {/* Left column - Events feed and Problems */}
+      <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Event Feed Card */}
+          <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+            <CardHeader className="pb-2 border-b border-zinc-800/60">
+              <CardTitle className="text-lg flex items-center">
+                <FileCode className="h-5 w-5 text-primary mr-2" />
+                Recent Events
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {renderEventFeed()}
+            </CardContent>
+          </Card>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <Badge variant={challenge.isActive ? "default" : "secondary"} className="mt-1">
-                  {challenge.isActive ? "Active" : "Inactive"}
-                </Badge>
-              </div>
+          {/* Challenge Status Card */}
+          <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+            <CardHeader className="pb-2 border-b border-zinc-800/60">
+              <CardTitle className="text-lg flex items-center">
+                <Trophy className="h-5 w-5 text-amber-500 mr-2" />
+                Challenge Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <Badge variant={challenge.isActive ? "default" : "secondary"} className="mt-1">
+                    {challenge.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
 
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Difficulty</p>
-                <Badge variant="outline" className={`mt-1
-                  ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
-                    challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
-                      'text-red-500 border-red-500/30'}
-                `}>
-                  {challenge.difficulty}
-                </Badge>
-              </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Difficulty</p>
+                  <Badge variant="outline" className={`mt-1
+                    ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
+                      challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
+                        'text-red-500 border-red-500/30'}
+                  `}>
+                    {challenge.difficulty}
+                  </Badge>
+                </div>
 
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Time Limit</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{Math.floor(challenge.timeLimit / 60)} minutes</span>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Problems</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <FileCode className="h-4 w-4 text-muted-foreground" />
+                    <span>{challenge.problemIds.length}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Participants</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>{challenge.participantIds.length}</span>
+                  </div>
                 </div>
               </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Problems</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <FileCode className="h-4 w-4 text-muted-foreground" />
-                  <span>{challenge.problemIds.length} problems</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Created</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <span>{new Date(challenge.createdAt).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Visibility</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {challenge.isPrivate ? (
-                    <>
-                      <Lock className="h-4 w-4 text-amber-500" />
-                      <span>Private</span>
-                    </>
-                  ) : (
-                    <>
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>Public</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Participants</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{challenge.participantIds.length} participants</span>
-                </div>
-              </div>
-
+              
               {challenge.isActive && challenge.endTime && (
-                <div className="col-span-2 mt-2">
+                <div className="mt-2">
                   <p className="text-sm font-medium text-muted-foreground mb-2">Time Remaining</p>
                   <ChallengeTimer 
                     endTime={challenge.endTime} 
@@ -783,36 +746,44 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   />
                 </div>
               )}
-            </div>
-
-            <div className="pt-2">
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">Problems</h4>
-              <motion.div 
-                className="space-y-2"
-                initial="hidden"
-                animate="show"
-                variants={{
-                  hidden: { opacity: 0 },
-                  show: { 
-                    opacity: 1,
-                    transition: { staggerChildren: 0.05 }
-                  }
-                }}
-              >
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Problems Card */}
+        <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+          <CardHeader className="pb-2 border-b border-zinc-800/60">
+            <CardTitle className="text-lg flex items-center">
+              <FileCode className="h-5 w-5 text-primary mr-2" />
+              Problems
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="overflow-x-auto pb-2">
+              <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
                 {challenge.problemIds.map((problemId, index) => (
-                  <motion.div 
-                    key={problemId} 
-                    variants={{
-                      hidden: { opacity: 0, y: 10 },
-                      show: { opacity: 1, y: 0 }
+                  <motion.div
+                    key={problemId}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                    className={`p-4 rounded-lg min-w-[280px] border transition-all ${
+                      selectedProblemId === problemId 
+                        ? 'bg-primary/20 border-primary/50' 
+                        : 'bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/60'
+                    }`}
+                    onClick={() => {
+                      setSelectedProblemId(problemId);
+                      setCurrentTab('playground');
                     }}
-                    className="flex items-center justify-between p-3 rounded-md bg-zinc-800/30 border border-zinc-700/30 hover:border-zinc-700/60 transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center justify-center font-mono text-xs bg-zinc-700/70 text-zinc-300 rounded-full w-6 h-6">
-                        {index + 1}
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="flex items-center gap-2">
+                        <div className="flex items-center justify-center font-mono text-xs bg-zinc-700/70 text-zinc-300 rounded-full w-6 h-6">
+                          {index + 1}
+                        </div>
+                        <h3 className="font-medium">{MOCK_PROBLEMS[problemId]?.title || `Problem ${index + 1}`}</h3>
                       </span>
-                      <span>{MOCK_PROBLEMS[problemId]?.title || `Problem ${index + 1}`}</span>
                       <Badge variant="outline" className={`
                         ${MOCK_PROBLEMS[problemId]?.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
                           MOCK_PROBLEMS[problemId]?.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
@@ -821,25 +792,27 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                         {MOCK_PROBLEMS[problemId]?.difficulty || 'Unknown'}
                       </Badge>
                     </div>
+                    
+                    <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
+                      {MOCK_PROBLEMS[problemId]?.description || 'No description available'}
+                    </p>
+                    
                     <Button
                       size="sm"
                       variant="outline"
-                      className="gap-1 hover:bg-primary/20 transition-colors"
-                      onClick={() => {
-                        setSelectedProblemId(problemId);
-                        setCurrentTab('playground');
-                      }}
+                      className="w-full gap-1 hover:bg-primary/20 transition-colors"
                     >
                       Solve <ChevronRight className="h-3 w-3" />
                     </Button>
                   </motion.div>
                 ))}
-              </motion.div>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Right column - Leaderboard and Actions */}
       <div className="space-y-6">
         <LeaderboardCard 
           entries={challenge.leaderboard || []} 
@@ -859,180 +832,4 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   onClick={handleStartChallenge}
                 >
                   <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-                    className="mr-2 text-white/70"
-                  >
-                    <Play className="h-4 w-4 fill-current" />
-                  </motion.div>
-                  Start Challenge
-                </Button>
-              )}
-
-              {challenge.isActive && (
-                <Button
-                  variant="default"
-                  className="w-full bg-primary hover:bg-primary/80 group transition-all"
-                  onClick={() => {
-                    setCurrentTab('playground');
-                    setSelectedProblemId(challenge.problemIds[0]);
-                  }}
-                >
-                  <Play className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                  Continue Challenge
-                </Button>
-              )}
-
-              <Button
-                variant="outline"
-                className="w-full group hover:bg-red-900/20 hover:text-red-400 hover:border-red-900/30 transition-all"
-                onClick={handleForfeitChallenge}
-              >
-                <X className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                Forfeit Challenge
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </motion.div>
-  );
-
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-800">
-        <motion.h2 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent"
-        >
-          {challenge.title}
-        </motion.h2>
-        
-        <div className="flex items-center gap-2">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentTab}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <div className="bg-zinc-800/70 p-0.5 rounded-md border border-zinc-700/30 backdrop-blur-sm">
-                <Button
-                  variant={currentTab === 'overview' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setCurrentTab('overview')}
-                  className={currentTab === 'overview' ? 'bg-primary hover:bg-primary/90' : 'hover:bg-zinc-700/50'}
-                >
-                  Overview
-                </Button>
-                <Button
-                  variant={currentTab === 'playground' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => {
-                    setCurrentTab('playground');
-                    if (!selectedProblemId && challenge.problemIds.length > 0) {
-                      setSelectedProblemId(challenge.problemIds[0]);
-                    }
-                  }}
-                  className={currentTab === 'playground' ? 'bg-primary hover:bg-primary/90' : 'hover:bg-zinc-700/50'}
-                >
-                  Playground
-                </Button>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {currentTab === 'overview' ? (
-          <motion.div
-            key="overview"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {renderOverview()}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="playground"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex-1"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="mr-2"
-                  onClick={() => setCurrentTab('overview')}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1" /> Back
-                </Button>
-                
-                <div className="flex items-center gap-2">
-                  {challenge.problemIds.map((problemId, index) => (
-                    <Button
-                      key={problemId}
-                      variant={selectedProblemId === problemId ? "default" : "outline"}
-                      size="sm"
-                      className={selectedProblemId === problemId ? "bg-primary" : ""}
-                      onClick={() => setSelectedProblemId(problemId)}
-                    >
-                      Problem {index + 1}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              {challenge.endTime && (
-                <ChallengeTimer 
-                  endTime={challenge.endTime}
-                  onTimeWarning={handleTimeWarning}
-                  onTimeUp={handleTimeUp}
-                  className="w-64"
-                />
-              )}
-            </div>
-            
-            <div className="h-[calc(100%-3rem)]">
-              {selectedProblemId ? (
-                <ZenXPlayground
-                  propsProblemID={selectedProblemId}
-                  onSubmit={handleSubmitCode}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p>No problem selected. Please select a problem to solve.</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-function formatTimeRemaining(milliseconds: number): string {
-  const totalSeconds = Math.floor(milliseconds / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return [
-    hours > 0 ? `${hours}h` : '',
-    `${minutes.toString().padStart(2, '0')}m`,
-    `${seconds.toString().padStart(2, '0')}s`
-  ].filter(Boolean).join(' ');
-}
-
-export { ChallengeInterface };
+                    animate={{ rotate: 36

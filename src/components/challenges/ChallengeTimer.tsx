@@ -9,13 +9,15 @@ interface ChallengeTimerProps {
   onTimeWarning?: () => void;
   onTimeUp?: () => void;
   className?: string;
+  compact?: boolean;
 }
 
 const ChallengeTimer: React.FC<ChallengeTimerProps> = ({ 
   endTime, 
   onTimeWarning, 
   onTimeUp,
-  className 
+  className,
+  compact = false
 }) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [warningTriggered, setWarningTriggered] = useState<boolean>(false);
@@ -51,6 +53,10 @@ const ChallengeTimer: React.FC<ChallengeTimerProps> = ({
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
+    if (compact) {
+      return `${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+    }
+
     return [
       hours > 0 ? `${hours}h` : '',
       `${minutes.toString().padStart(2, '0')}m`,
@@ -69,6 +75,32 @@ const ChallengeTimer: React.FC<ChallengeTimerProps> = ({
     if (timeLeft <= 5 * 60 * 1000) return 'text-amber-500'; // Less than 5 minutes: amber
     return 'text-green-500'; // More than 5 minutes: green
   };
+
+  if (compact) {
+    return (
+      <div className={cn("flex items-center gap-1.5", className)}>
+        <motion.div
+          initial={{ scale: 1 }}
+          animate={{ 
+            scale: timeLeft <= 60 * 1000 ? [1, 1.1, 1] : 1,
+            transition: { 
+              repeat: timeLeft <= 60 * 1000 ? Infinity : 0, 
+              duration: 1
+            }
+          }}
+        >
+          {timeLeft <= 5 * 60 * 1000 ? (
+            <AlertCircle className={`h-4 w-4 ${getTimerColor()}`} />
+          ) : (
+            <Timer className={`h-4 w-4 ${getTimerColor()}`} />
+          )}
+        </motion.div>
+        <span className={`text-sm font-mono font-medium ${getTimerColor()}`}>
+          {formatTime(timeLeft)}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("relative", className)}>
