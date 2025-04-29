@@ -1,247 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Challenge } from '@/api/challengeTypes';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, FileCode, Clock, Lock, Timer, Trophy, Users, Play, X, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useStartChallenge } from '@/services/useChallenges';
-import { Badge } from '@/components/ui/badge';
-import ZenXPlayground from '../playground/ZenXPlayground';
 import { useToast } from '@/hooks/use-toast';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import ChallengeTimer from './ChallengeTimer';
-import EventNotification from './EventNotification';
-import LeaderboardCard from './LeaderboardCard';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Mock problems data
-const MOCK_PROBLEMS = {
-  "67d96452d3fe6af39801337b": {
-    id: "67d96452d3fe6af39801337b",
-    title: "Two Sum",
-    difficulty: "Easy",
-    description: "Given an array of integers and a target sum, return indices of the two numbers such that they add up to the target."
-  },
-  "67e16a5b48ec539e82f1622e": {
-    id: "67e16a5b48ec539e82f1622e",
-    title: "Add Two Numbers",
-    difficulty: "Medium",
-    description: "You are given two non-empty linked lists representing two non-negative integers. Add the two numbers and return the sum as a linked list."
-  },
-  "67d96452d3fe6af39801337d": {
-    id: "67d96452d3fe6af39801337d",
-    title: "Valid Parentheses",
-    difficulty: "Medium",
-    description: "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid."
-  }
-};
-
-// WebSocket mock service
-class ChallengeSocketService {
-  private ws: WebSocket | null = null;
-  private listeners: Map<string, any[]> = new Map();
-  private challengeId: string | null = null;
-  private userId: string | null = null;
-  private mockData: Challenge | null = null;
-  private mockProblems: any = MOCK_PROBLEMS;
-  private mockLeaderboard: any[] = [];
-  private connected: boolean = false;
-  private reconnectAttempts: number = 0;
-
-  constructor() {
-    this.mockLeaderboard = [
-      { userId: 'user1', problemsCompleted: 2, totalScore: 150, rank: 1 },
-      { userId: 'user2', problemsCompleted: 1, totalScore: 100, rank: 2 },
-      { userId: 'user3', problemsCompleted: 1, totalScore: 50, rank: 3 },
-    ];
-  }
-
-  public connect(challengeId: string, userId: string): Promise<{ status: boolean, message: string }> {
-    return new Promise((resolve) => {
-      this.challengeId = challengeId;
-      this.userId = userId;
-
-      this.mockData = {
-        id: challengeId,
-        title: 'Friday Night Blitz',
-        creatorId: 'creator123',
-        difficulty: 'Medium',
-        isPrivate: false,
-        status: 'active',
-        problemIds: ['67d96452d3fe6af39801337b', '67e16a5b48ec539e82f1622e', '67d96452d3fe6af39801337d'],
-        timeLimit: 3600,
-        createdAt: Date.now() - 3600000,
-        isActive: true,
-        participantIds: ['user1', 'user2', 'user3', userId],
-        userProblemMetadata: {},
-        startTime: Date.now() - 1800000,
-        endTime: Date.now() + 1800000,
-        leaderboard: this.mockLeaderboard
-      };
-
-      setTimeout(() => {
-        this.connected = true;
-        this.emit('connect', { status: true, message: 'Connected to challenge socket' });
-        resolve({ status: true, message: 'Connected to challenge socket' });
-
-        setTimeout(() => {
-          this.emit('hydrate', { challenge: this.mockData });
-        }, 500);
-      }, 1000);
-    });
-  }
-
-  public reconnect(): Promise<{ status: boolean, message: string }> {
-    if (this.reconnectAttempts >= 3) {
-      return Promise.resolve({ status: false, message: 'Max reconnection attempts reached' });
-    }
-    this.reconnectAttempts++;
-    return this.connect(this.challengeId || '', this.userId || '');
-  }
-
-  public disconnect(): void {
-    this.connected = false;
-    this.emit('disconnect', { status: true, message: 'Disconnected from challenge socket' });
-    this.ws = null;
-  }
-
-  public on(event: string, callback: any): void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, []);
-    }
-    this.listeners.get(event)?.push(callback);
-  }
-
-  public emit(event: string, data: any): void {
-    const callbacks = this.listeners.get(event);
-    if (callbacks) {
-      callbacks.forEach(callback => callback(data));
-    }
-  }
-
-  public startChallenge(): Promise<{ status: boolean, message: string }> {
-    return new Promise((resolve) => {
-      if (this.mockData && this.userId === this.mockData.creatorId) {
-        if (this.mockData) {
-          this.mockData.isActive = true;
-          this.mockData.startTime = Date.now();
-          this.mockData.endTime = Date.now() + this.mockData.timeLimit * 1000;
-        }
-
-        setTimeout(() => {
-          this.emit('startChallenge', { status: true, message: 'Challenge started successfully' });
-          this.emit('hydrate', { challenge: this.mockData });
-          resolve({ status: true, message: 'Challenge started successfully' });
-        }, 500);
-      } else {
-        resolve({ status: false, message: 'Only the creator can start the challenge' });
-      }
-    });
-  }
-
-  public forfeitChallenge(): Promise<{ status: boolean, message: string }> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        this.emit('userForfeited', { userId: this.userId, message: 'User forfeited the challenge' });
-        resolve({ status: true, message: 'Forfeited the challenge' });
-
-        if (this.mockData) {
-          this.mockData.participantIds = this.mockData.participantIds.filter(id => id !== this.userId);
-          this.mockLeaderboard = this.mockLeaderboard.filter(entry => entry.userId !== this.userId);
-          this.mockData.leaderboard = this.mockLeaderboard;
-
-          setTimeout(() => {
-            this.emit('hydrate', { challenge: this.mockData });
-          }, 500);
-        }
-      }, 500);
-    });
-  }
-
-  public submitCode(problemId: string, code: string, language: string): Promise<{ status: boolean, message: string }> {
-    return new Promise((resolve) => {
-      this.emit('userSubmit', {
-        userId: this.userId,
-        problemId,
-        code,
-        language
-      });
-
-      setTimeout(() => {
-        const isSuccess = Math.random() > 0.5;
-
-        if (isSuccess) {
-          this.emit('userCodeSuccess', {
-            userId: this.userId,
-            problemId,
-            score: 100,
-            timeTaken: 120
-          });
-
-          if (this.mockData) {
-            const userEntry = this.mockLeaderboard.find(entry => entry.userId === this.userId);
-            if (userEntry) {
-              userEntry.problemsCompleted += 1;
-              userEntry.totalScore += 100;
-            } else {
-              this.mockLeaderboard.push({
-                userId: this.userId || 'unknown',
-                problemsCompleted: 1,
-                totalScore: 100,
-                rank: this.mockLeaderboard.length + 1
-              });
-            }
-
-            this.mockLeaderboard.sort((a, b) => b.totalScore - a.totalScore);
-            this.mockLeaderboard.forEach((entry, index) => {
-              entry.rank = index + 1;
-            });
-
-            this.mockData.leaderboard = this.mockLeaderboard;
-
-            const userCompletedAllProblems = this.mockLeaderboard.find(
-              entry => entry.userId === this.userId
-            )?.problemsCompleted === this.mockData.problemIds.length;
-
-            if (userCompletedAllProblems) {
-              this.emit('userWon', { userId: this.userId });
-            }
-
-            setTimeout(() => {
-              this.emit('hydrate', { challenge: this.mockData });
-            }, 300);
-          }
-
-          resolve({ status: true, message: 'Code submission successful' });
-        } else {
-          this.emit('userCodeFail', {
-            userId: this.userId,
-            problemId,
-            error: 'Test cases failed'
-          });
-          resolve({ status: false, message: 'Code submission failed' });
-        }
-      }, 1500);
-    });
-  }
-
-  public simulateTimeExhausted(): void {
-    this.emit('timeExhausted', { challengeId: this.challengeId });
-
-    if (this.mockData) {
-      this.mockData.isActive = false;
-
-      setTimeout(() => {
-        this.emit('hydrate', { challenge: this.mockData });
-      }, 300);
-    }
-  }
-
-  public isConnected(): boolean {
-    return this.connected;
-  }
-}
+import { ChallengeSocketService, MOCK_PROBLEMS } from '../../services/challengeSocketService';
+import ChallengeOverview from './ChallengeOverview';
+import ZenXPlayground from '../playground/ZenXPlayground';
+import ChallengeTimer from './ChallengeTimer';
 
 const socketService = new ChallengeSocketService();
 
@@ -649,187 +420,103 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
     );
   }
 
-  const renderEventFeed = () => (
-    <div className="space-y-1 mb-4 max-h-[300px] overflow-y-auto">
-      <AnimatePresence>
-        {events.map((event) => (
-          <EventNotification
-            key={event.id}
-            type={event.type as any}
-            message={event.message}
-            username={event.username}
-            problemName={event.problemName}
-            visible={true}
-            onClose={() => removeEvent(event.id)}
-          />
-        ))}
-      </AnimatePresence>
+  return (
+    <div className="container mx-auto py-6">
+      <div className="flex flex-col space-y-4">
+        {/* Header with tabs */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+          <div>
+            <h1 className="text-2xl font-bold">{challenge.title}</h1>
+            <p className="text-muted-foreground">
+              {challenge.isActive
+                ? "Challenge is active"
+                : "Challenge is not yet started"}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {challenge.isActive && challenge.endTime && currentTab === 'playground' && (
+              <div className="mr-4">
+                <ChallengeTimer
+                  endTime={challenge.endTime}
+                  compact={true}
+                  className="bg-zinc-800/60 px-3 py-1.5 rounded-md"
+                />
+              </div>
+            )}
+
+            <Tabs
+              value={currentTab}
+              onValueChange={(value) => setCurrentTab(value as 'overview' | 'playground')}
+              className="w-[400px]"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="playground" disabled={!selectedProblemId}>
+                  Playground
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Content area */}
+        <div className="w-full">
+          {currentTab === 'overview' && (
+            <ChallengeOverview
+              challenge={challenge}
+              events={events}
+              selectedProblemId={selectedProblemId}
+              onRemoveEvent={removeEvent}
+              onTimeWarning={handleTimeWarning}
+              onTimeUp={handleTimeUp}
+              onProblemSelect={(problemId) => {
+                setSelectedProblemId(problemId);
+                setCurrentTab('playground');
+              }}
+              onStartChallenge={handleStartChallenge}
+              onForfeitChallenge={handleForfeitChallenge}
+            />
+          )}
+
+          {currentTab === 'playground' && selectedProblemId && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => setCurrentTab('overview')}
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back to Overview
+                </Button>
+                <div>
+                  <h3 className="text-lg font-medium">
+                    {MOCK_PROBLEMS[selectedProblemId]?.title || `Problem ${selectedProblemId}`}
+                  </h3>
+                </div>
+              </div>
+              <ZenXPlayground
+                initialCode=""
+                onSubmit={handleSubmitCode}
+                problem={MOCK_PROBLEMS[selectedProblemId] || {
+                  id: selectedProblemId,
+                  title: `Problem ${selectedProblemId}`,
+                  difficulty: 'Unknown',
+                  description: 'No description available'
+                }}
+              />
+            </motion.div>
+          )}
+        </div>
+      </div>
     </div>
   );
+};
 
-  const renderOverview = () => (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-    >
-      {/* Left column - Events feed and Problems */}
-      <div className="lg:col-span-2 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Event Feed Card */}
-          <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
-            <CardHeader className="pb-2 border-b border-zinc-800/60">
-              <CardTitle className="text-lg flex items-center">
-                <FileCode className="h-5 w-5 text-primary mr-2" />
-                Recent Events
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              {renderEventFeed()}
-            </CardContent>
-          </Card>
-
-          {/* Challenge Status Card */}
-          <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
-            <CardHeader className="pb-2 border-b border-zinc-800/60">
-              <CardTitle className="text-lg flex items-center">
-                <Trophy className="h-5 w-5 text-amber-500 mr-2" />
-                Challenge Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <Badge variant={challenge.isActive ? "default" : "secondary"} className="mt-1">
-                    {challenge.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Difficulty</p>
-                  <Badge variant="outline" className={`mt-1
-                    ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
-                      challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
-                        'text-red-500 border-red-500/30'}
-                  `}>
-                    {challenge.difficulty}
-                  </Badge>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Problems</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <FileCode className="h-4 w-4 text-muted-foreground" />
-                    <span>{challenge.problemIds.length}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Participants</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{challenge.participantIds.length}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {challenge.isActive && challenge.endTime && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Time Remaining</p>
-                  <ChallengeTimer 
-                    endTime={challenge.endTime} 
-                    onTimeWarning={handleTimeWarning}
-                    onTimeUp={handleTimeUp}
-                    className="w-full"
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Problems Card */}
-        <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
-          <CardHeader className="pb-2 border-b border-zinc-800/60">
-            <CardTitle className="text-lg flex items-center">
-              <FileCode className="h-5 w-5 text-primary mr-2" />
-              Problems
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="overflow-x-auto pb-2">
-              <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
-                {challenge.problemIds.map((problemId, index) => (
-                  <motion.div
-                    key={problemId}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
-                    className={`p-4 rounded-lg min-w-[280px] border transition-all ${
-                      selectedProblemId === problemId 
-                        ? 'bg-primary/20 border-primary/50' 
-                        : 'bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/60'
-                    }`}
-                    onClick={() => {
-                      setSelectedProblemId(problemId);
-                      setCurrentTab('playground');
-                    }}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="flex items-center gap-2">
-                        <div className="flex items-center justify-center font-mono text-xs bg-zinc-700/70 text-zinc-300 rounded-full w-6 h-6">
-                          {index + 1}
-                        </div>
-                        <h3 className="font-medium">{MOCK_PROBLEMS[problemId]?.title || `Problem ${index + 1}`}</h3>
-                      </span>
-                      <Badge variant="outline" className={`
-                        ${MOCK_PROBLEMS[problemId]?.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
-                          MOCK_PROBLEMS[problemId]?.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
-                            'text-red-500 border-red-500/30'}
-                      `}>
-                        {MOCK_PROBLEMS[problemId]?.difficulty || 'Unknown'}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
-                      {MOCK_PROBLEMS[problemId]?.description || 'No description available'}
-                    </p>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full gap-1 hover:bg-primary/20 transition-colors"
-                    >
-                      Solve <ChevronRight className="h-3 w-3" />
-                    </Button>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Right column - Leaderboard and Actions */}
-      <div className="space-y-6">
-        <LeaderboardCard 
-          entries={challenge.leaderboard || []} 
-          currentUserId={user?.userID}
-          className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950"
-        />
-
-        <Card className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
-          <CardHeader className="pb-2 border-b border-zinc-800/60">
-            <CardTitle className="text-lg">Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-3">
-              {user?.userID === challenge.creatorId && !challenge.isActive && (
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700 text-white group transition-all"
-                  onClick={handleStartChallenge}
-                >
-                  <motion.div 
-                    animate={{ rotate: 36
+export default ChallengeInterface;
