@@ -1,6 +1,7 @@
 
 import { UserProfile } from '@/store/slices/authSlice';
 import axiosInstance from '@/utils/axiosInstance';
+import Cookies from 'js-cookie';
 
 
 export const getUserProfile = async ({
@@ -20,7 +21,12 @@ export const getUserProfile = async ({
       requiresAuth = false
       if (username) params.username = username
       if (userID) params.userid = userID
+    } else if (!Cookies.get("accessToken") && !Cookies.get("refreshToken")) {
+      // no auth tokens at all - return early
+      console.log("return back")
+      return {}
     }
+    
 
     const res = await axiosInstance.get(url, {
       params,

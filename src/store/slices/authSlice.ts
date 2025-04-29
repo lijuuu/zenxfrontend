@@ -3,14 +3,14 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import { errorMessages } from "@/constants/errorTypes";
 import { UserProfile } from "@/api/types";
-import {LoginUserResponse,ApiResponse,AuthState} from "@/api/types"; 
+import { LoginUserResponse, ApiResponse, AuthState } from "@/api/types";
 
 
 const initialState: AuthState = {
   userId: null,
   email: null,
   loading: false,
-  isVerified:false,
+  isVerified: false,
   error: null,
   successMessage: null,
   accessToken: null,
@@ -119,7 +119,12 @@ export const loginUser = (credentials: { email?: string; password?: string; code
   dispatch(setAuthLoading(true));
   try {
     // Use axiosInstance with the relative path
-    const response = await axiosInstance.post("/auth/login", credentials);
+    const response = await axiosInstance.post("/auth/login", credentials, {
+      headers: {
+        "X-Requires-Auth": "false",
+      },
+    });
+
     const apiResponse = response.data as ApiResponse;
 
     if (!apiResponse.success || !apiResponse.payload) {
@@ -133,15 +138,15 @@ export const loginUser = (credentials: { email?: string; password?: string; code
       throw {
         type: "ERR_LOGIN_NOT_VERIFIED",
         message: "User is not verified",
-      status:401,
+        status: 401,
       };
     }
 
-    console.log(data);
+    console.log("data ,", data);
 
     // Set cookies for accessToken and refreshToken
     Cookies.set("accessToken", data.accessToken, {
-      expires: data.expiresIn / (24 * 60 * 60), 
+      expires: data.expiresIn / (24 * 60 * 60),
       secure: true,
       sameSite: "Strict",
     });
@@ -154,7 +159,8 @@ export const loginUser = (credentials: { email?: string; password?: string; code
     }, 1000);
   } catch (error: any) {
     const errorResponse = error.response?.data;
-    const type = error.type || errorResponse?.error?.type || "ERR_LOGIN_CRED_WRONG";
+    console.log("error ", error)
+    const type = error?.type || errorResponse?.error?.type || "ERR_LOGIN_CRED_WRONG";
     const message =
       errorMessages[type as keyof typeof errorMessages] ||
       errorResponse?.error?.message ||
@@ -244,7 +250,7 @@ const authSlice = createSlice({
           state.userId = action.payload.payload.userID;
           state.email = action.payload.payload.email;
           state.successMessage = action.payload.payload.message;
-    
+
         }
       )
       .addCase(registerUser.rejected, (state, action: PayloadAction<{ type: string; message: string; code?: number } | undefined>) => {
@@ -264,7 +270,7 @@ const authSlice = createSlice({
           state.lastResendTimestamp = Date.now();
           state.resendCooldown = true;
           state.expiryAt = action.payload.payload.expiryAt;
-    
+
         }
       )
       .addCase(resendEmail.rejected, (state, action: PayloadAction<{ type?: string; message: string; code?: number } | undefined>) => {
@@ -301,7 +307,7 @@ const authSlice = createSlice({
           state.email = userProfile.email;
           state.successMessage = "User profile fetched successfully";
           state.error = null;
-    
+
         } else {
           state.error = { type: "ERR_INVALID_RESPONSE", message: "Invalid response from getUser" };
         }
@@ -314,7 +320,7 @@ const authSlice = createSlice({
         state.email = null;
         Cookies.remove("accessToken");
         Cookies.remove("refreshToken");
-  
+
       })
   },
 });

@@ -31,6 +31,7 @@ import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
 import FollowersPage from "./pages/FollowersPage";
 import FollowingPage from "./pages/FollowingPage";
+import AdminDashboard from "./pages-admin/AdminDashboard";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -80,7 +81,7 @@ const AppContent = () => {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={
           <AdminLayout>
-            <AdminDashboardHome />
+            <AdminDashboard />
           </AdminLayout>
         } />
         <Route path="/admin/users" element={
@@ -89,8 +90,8 @@ const AppContent = () => {
           </AdminLayout>
         } />
 
-        <Route path="/followers/:userid" element={<FollowersPage />} />
-        <Route path="/following/:userid" element={<FollowingPage />} />
+        {/* <Route path="/followers/:userid" element={<FollowersPage />} />
+        <Route path="/following/:userid" element={<FollowingPage />} /> */}
 
         {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />

@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from "react";
+import MainNavbar from "@/components/common/MainNavbar";
+import { handleInfo } from "@/components/sub/ErrorToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser, clearAuthState, setAuthLoading } from "@/store/slices/authSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import Cookies from "js-cookie";
-import { handleInfo } from "@/components/sub/ErrorToast";
-import MainNavbar from "@/components/common/MainNavbar";
-import axiosInstance from "@/utils/axiosInstance";
 import SimpleSpinLoader from "@/components/ui/simplespinloader";
+import { clearAuthState, loginUser, setAuthLoading } from "@/store/slices/authSlice";
+import axiosInstance from "@/utils/axiosInstance";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Cookies from "js-cookie";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { z } from "zod";
+
+//TODO - forced to use href location instead of navigate, figure out y it fails to fetch getprofile as soon as login happens
 
 // loader overlay for loading state
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
@@ -90,7 +92,8 @@ function LoginForm() {
       }
       // initiate google oauth
       const response = await axiosInstance.get("/auth/google/login");
-      window.location.href = response.data.payload.url;
+      navigate(response.data.payload.url); //google url dont touch
+      
     } catch (err: any) {
       dispatch(setAuthLoading(false));
       const errorMessage = err.response?.data?.error?.message || "Failed to initiate Google login";
@@ -104,7 +107,8 @@ function LoginForm() {
     const accessToken = Cookies.get("accessToken");
 
     if (userProfile?.isVerified && accessToken) {
-      navigate("/dashboard");
+      // window.location.href = "/dashboard";
+      navigate("/dashboard")
       toast.success(successMessage || "Login successful!");
     } else if (error) {
       if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
@@ -124,7 +128,9 @@ function LoginForm() {
   useEffect(() => {
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
-      navigate("/dashboard");
+      // window.location.href= "/dashboard";
+      navigate("/dashboard")
+      
       toast.success("Logged in!");
     }
   }, [navigate]);
@@ -183,7 +189,9 @@ function LoginForm() {
       });
 
       window.history.replaceState({}, document.title, window.location.pathname);
-      navigate('/dashboard');
+      // window.location.href= "/dashboard";
+      navigate("/dashboard")
+      
       toast.success('logged in successfully!');
     }
   }, [navigate, location]);

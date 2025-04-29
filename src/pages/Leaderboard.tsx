@@ -272,10 +272,10 @@ const Leaderboard = () => {
                   <span className="text-zinc-400">Score</span>
                   <span className="font-medium">{leaderboardData.Score}</span>
                 </div>
-                <div className="flex justify-between items-center pb-3 border-b border-zinc-700/30">
+                {/* <div className="flex justify-between items-center pb-3 border-b border-zinc-700/30">
                   <span className="text-zinc-400">Problems Solved</span>
                   <span className="font-medium">{totalProblemsDone}</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between items-center pb-3 border-b border-zinc-700/30">
                   <span className="text-zinc-400">Global Rank</span>
                   <span className="font-medium">#{leaderboardData.GlobalRank}</span>

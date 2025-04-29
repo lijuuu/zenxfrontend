@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { isAuthenticated, logout } from "@/utils/authUtils";
+import { isAdminAuthenticated, adminLogout } from "@/utils/authUtils";
 import Cookies from "js-cookie";
 import {
   LayoutDashboard,
@@ -24,8 +24,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   useEffect(() => {
     // Check if user is authenticated as admin
-    const isAdmin = Cookies.get('isAdmin');
-    if (!isAuthenticated() || !isAdmin) {
+    if (!isAdminAuthenticated()) {
       navigate("/admin/login");
       return;
     }
@@ -43,45 +42,44 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [navigate]);
+  }, []);
 
   const handleLogout = () => {
-    logout();
+    adminLogout();
     navigate("/admin/login");
   };
 
   const menuItems = [
-    { 
-      name: "Dashboard", 
-      path: "/admin/dashboard", 
-      icon: <LayoutDashboard className="h-5 w-5" /> 
+    {
+      name: "Dashboard",
+      path: "/admin/dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />
     },
-    { 
-      name: "Users", 
-      path: "/admin/users", 
-      icon: <Users className="h-5 w-5" /> 
+    {
+      name: "Users",
+      path: "/admin/users",
+      icon: <Users className="h-5 w-5" />
     },
-    { 
-      name: "Settings", 
-      path: "/admin/settings", 
-      icon: <Settings className="h-5 w-5" /> 
+    {
+      name: "Settings",
+      path: "/admin/settings",
+      icon: <Settings className="h-5 w-5" />
     },
   ];
 
   return (
     <div className="min-h-screen flex bg-zinc-950 text-white">
       {/* Sidebar */}
-      <aside 
-        className={`${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed md:relative z-20 flex flex-col w-64 h-screen px-4 py-8 bg-zinc-900 border-r border-zinc-800 transition-transform duration-300 ease-in-out md:translate-x-0`}
+      <aside
+        className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } fixed md:relative z-20 flex flex-col w-64 h-screen px-4 py-8 bg-zinc-900 border-r border-zinc-800 transition-transform duration-300 ease-in-out md:translate-x-0`}
       >
         <div className="flex items-center justify-between">
           <span className="text-2xl font-semibold text-white">Admin</span>
           {isMobile && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="h-5 w-5" />
@@ -121,9 +119,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         {isMobile && (
           <header className="flex items-center justify-between px-6 py-4 bg-zinc-900 border-b border-zinc-800 md:hidden">
             <span className="text-xl font-semibold">Admin</span>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -139,7 +137,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-10 bg-black bg-opacity-50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />

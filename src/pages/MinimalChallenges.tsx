@@ -280,7 +280,7 @@ const MinimalChallenges = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* <div className=" gap-6">
                 <Card className="bento-card shadow-green-500/5 hover:shadow-green-500/10">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg">
@@ -368,39 +368,7 @@ const MinimalChallenges = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bento-card shadow-blue-500/5 hover:shadow-blue-500/10">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Trophy className="h-5 w-5 text-blue-500" />
-                      Your Stats
-                    </CardTitle>
-                    <CardDescription>Challenge participation statistics</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Problems Solved</span>
-                      <span className="font-semibold">{totalProblemsDone}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Challenges Completed</span>
-                      <span className="font-semibold">
-                        {publicChallengeHistory?.challenges.length || 0}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Win Rate</span>
-                      <span className="font-semiboldamada">68%</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Quick Matches</span>
-                      <span className="font-semibold">24</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              </div> */}
 
               <Tabs defaultValue="active" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-4">
@@ -557,66 +525,7 @@ const MinimalChallenges = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bento-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Zap className="h-5 w-5 text-green-500" />
-                    Recent Activities
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center">
-                          <Zap className="h-4 w-4 text-green-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Quick Match Completed</p>
-                          <p className="text-xs text-zinc-500">2 hours ago</p>
-                        </div>
-                      </div>
-                      <div className="px-2 py-1 rounded bg-green-500/10 text-green-500 text-xs">
-                        Won
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
-                          <Lock className="h-4 w-4 text-blue-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Private Challenge</p>
-                          <p className="text-xs text-zinc-500">Yesterday</p>
-                        </div>
-                      </div>
-                      <div className="px-2 py-1 rounded bg-red-500/10 text-red-500 text-xs">
-                        Lost
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-purple-500/10 rounded-full flex items-center justify-center">
-                          <Trophy className="h-4 w-4 text-purple-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Challenge Created</p>
-                          <p className="text-xs text-zinc-500">3 days ago</p>
-                        </div>
-                      </div>
-                      <div className="px-2 py-1 rounded bg-zinc-500/10 text-zinc-400 text-xs">
-                        Creator
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </main>

@@ -64,11 +64,16 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
     data: userProfile,
     isLoading: profileLoading,
     isError: profileError,
-    error
+    error,
+    refetch
   } = useGetUserProfile();
 
   // Determine authentication status
   const isUserAuthenticated = propIsAuthenticated || !!userProfile || !!Cookies.get("accessToken");
+  
+  if (!isUserAuthenticated){
+    refetch()
+  }
 
   const navItems: NavItem[] = [
     { name: "Home", path: "/", icon: <Home className="h-4 w-4" />, requiresAuth: false },

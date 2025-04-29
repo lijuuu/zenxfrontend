@@ -9,6 +9,7 @@ interface ActivityDay {
 }
 
 interface MonthlyActivityHeatmapResponse {
+  [x: string]: any;
   data: ActivityDay[];
 }
 

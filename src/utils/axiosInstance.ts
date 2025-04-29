@@ -82,7 +82,9 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig;
     const requiresAuth = originalRequest.headers['X-Requires-Auth'] !== 'false';
 
-    if (requiresAuth && error.response?.status === 401 && !originalRequest._retry) {
+    console.log("error in interceptor ",error)
+
+    if (requiresAuth &&error?.response?.data?.error?.type != "ERR_LOGIN_NOT_VERIFIED" && error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {

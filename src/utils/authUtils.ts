@@ -7,9 +7,8 @@ export const isAuthenticated = (): boolean => {
 };
 
 export const isAdminAuthenticated = (): boolean => {
-  const accessToken = Cookies.get("accessToken");
-  const isAdmin = Cookies.get("isAdmin");
-  return !!accessToken && isAdmin === "true";
+  const accessToken = Cookies.get("adminAccessToken");
+  return !!accessToken ;
 };
 
 export const getFullName = (user: any) => {
@@ -35,3 +34,7 @@ export const logout = () => {
   localStorage.removeItem("auth");
   window.location.href = "/";
 };
+
+export const adminLogout =()=>{
+  Cookies.remove("adminAccessToken");
+}

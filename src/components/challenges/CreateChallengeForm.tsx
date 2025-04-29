@@ -46,25 +46,6 @@ const formSchema = z.object({
   }),
   difficulty: z.enum(["Easy", "Medium", "Hard"]).default("Easy"),
   isPrivate: z.boolean().default(false),
-  accessCode: z.string().optional()
-    .superRefine((val, ctx) => {
-      // Check if isPrivate is true from the parent object
-      // Use type assertion with unknown first to safely access parent
-      const parentObj = ctx.path.length > 0 ? undefined : ctx as unknown as { parent: { isPrivate: boolean } };
-      const isPrivate = parentObj?.parent?.isPrivate;
-      
-      if (isPrivate && (!val || val.length < 4)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.too_small,
-          minimum: 4,
-          type: "string",
-          inclusive: true,
-          message: "Access code must be at least 4 characters for private challenges."
-        });
-        return false;
-      }
-      return true;
-    }),
   timeLimit: z.number().min(300, {
     message: "Time limit must be at least 5 minutes.",
   }).default(3600),
@@ -102,7 +83,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
       title: "",
       difficulty: "Easy",
       isPrivate: false,
-      accessCode: "",
       timeLimit: 3600,
     },
   });
@@ -110,11 +90,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
   // Watch isPrivate to conditionally validate accessCode
   const isPrivate = form.watch("isPrivate");
 
-  useEffect(() => {
-    if (!isPrivate) {
-      form.setValue("accessCode", "");
-    }
-  }, [isPrivate, form]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -204,7 +179,6 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
         problemIds: selectedProblems.map(p => p.id),
         isPrivate: formData.isPrivate,
         timeLimit: formData.timeLimit,
-        accessCode: formData.isPrivate ? formData.accessCode : undefined,
       });
 
       // Invalidate queries to refetch the latest data
@@ -330,21 +304,7 @@ const CreateChallengeForm: React.FC<CreateChallengeFormProps> = ({
                   )}
                 />
 
-                {form.watch("isPrivate") && (
-                  <FormField
-                    control={form.control}
-                    name="accessCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Access Code</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter access code" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                
 
                 <FormField
                   control={form.control}

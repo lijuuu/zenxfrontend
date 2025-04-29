@@ -25,6 +25,7 @@ import { useLeaderboard } from "@/hooks";
 import { parseISO, isSameDay, subDays } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
 import { useOwner } from "@/hooks/useOwner";
+import {formatDate} from "@/utils/formattedDate"
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -188,7 +189,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
         <div className="flex flex-wrap items-center gap-4 mt-3">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <CalendarDays className="h-4 w-4" />
-            <span>Joined {new Date(profile.joinedDate || profile.createdAt).toLocaleDateString()}</span>
+            <span>Joined {formatDate(profile?.createdAt)}</span>
           </div>
         </div>
 

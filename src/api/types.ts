@@ -312,9 +312,9 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface LoginResponse {
+export interface AdminLoginResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   expiresIn: number;
   adminID: string;
   message: string;
@@ -323,6 +323,7 @@ export interface LoginResponse {
 export interface UsersResponse {
   users: UserProfile[];
   totalCount: number;
+  prevPageToken:string;
   nextPageToken: string;
 }
 
