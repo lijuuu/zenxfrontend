@@ -32,7 +32,7 @@ import { useEffect } from "react";
 import FollowersPage from "./pages/FollowersPage";
 import FollowingPage from "./pages/FollowingPage";
 import AdminDashboard from "./pages-admin/AdminDashboard";
-import { ChallengeInterface } from "./components/challenges/ChallengeInterface";
+import ChallengeInterface from "./components/challenges/ChallengeInterface";
 
 // Create a client
 const queryClient = new QueryClient({

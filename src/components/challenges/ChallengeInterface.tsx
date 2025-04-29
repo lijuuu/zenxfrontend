@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Challenge } from '@/api/challengeTypes';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStartChallenge } from '@/services/useChallenges';
 import { useToast } from '@/hooks/use-toast';
 import { useAppSelector } from '@/hooks/useAppSelector';
@@ -13,6 +12,7 @@ import { ChallengeSocketService, MOCK_PROBLEMS } from '../../services/challengeS
 import ChallengeOverview from './ChallengeOverview';
 import ZenXPlayground from '../playground/ZenXPlayground';
 import ChallengeTimer from './ChallengeTimer';
+import ProblemCard from './ProblemCard';
 
 const socketService = new ChallengeSocketService();
 
@@ -101,6 +101,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const [currentTab, setCurrentTab] = useState<'overview' | 'playground'>('overview');
   const [events, setEvents] = useState<{ type: string; message: string; username?: string; problemName?: string; id: number }[]>([]);
   const [eventId, setEventId] = useState(0);
+  const [problems, setProblems] = useState<any[]>([]);
 
   // Add a new event to the events list (limited to recent 10)
   const addEvent = (type: string, message: string, username?: string, problemName?: string) => {
@@ -123,6 +124,26 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       socketService.disconnect();
     };
   }, [initialChallenge, user?.userID]);
+
+  // Prepare problem data for the interface
+  useEffect(() => {
+    if (challenge) {
+      // Map problem IDs to actual problem objects
+      const problemsData = challenge.problemIds.map(id => MOCK_PROBLEMS[id] || {
+        id,
+        title: `Problem ${id.substring(0, 5)}...`,
+        difficulty: 'Medium',
+        description: 'Description not available'
+      });
+      
+      setProblems(problemsData);
+      
+      // Select the first problem by default if none is selected
+      if (!selectedProblemId && problemsData.length > 0) {
+        setSelectedProblemId(problemsData[0].id);
+      }
+    }
+  }, [challenge, selectedProblemId]);
 
   const connectToSocket = async (challengeId: string, userId: string) => {
     try {
@@ -420,6 +441,9 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
     );
   }
 
+  // Get the current problem object
+  const currentProblem = problems.find(p => p.id === selectedProblemId) || null;
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex flex-col space-y-4">
@@ -493,21 +517,43 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                   className="flex items-center gap-1"
                   onClick={() => setCurrentTab('overview')}
                 >
-                  <ArrowLeft className="h-4 w-4" /> Back to Overview
+                  <ChevronLeft className="h-4 w-4" /> Back to Overview
                 </Button>
+                
+                <div className="flex items-center gap-2">
+                  {problems.map((p, index) => (
+                    <ProblemCard
+                      key={p.id}
+                      problem={p}
+                      index={index}
+                      isSelected={selectedProblemId === p.id}
+                      isCompleted={
+                        challenge.userProblemMetadata?.[user?.userID || '']?.challengeProblemMetadata?.some(
+                          meta => meta.problemId === p.id
+                        ) || false
+                      }
+                      onClick={() => setSelectedProblemId(p.id)}
+                      compact={true}
+                    />
+                  ))}
+                </div>
+                
                 <div>
                   <h3 className="text-lg font-medium">
-                    {MOCK_PROBLEMS[selectedProblemId]?.title || `Problem ${selectedProblemId}`}
+                    {currentProblem?.title || `Problem ${selectedProblemId}`}
                   </h3>
                 </div>
               </div>
+              
               <ZenXPlayground
-                problem={MOCK_PROBLEMS[selectedProblemId] || {
+                problem={currentProblem || {
                   id: selectedProblemId,
                   title: `Problem ${selectedProblemId}`,
                   difficulty: 'Unknown',
                   description: 'No description available'
                 }}
+                problems={problems}
+                hideBackButton={true}
                 onSubmit={handleSubmitCode}
               />
             </motion.div>
