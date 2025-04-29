@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Clock, CheckCircle, XCircle, ArrowLeft, Plus } from 'lucide-react';
@@ -11,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance';
 import { useGetUserProfile } from '@/services/useGetUserProfile';
-import ProblemCard from '@/components/challenges/ProblemCard';
 import {
   TestCase,
   TestCaseRunOnly,
@@ -537,19 +537,11 @@ const Console: React.FC<ConsoleProps> = ({
 
 interface ZenXPlaygroundProps {
   propsProblemID?: string
-  hideBackButton?: boolean
-  problem?: any
-  onSubmit?: (code: string, language: string) => Promise<void>
-  problems?: any[]  // Array of problems for challenge mode
+  hideBackButton?:boolean
 }
 
-const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ 
-  propsProblemID,
-  hideBackButton,
-  problem: initialProblem,
-  onSubmit: externalSubmit,
-  problems = [] 
-}) => {
+
+const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBackButton }) => {
   const [problemId, setProblemId] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [code, setCode] = useState<string>('');
@@ -561,38 +553,13 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({
   const [customTestCases, setCustomTestCases] = useState<TestCase[]>([]);
   const [consoleTab, setConsoleTab] = useState<'output' | 'tests' | 'custom'>('tests');
   const isMobile = useIsMobile();
-  const [consoleSize, setConsoleSize] = useState(30);
-  const [selectedProblemIndex, setSelectedProblemIndex] = useState(0);
+  const [consoleSize, setConsoleSize] = useState(30)
 
-  // Function to handle problem selection in challenge mode
-  const handleProblemChange = (index: number) => {
-    if (problems && problems.length > index) {
-      setSelectedProblemIndex(index);
-      setProblem(problems[index]);
-      
-      // Reset the editor state for the new problem
-      const firstLang = problems[index].supported_languages?.[0] || 'javascript';
-      setLanguage(firstLang);
-      setCode(problems[index].placeholder_maps?.[firstLang] || '');
-      setOutput([]);
-      setExecutionResult(null);
-    }
-  };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const urlProblemId = propsProblemID || queryParams.get('problem_id') || '';
     setProblemId(urlProblemId);
-
-    // If we have an initial problem passed in, use that
-    if (initialProblem) {
-      setProblem(initialProblem);
-      const firstLang = initialProblem.supported_languages?.[0] || 'javascript';
-      setLanguage(firstLang);
-      setCode(initialProblem.placeholder_maps?.[firstLang] || '');
-      setIsLoading(false);
-      return;
-    }
 
     if (!urlProblemId) {
       setIsLoading(false);
@@ -623,7 +590,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({
         setLanguage(storedLanguage || 'javascript');
         setIsLoading(false);
       });
-  }, [initialProblem]);
+  }, []);
 
   useEffect(() => {
     if (problem && language) {
@@ -645,16 +612,6 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({
 
   const { data: userProfile } = useGetUserProfile();
 
-  // Function to handle problems from challenge
-  useEffect(() => {
-    if (problems && problems.length > 0 && !problem) {
-      setProblem(problems[0]);
-      const firstLang = problems[0].supported_languages?.[0] || 'javascript';
-      setLanguage(firstLang);
-      setCode(problems[0].placeholder_maps?.[firstLang] || '');
-    }
-  }, [problems, problem]);
-
   const handleCodeExecution = useCallback(async (type: string) => {
     if (!problem) return;
 
@@ -662,15 +619,9 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({
     setOutput([]);
     setExecutionResult(null);
 
-    try {
-      // If we have an external submit handler (challenge mode), use that
-      if (type === 'submit' && externalSubmit) {
-        await externalSubmit(code, language);
-        setIsExecuting(false);
-        return;
-      }
+    // alert(JSON.stringify(userProfile))
 
-      // Otherwise use the normal submission logic
+    try {
       const response = await axiosInstance.post(
         "/problems/execute",
         {
@@ -686,6 +637,17 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({
           },
         }
       );
+
+      // const response = await fetch(`${ENGINE_BASE_URL}/problems/execute`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     problem_id: problem.problem_id,
+      //     language: language,
+      //     user_code: code,
+      //     is_run_testcase: type === 'run',
+      //   }),
+      // });
 
       type GenericResponse = {
         success: boolean;
@@ -733,4 +695,194 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({
 
         if (executionResult.overallPass) {
           toast.success(`${type === 'run' ? 'Run' : 'Submission'} Successful`, {
-            description: `All ${executionResult.totalTestCases} test cases passed!
+            description: `All ${executionResult.totalTestCases} test cases passed!`,
+          });
+          setConsoleTab('output');
+        } else {
+          toast[type === 'run' ? 'warning' : 'error'](
+            `${type === 'run' ? 'Run' : 'Submission'} ${!executionResult.overallPass ? ' Successful' : 'Failed'}`,
+            {
+              description: `${executionResult.passedTestCases} of ${executionResult.totalTestCases} test cases passed.`,
+            }
+          );
+          setConsoleTab('tests');
+        }
+      }
+      setConsoleSize(80)
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Network error occurred';
+      setOutput([`[Error] ${errorMsg}`]);
+      setConsoleTab('output');
+
+      toast.error(`${type === 'run' ? 'Run' : 'Submit'} Failed`, {
+        description: errorMsg,
+      });
+    } finally {
+      // setConsoleSize(80);
+      setIsExecuting(false);
+    }
+  }, [code, problem, language]);
+
+  const handleResetCode = () => {
+    if (problem && language) {
+      const codeKey = `${problem.problem_id}_${language}`;
+      localStorage.removeItem(codeKey);
+      setCode(problem.placeholder_maps[language] || '');
+      setOutput([]);
+      setExecutionResult(null);
+      setCustomTestCases([]);
+      setConsoleTab('tests');
+      toast.info('Code Reset', { description: 'Editor reset to default code.' });
+    }
+  };
+
+  const handleAddCustomTestCase = (input: string, expected: string) => {
+    setCustomTestCases(prev => [...prev, { input, expected }]);
+    toast.success('Custom Test Case Added', { description: 'Added to your test cases.' });
+  };
+
+  const navigate = useNavigate();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-300">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-64 bg-zinc-800 rounded"></div>
+          <div className="h-4 w-48 bg-zinc-800 rounded"></div>
+          <div className="h-[600px] w-full max-w-screen-xl mx-auto bg-zinc-900 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!problem) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-zinc-300">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-semibold text-red-500">Problem Not Found</h1>
+          <p className="text-zinc-400">
+            We couldn't find the problem you're looking for. Please check the URL and try again.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = '/problems'}
+            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 mt-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Problem List
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col ">
+      <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          {hideBackButton && <ArrowLeft
+            className="h-5 w-5 text-zinc-500 cursor-pointer hover:text-green-500 transition-colors"
+            onClick={() => navigate("/problems")}
+          />}
+          {/* <h1 className="text-sm sm:text-base text-zinc-200 font-medium truncate">
+            {problem.title}
+            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full inline-block ${problem.difficulty === "Easy" ? "bg-green-600/20 text-green-400" :
+              problem.difficulty === "Medium" ? "bg-yellow-600/20 text-yellow-400" : "bg-red-600/20 text-red-400"
+              }`}>
+              {problem.difficulty}
+            </span>
+          </h1> */}
+          <div className="hidden md:block">
+            <Timer />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <select
+            value={language}
+            onChange={e => setLanguage(e.target.value)}
+            className="text-xs rounded-md bg-zinc-800 border-zinc-700 text-zinc-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500/30"
+          >
+            {problem.supported_languages.map(lang => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
+
+
+          <Button
+            onClick={() => handleCodeExecution('run')}
+            className="h-8 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+            disabled={isExecuting}
+          >
+            <Play className="h-3.5 w-3.5 mr-1.5" />
+            <span className="text-xs">Run</span>
+          </Button>
+
+          <Button
+            onClick={() => handleCodeExecution('submit')}
+            className="h-8 bg-green-600 hover:bg-green-700 text-white"
+            disabled={isExecuting}
+          >
+            <span className="text-xs">Submit</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden">
+        <ResizablePanelGroup
+          direction={isMobile ? "vertical" : "horizontal"}
+          className="min-h-[calc(100vh-3rem)]"
+        >
+          {!isMobile && (
+            <>
+              <ResizablePanel
+                defaultSize={30}
+                minSize={25}
+                maxSize={50}
+                className="bg-zinc-900"
+              >
+                <ProblemDescription problem={problem} />
+              </ResizablePanel>
+              <ResizableHandle className="w-1.5 bg-zinc-800" />
+            </>
+          )}
+
+          <ResizablePanel defaultSize={isMobile ? 50 : 70} className="flex flex-col">
+            {isMobile && (
+              <div className="h-12 border-b border-zinc-800 flex items-center px-4">
+                <div className="w-full">
+                  <Timer />
+                </div>
+              </div>
+            )}
+
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={70}>
+                <CodeEditor
+                  value={code}
+                  onChange={setCode}
+                  language={language}
+                />
+              </ResizablePanel>
+              <ResizableHandle className="h-1.5 bg-zinc-800" />
+              <ResizablePanel defaultSize={50} minSize={10}>
+                <Console
+                  output={output}
+                  executionResult={executionResult}
+                  isMobile={isMobile}
+                  onReset={handleResetCode}
+                  testCases={problem.testcase_run?.run || []}
+                  customTestCases={customTestCases}
+                  onAddCustomTestCase={handleAddCustomTestCase}
+                  activeTab={consoleTab}
+                  setActiveTab={setConsoleTab}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </div>
+  );
+};
+
+export default ZenXPlayground;

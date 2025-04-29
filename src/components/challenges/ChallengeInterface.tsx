@@ -546,15 +546,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
               </div>
               
               <ZenXPlayground
-                problem={currentProblem || {
-                  id: selectedProblemId,
-                  title: `Problem ${selectedProblemId}`,
-                  difficulty: 'Unknown',
-                  description: 'No description available'
-                }}
-                problems={problems}
-                hideBackButton={true}
-                onSubmit={handleSubmitCode}
+                propsProblemID={selectedProblemId}
               />
             </motion.div>
           )}
