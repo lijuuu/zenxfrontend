@@ -26,7 +26,7 @@ const ProblemsList: React.FC<ProblemsListProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {problemIds.map((problemId, index) => {
             const problem = MOCK_PROBLEMS[problemId] || { 
               id: problemId, 

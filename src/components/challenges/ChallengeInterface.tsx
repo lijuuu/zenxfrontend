@@ -3,16 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Challenge } from '@/api/challengeTypes';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft, ChevronLeft } from 'lucide-react';
 import { useStartChallenge } from '@/services/useChallenges';
 import { useToast } from '@/hooks/use-toast';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChallengeSocketService, MOCK_PROBLEMS } from '../../services/challengeSocketService';
+import { useProblemStats } from '@/services/useProblemStats';
 import ChallengeOverview from './ChallengeOverview';
 import ZenXPlayground from '../playground/ZenXPlayground';
 import ChallengeTimer from './ChallengeTimer';
 import ProblemCard from './ProblemCard';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useGetUserProfile } from '@/services/useGetUserProfile';
 
 const socketService = new ChallengeSocketService();
 
@@ -35,6 +38,8 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const { toast } = useToast();
   const startChallengeMutation = useStartChallenge();
   const user = useAppSelector(state => state.auth.userProfile);
+  const { data: userProfile } = useGetUserProfile();
+  const { data: problemStats } = useProblemStats(user?.userID);
 
   // For demo/development purposes
   initialChallenge = {
@@ -523,31 +528,96 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                 
                 <div className="flex items-center gap-2">
                   {problems.map((p, index) => (
-                    <ProblemCard
+                    <Button
                       key={p.id}
-                      problem={p}
-                      index={index}
-                      isSelected={selectedProblemId === p.id}
-                      isCompleted={
-                        challenge.userProblemMetadata?.[user?.userID || '']?.challengeProblemMetadata?.some(
-                          meta => meta.problemId === p.id
-                        ) || false
-                      }
+                      variant={selectedProblemId === p.id ? "default" : "outline"}
+                      size="sm"
+                      className={`px-4 py-2 ${
+                        selectedProblemId === p.id 
+                          ? "bg-green-600 hover:bg-green-700" 
+                          : p.difficulty === 'Easy'
+                            ? "border-green-500/40 hover:border-green-500/70"
+                            : p.difficulty === 'Medium'
+                              ? "border-yellow-500/40 hover:border-yellow-500/70"
+                              : "border-red-500/40 hover:border-red-500/70"
+                      }`}
                       onClick={() => setSelectedProblemId(p.id)}
-                      compact={true}
-                    />
+                    >
+                      P{index + 1}
+                    </Button>
                   ))}
                 </div>
                 
-                <div>
+                <div className="flex items-center gap-3">
+                  {userProfile && (
+                    <div className="flex items-center space-x-2 bg-zinc-800/60 px-3 py-1.5 rounded-md">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={userProfile.profileImage || ''} alt={userProfile.username || ''} />
+                        <AvatarFallback className="bg-green-800/30 text-xs">
+                          {(userProfile.username || 'U')[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{userProfile.username || 'User'}</span>
+                    </div>
+                  )}
                   <h3 className="text-lg font-medium">
                     {currentProblem?.title || `Problem ${selectedProblemId}`}
                   </h3>
                 </div>
               </div>
               
+              <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <div className="bg-zinc-800/20 rounded-md p-4 border border-zinc-700/50 flex-1">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left text-xs text-zinc-500">Problems</th>
+                        <th className="text-center text-xs text-zinc-500">Solved</th>
+                        <th className="text-right text-xs text-zinc-500">Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="pr-2 py-1">
+                          <span className="text-green-400">Easy:</span>
+                        </td>
+                        <td className="text-center py-1">
+                          {problemStats?.doneEasyCount || 0}/{problemStats?.maxEasyCount || 0}
+                        </td>
+                        <td className="text-right py-1">
+                          {challengeScore('easy')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="pr-2 py-1">
+                          <span className="text-yellow-400">Medium:</span>
+                        </td>
+                        <td className="text-center py-1">
+                          {problemStats?.doneMediumCount || 0}/{problemStats?.maxMediumCount || 0}
+                        </td>
+                        <td className="text-right py-1">
+                          {challengeScore('medium')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="pr-2 py-1">
+                          <span className="text-red-400">Hard:</span>
+                        </td>
+                        <td className="text-center py-1">
+                          {problemStats?.doneHardCount || 0}/{problemStats?.maxHardCount || 0}
+                        </td>
+                        <td className="text-right py-1">
+                          {challengeScore('hard')}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
               <ZenXPlayground
                 propsProblemID={selectedProblemId}
+                hideBackButton={true}
               />
             </motion.div>
           )}
@@ -555,6 +625,12 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       </div>
     </div>
   );
+};
+
+// Helper function to calculate challenge score
+const challengeScore = (difficulty: string): number => {
+  const baseScore = difficulty === 'easy' ? 100 : difficulty === 'medium' ? 300 : 500;
+  return baseScore;
 };
 
 export default ChallengeInterface;

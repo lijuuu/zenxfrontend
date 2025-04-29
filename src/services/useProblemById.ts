@@ -1,6 +1,5 @@
 
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { ProblemMetadata } from '@/api/types';
 import { twoSumProblem } from '@/api/types';
 import axiosInstance from '@/utils/axiosInstance';
@@ -16,7 +15,6 @@ const mapDifficulty = (difficulty: string): string => {
     default: return difficulty;
   }
 };
-
 
 const fetchProblemById = async (problemId: string): Promise<ProblemMetadata> => {
   try {
