@@ -502,14 +502,13 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                 </div>
               </div>
               <ZenXPlayground
-                initialCode=""
-                onSubmit={handleSubmitCode}
                 problem={MOCK_PROBLEMS[selectedProblemId] || {
                   id: selectedProblemId,
                   title: `Problem ${selectedProblemId}`,
                   difficulty: 'Unknown',
                   description: 'No description available'
                 }}
+                onSubmit={handleSubmitCode}
               />
             </motion.div>
           )}

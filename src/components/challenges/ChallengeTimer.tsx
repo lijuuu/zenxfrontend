@@ -121,11 +121,20 @@ const ChallengeTimer: React.FC<ChallengeTimerProps> = ({
             <Timer className={`h-4 w-4 ${getTimerColor()}`} />
           )}
         </motion.div>
-        <span className={`text-sm font-semibold ${getTimerColor()}`}>
+        <motion.span 
+          className={`text-sm font-semibold ${getTimerColor()}`}
+          animate={{ 
+            scale: timeLeft <= 60 * 1000 ? [1, 1.02, 1] : 1 
+          }}
+          transition={{ 
+            repeat: timeLeft <= 60 * 1000 ? Infinity : 0, 
+            duration: 0.5 
+          }}
+        >
           {formatTime(timeLeft)}
-        </span>
+        </motion.span>
       </div>
-      <div className="w-full h-1 mt-1 bg-zinc-700/50 rounded-full overflow-hidden">
+      <div className="w-full h-1 mt-2 bg-zinc-700/50 rounded-full overflow-hidden">
         <motion.div 
           className={cn(
             "h-full rounded-full",

@@ -28,9 +28,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2, delay: index * 0.05 }}
-      className={`p-4 rounded-lg min-w-[280px] border transition-all cursor-pointer ${
+      whileHover={{ scale: 1.02 }}
+      className={`p-4 rounded-lg border transition-all cursor-pointer ${
         isSelected 
-          ? 'bg-primary/20 border-primary/50' 
+          ? 'bg-primary/20 border-primary/50 shadow-lg shadow-primary/10' 
           : 'bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/60'
       }`}
       onClick={onClick}
@@ -58,7 +59,9 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
       <Button
         size="sm"
         variant="outline"
-        className="w-full gap-1 hover:bg-primary/20 transition-colors"
+        className={`w-full gap-1 hover:bg-primary/20 transition-colors ${
+          isSelected ? 'bg-primary/10 text-primary' : ''
+        }`}
       >
         Solve <ChevronRight className="h-3 w-3" />
       </Button>
