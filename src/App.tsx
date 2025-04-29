@@ -1,117 +1,81 @@
+import React, { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { useAppDispatch } from './hooks/useAppDispatch';
+import { useAppSelector } from './hooks/useAppSelector';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Routes, Route } from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "@/store";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import Dashboard from "./pages/Dashboard";
-import Home from "./pages/Home";
-import Leaderboard from "./pages/Leaderboard";
-import NotFound from "./pages/NotFound";
-import Problems from "./pages/Problems";
-import Profile from "./pages/Profile";
-// import Challenges from "./pages/Challenges";
-import Chat from "./pages/Chat";
-import Settings from "./pages/Settings";
-import Compiler from "./pages/Compiler";
-import ForgotPassword from "./pages/Auth/ForgotPassword";
-import ResetPassword from "./pages/Auth/ResetPassword";
-import VerifyEmail from "./pages/Auth/VerifyEmail";
-import Login from "./pages/Auth/LoginPage";
-import SignupForm from "./pages/Auth/Register/RegisterPage";
-import VerifyInfo from "./pages/Auth/VerifyInfo"
-import QuickMatch from "./components/challenges/QuickMatch";
-import AdminLogin from "./pages-admin/AdminLogin";
-import AdminDashboardHome from "./pages-admin/AdminDashboardHome";
-import UserManagement from "./pages-admin/UserManagement";
-import AdminLayout from "./components/layout/AdminLayout";
-import MinimalChallenge from "./pages/MinimalChallenges";
-import { useEffect } from "react";
-import FollowersPage from "./pages/FollowersPage";
-import FollowingPage from "./pages/FollowingPage";
-import AdminDashboard from "./pages-admin/AdminDashboard";
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Problems from './pages/Problems';
+import MinimalChallenges from './pages/MinimalChallenges';
+import Leaderboard from './pages/Leaderboard';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import Compiler from './pages/Compiler';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
+import QuickMatch from './pages/QuickMatch';
+import ChallengeRoom from './components/challenges/ChallengeRoom';
+import ChallengePlayground from './pages/ChallengePlayground';
+import { auth } from './config/firebase';
+import { fetchUserProfile } from './store/slices/authSlice';
+import { ThemeProvider } from './components/theme-provider';
+import { SocketProvider } from './context/SocketContext';
+import { cn } from './lib/utils';
+import { useToast } from './hooks/useToast';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // default: true
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-})
+function App() {
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+  const { toast } = useToast();
+  const user = useAppSelector((state) => state.auth.userProfile);
 
-const AppContent = () => {
   useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.classList.add('dark');
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch user profile after successful Firebase authentication
+        dispatch(fetchUserProfile(firebaseUser.uid));
+      } else {
+        // Handle user logout or non-authenticated state
+        console.log('No user is currently logged in.');
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, [dispatch]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/problems" element={<Problems />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/:username" element={<Profile />} />
-        <Route path="/profile/:userid" element={<Profile />} />
-        <Route path="/challenges" element={<MinimalChallenge />} />
-        {/* <Route path="/challenges2" element={<Challenges />} /> */}
-        <Route path="/quick-match" element={<QuickMatch />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/playground" element={<Compiler />} />
+    <div className="app">
+      <SocketProvider userId={user?.userID}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/problems" element={<Problems />} />
+            <Route path="/challenges" element={<MinimalChallenges />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/compiler" element={<Compiler />} />
+            <Route path="/users/:id" element={<Profile />} />
 
-        {/* Auth Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignupForm />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-info" element={<VerifyInfo />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={
-          <AdminLayout>
-            <AdminDashboard />
-          </AdminLayout>
-        } />
-        <Route path="/admin/users" element={
-          <AdminLayout>
-            <UserManagement />
-          </AdminLayout>
-        } />
-
-        {/* <Route path="/followers/:userid" element={<FollowersPage />} />
-        <Route path="/following/:userid" element={<FollowingPage />} /> */}
-
-        {/* Catch-all route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
-      <Sonner />
+            {/* New route for Challenge Playground */}
+            <Route path="/challenge-playground/:challengeId" element={<ChallengePlayground />} />
+            <Route path="/challenge-room/:challengeId" element={<ChallengeRoom />} />
+            <Route path="/quick-match" element={<QuickMatch />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ThemeProvider>
+      </SocketProvider>
     </div>
   );
-};
-
-const App = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        <TooltipProvider>
-          <AppContent />
-        </TooltipProvider>
-      </Provider>
-    </QueryClientProvider>
-  );
-};
+}
 
 export default App;
