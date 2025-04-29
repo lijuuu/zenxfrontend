@@ -69,9 +69,11 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   } = useGetUserProfile();
 
   // Determine authentication status
-  const isUserAuthenticated = propIsAuthenticated || !!userProfile || !!Cookies.get("accessToken");
+  const isUserAuthenticated =  !!Cookies.get("accessToken");
+
+  console.log(isUserAuthenticated, userProfile)
   
-  if (!isUserAuthenticated){
+  if (!isUserAuthenticated || !userProfile?.userID ){
     refetch()
   }
 
