@@ -1,16 +1,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Challenge } from '@/api/challengeTypes';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, FileCode, Clock, Lock, Timer, Trophy, Users, Play, X } from 'lucide-react';
+import { Loader2, AlertCircle, FileCode, Clock, Lock, Timer, Trophy, Users, Play, X, ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
 import { useStartChallenge } from '@/services/useChallenges';
 import { Badge } from '@/components/ui/badge';
 import ZenXPlayground from '../playground/ZenXPlayground';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAppSelector } from '@/hooks/useAppSelector';
-
+import ChallengeTimer from './ChallengeTimer';
+import EventNotification from './EventNotification';
+import LeaderboardCard from './LeaderboardCard';
 
 // Mock leaderboard data
 interface LeaderboardEntry {
@@ -254,8 +257,6 @@ class ChallengeSocketService {
 
 const socketService = new ChallengeSocketService();
 
-
-
 const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   challenge: initialChallenge,
   isPrivate,
@@ -330,6 +331,20 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const [connected, setConnected] = useState(false);
   const [socketError, setSocketError] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState<'overview' | 'playground'>('overview');
+  const [events, setEvents] = useState<{ type: string; message: string; username?: string; problemName?: string; id: number }[]>([]);
+  const [eventId, setEventId] = useState(0);
+
+  // Add a new event to the events list
+  const addEvent = (type: string, message: string, username?: string, problemName?: string) => {
+    const newEventId = eventId + 1;
+    setEventId(newEventId);
+    setEvents(prev => [...prev, { type, message, username, problemName, id: newEventId }].slice(-5));
+  };
+
+  // Remove an event from the events list
+  const removeEvent = (id: number) => {
+    setEvents(prev => prev.filter(event => event.id !== id));
+  };
 
   useEffect(() => {
     if (initialChallenge && user?.userID) {
@@ -340,8 +355,6 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       socketService.disconnect();
     };
   }, [initialChallenge, user?.userID]);
-
-  // setChallenge(mockChallenge)
 
   const connectToSocket = async (challengeId: string, userId: string) => {
     try {
@@ -355,6 +368,8 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           description: result.message,
           variant: "destructive"
         });
+      } else {
+        addEvent('connect', 'Connected to challenge');
       }
     } catch (error) {
       setSocketError("Failed to connect to challenge socket");
@@ -381,6 +396,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         description: `User ${data.userId} forfeited the challenge`,
         variant: "default"
       });
+      addEvent('forfeit', 'forfeited the challenge', data.userId);
     });
 
     socketService.on('userSubmit', (data: { userId: string, problemId: string }) => {
@@ -389,6 +405,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         description: `User ${data.userId} submitted code for problem ${MOCK_PROBLEMS[data.problemId]?.title || data.problemId}`,
         variant: "default"
       });
+      addEvent('submit', 'submitted code for', data.userId, MOCK_PROBLEMS[data.problemId]?.title || data.problemId);
     });
 
     socketService.on('userCodeSuccess', (data: { userId: string, problemId: string, score: number }) => {
@@ -397,6 +414,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         description: `User ${data.userId} solved problem ${MOCK_PROBLEMS[data.problemId]?.title || data.problemId} (Score: ${data.score})`,
         variant: "default"
       });
+      addEvent('success', `solved problem (Score: ${data.score})`, data.userId, MOCK_PROBLEMS[data.problemId]?.title || data.problemId);
     });
 
     socketService.on('userCodeFail', (data: { userId: string, problemId: string, error: string }) => {
@@ -406,6 +424,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           description: `Your solution failed: ${data.error}`,
           variant: "destructive"
         });
+        addEvent('fail', `failed: ${data.error}`, 'You', MOCK_PROBLEMS[data.problemId]?.title || data.problemId);
       }
     });
 
@@ -415,6 +434,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         description: `User ${data.userId} completed all problems!`,
         variant: "default"
       });
+      addEvent('win', 'completed all problems!', data.userId);
     });
 
     socketService.on('timeExhausted', () => {
@@ -423,6 +443,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         description: "Challenge time limit has been reached",
         variant: "destructive"
       });
+      addEvent('timeUp', 'Time limit reached for the challenge');
     });
 
     socketService.on('connect', (data: { status: boolean, message: string }) => {
@@ -439,8 +460,9 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         description: data.message,
         variant: "default"
       });
+      addEvent('disconnect', 'Disconnected from challenge');
     });
-  }, [user?.userID, toast]);
+  }, [user?.userID, toast, selectedProblemId]);
 
   const handleStartChallenge = async () => {
     if (!challenge) return;
@@ -454,6 +476,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           description: "Challenge has been started successfully",
           variant: "default"
         });
+        addEvent('start', 'started the challenge', user?.userID);
       } else {
         toast({
           title: "Failed to Start",
@@ -483,15 +506,16 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           description: "You have forfeited the challenge",
           variant: "default"
         });
+        addEvent('forfeit', 'forfeited the challenge', 'You');
       }
     }
   };
 
-  const handleSubmitCode = async (problemId: string, code: string, language: string) => {
-    if (!challenge) return;
+  const handleSubmitCode = async (code: string, language: string) => {
+    if (!challenge || !selectedProblemId) return;
 
     if (socketService.isConnected()) {
-      const result = await socketService.submitCode(problemId, code, language);
+      const result = await socketService.submitCode(selectedProblemId, code, language);
 
       if (!result.status) {
         toast({
@@ -524,6 +548,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           description: "Successfully reconnected to challenge socket",
           variant: "default"
         });
+        addEvent('connect', 'Reconnected to challenge');
       }
     } catch (error) {
       setSocketError("Failed to reconnect to challenge socket");
@@ -535,8 +560,26 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
     }
   };
 
+  const handleTimeWarning = () => {
+    toast({
+      title: "Time Warning",
+      description: "Less than 5 minutes remaining!",
+      variant: "destructive"
+    });
+    addEvent('timeWarning', 'Less than 5 minutes remaining!');
+  };
+
+  const handleTimeUp = () => {
+    toast({
+      title: "Time Up",
+      description: "Challenge time is over!",
+      variant: "destructive"
+    });
+    addEvent('timeUp', 'Challenge time is over!');
+  };
+
   useEffect(() => {
-    if (challenge && challenge.isActive) {
+    if (challenge && challenge.isActive && challenge.endTime) {
       const timeLeft = (challenge.endTime - Date.now()) / 1000;
 
       if (timeLeft > 0) {
@@ -552,17 +595,27 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full p-8">
-        <div className="text-center">
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.3 }}
+          className="text-center"
+        >
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading challenge...</p>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center justify-center h-full p-8 text-center"
+      >
         <AlertCircle className="h-10 w-10 text-destructive mb-4" />
         <h3 className="text-xl font-semibold mb-2">Error Loading Challenge</h3>
         <p className="text-muted-foreground mb-6">
@@ -571,13 +624,18 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         <Button asChild variant="outline">
           <Link to="/challenges">Return to Challenges</Link>
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
   if (!challenge) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center justify-center h-full p-8 text-center"
+      >
         <h3 className="text-xl font-semibold mb-2">No Active Challenge</h3>
         <p className="text-muted-foreground mb-6">
           You don't have an active challenge selected. Join or create a challenge to start coding!
@@ -587,13 +645,18 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
             <Link to="/challenges">Browse Challenges</Link>
           </Button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (socketError) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center justify-center h-full p-8 text-center"
+      >
         <AlertCircle className="h-10 w-10 text-amber-500 mb-4" />
         <h3 className="text-xl font-semibold mb-2">Connection Error</h3>
         <p className="text-muted-foreground mb-6">
@@ -602,32 +665,60 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
         <Button onClick={reconnectSocket} variant="outline">
           Reconnect
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
+  const renderEventFeed = () => (
+    <div className="space-y-1 mb-4">
+      <AnimatePresence>
+        {events.map((event) => (
+          <EventNotification
+            key={event.id}
+            type={event.type as any}
+            message={event.message}
+            username={event.username}
+            problemName={event.problemName}
+            visible={true}
+            onClose={() => removeEvent(event.id)}
+          />
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+
   const renderOverview = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="grid grid-cols-1 md:grid-cols-3 gap-6"
+    >
       <div className="md:col-span-2 space-y-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <h3 className="text-lg font-semibold">Challenge Information</h3>
+        <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+          <CardHeader className="pb-2 border-b border-zinc-800/60">
+            <CardTitle className="text-lg flex items-center">
+              <FileCode className="h-5 w-5 text-primary mr-2" />
+              Challenge Information
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-6 space-y-6">
+            {renderEventFeed()}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <Badge variant={challenge.isActive ? "default" : "secondary"}>
+                <Badge variant={challenge.isActive ? "default" : "secondary"} className="mt-1">
                   {challenge.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>
 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Difficulty</p>
-                <Badge variant="outline" className={`
-                  ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500' :
-                    challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500' :
-                      'text-red-500 border-red-500'}
+                <Badge variant="outline" className={`mt-1
+                  ${challenge.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
+                    challenge.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
+                      'text-red-500 border-red-500/30'}
                 `}>
                   {challenge.difficulty}
                 </Badge>
@@ -635,7 +726,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Time Limit</p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-1">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span>{Math.floor(challenge.timeLimit / 60)} minutes</span>
                 </div>
@@ -643,7 +734,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Problems</p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-1">
                   <FileCode className="h-4 w-4 text-muted-foreground" />
                   <span>{challenge.problemIds.length} problems</span>
                 </div>
@@ -651,14 +742,14 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Created</p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-1">
                   <span>{new Date(challenge.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Visibility</p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-1">
                   {challenge.isPrivate ? (
                     <>
                       <Lock className="h-4 w-4 text-amber-500" />
@@ -675,41 +766,57 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
 
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Participants</p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-1">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span>{challenge.participantIds.length} participants</span>
                 </div>
               </div>
 
-              {challenge.isActive && (
-                <div className="col-span-2">
-                  <p className="text-sm font-medium text-muted-foreground">Time Remaining</p>
-                  <div className="flex items-center gap-2">
-                    <Timer className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {challenge.endTime > Date.now()
-                        ? formatTimeRemaining(challenge.endTime - Date.now())
-                        : 'Time exhausted'}
-                    </span>
-                  </div>
+              {challenge.isActive && challenge.endTime && (
+                <div className="col-span-2 mt-2">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Time Remaining</p>
+                  <ChallengeTimer 
+                    endTime={challenge.endTime} 
+                    onTimeWarning={handleTimeWarning}
+                    onTimeUp={handleTimeUp}
+                    className="w-full"
+                  />
                 </div>
               )}
             </div>
 
             <div className="pt-2">
               <h4 className="text-sm font-medium text-muted-foreground mb-2">Problems</h4>
-              <div className="space-y-2">
+              <motion.div 
+                className="space-y-2"
+                initial="hidden"
+                animate="show"
+                variants={{
+                  hidden: { opacity: 0 },
+                  show: { 
+                    opacity: 1,
+                    transition: { staggerChildren: 0.05 }
+                  }
+                }}
+              >
                 {challenge.problemIds.map((problemId, index) => (
-                  <div key={problemId} className="flex items-center justify-between p-2 rounded-md bg-secondary/30">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs bg-secondary/50 rounded-full w-5 h-5 flex items-center justify-center">
+                  <motion.div 
+                    key={problemId} 
+                    variants={{
+                      hidden: { opacity: 0, y: 10 },
+                      show: { opacity: 1, y: 0 }
+                    }}
+                    className="flex items-center justify-between p-3 rounded-md bg-zinc-800/30 border border-zinc-700/30 hover:border-zinc-700/60 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center justify-center font-mono text-xs bg-zinc-700/70 text-zinc-300 rounded-full w-6 h-6">
                         {index + 1}
                       </span>
                       <span>{MOCK_PROBLEMS[problemId]?.title || `Problem ${index + 1}`}</span>
                       <Badge variant="outline" className={`
-                        ${MOCK_PROBLEMS[problemId]?.difficulty === 'Easy' ? 'text-green-500 border-green-500' :
-                          MOCK_PROBLEMS[problemId]?.difficulty === 'Medium' ? 'text-amber-500 border-amber-500' :
-                            'text-red-500 border-red-500'}
+                        ${MOCK_PROBLEMS[problemId]?.difficulty === 'Easy' ? 'text-green-500 border-green-500/30' :
+                          MOCK_PROBLEMS[problemId]?.difficulty === 'Medium' ? 'text-amber-500 border-amber-500/30' :
+                            'text-red-500 border-red-500/30'}
                       `}>
                         {MOCK_PROBLEMS[problemId]?.difficulty || 'Unknown'}
                       </Badge>
@@ -717,83 +824,47 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
                     <Button
                       size="sm"
                       variant="outline"
+                      className="gap-1 hover:bg-primary/20 transition-colors"
                       onClick={() => {
                         setSelectedProblemId(problemId);
                         setCurrentTab('playground');
                       }}
                     >
-                      Solve
+                      Solve <ChevronRight className="h-3 w-3" />
                     </Button>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="space-y-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <h3 className="text-lg font-semibold flex items-center">
-              <Trophy className="h-5 w-5 text-amber-500 mr-2" />
-              Leaderboard
-            </h3>
+        <LeaderboardCard 
+          entries={challenge.leaderboard || []} 
+          currentUserId={user?.userID}
+          className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950"
+        />
+
+        <Card className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+          <CardHeader className="pb-2 border-b border-zinc-800/60">
+            <CardTitle className="text-lg">Actions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {challenge.leaderboard?.map((entry) => {
-                const isCurrentUser = entry.userId === user?.userID;
-
-                return (
-                  <div
-                    key={entry.userId}
-                    className={`flex items-center justify-between p-2 rounded-md ${isCurrentUser ? 'bg-primary/10' : 'bg-secondary/20'
-                      }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`font-mono text-xs rounded-full w-5 h-5 flex items-center justify-center ${entry.rank === 1 ? 'bg-amber-500 text-black' :
-                          entry.rank === 2 ? 'bg-zinc-400 text-black' :
-                            entry.rank === 3 ? 'bg-amber-700 text-white' :
-                              'bg-secondary/50'
-                        }`}>
-                        {entry.rank}
-                      </span>
-                      <span>
-                        {isCurrentUser ? 'You' : `User ${entry.userId.substring(0, 6)}...`}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end text-xs">
-                      <span className="text-sm font-semibold">{entry.totalScore} pts</span>
-                      <span className="text-muted-foreground">
-                        {entry.problemsCompleted}/{challenge.problemIds.length} problems
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {!challenge.leaderboard?.length && (
-                <div className="text-center py-4 text-muted-foreground">
-                  No scores yet. Be the first to solve a problem!
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <h3 className="text-lg font-semibold">Actions</h3>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="space-y-3">
               {user?.userID === challenge.creatorId && !challenge.isActive && (
                 <Button
-                  className="w-full"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white group transition-all"
                   onClick={handleStartChallenge}
                 >
-                  <Play className="h-4 w-4 mr-2" />
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                    className="mr-2 text-white/70"
+                  >
+                    <Play className="h-4 w-4 fill-current" />
+                  </motion.div>
                   Start Challenge
                 </Button>
               )}
@@ -801,74 +872,152 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
               {challenge.isActive && (
                 <Button
                   variant="default"
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-primary hover:bg-primary/80 group transition-all"
                   onClick={() => {
                     setCurrentTab('playground');
                     setSelectedProblemId(challenge.problemIds[0]);
                   }}
                 >
-                  <Play className="h-4 w-4 mr-2" />
+                  <Play className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform" />
                   Continue Challenge
                 </Button>
               )}
 
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full group hover:bg-red-900/20 hover:text-red-400 hover:border-red-900/30 transition-all"
                 onClick={handleForfeitChallenge}
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
                 Forfeit Challenge
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </motion.div>
   );
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4 pb-4 border-b">
-        <h2 className="text-2xl font-bold">{challenge.title}</h2>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-800">
+        <motion.h2 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent"
+        >
+          {challenge.title}
+        </motion.h2>
+        
         <div className="flex items-center gap-2">
-          <Button
-            variant={currentTab === 'overview' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setCurrentTab('overview')}
-          >
-            Overview
-          </Button>
-          <Button
-            variant={currentTab === 'playground' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              setCurrentTab('playground');
-              if (!selectedProblemId && challenge.problemIds.length > 0) {
-                setSelectedProblemId(challenge.problemIds[0]);
-              }
-            }}
-          >
-            Playground
-          </Button>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentTab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <div className="bg-zinc-800/70 p-0.5 rounded-md border border-zinc-700/30 backdrop-blur-sm">
+                <Button
+                  variant={currentTab === 'overview' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCurrentTab('overview')}
+                  className={currentTab === 'overview' ? 'bg-primary hover:bg-primary/90' : 'hover:bg-zinc-700/50'}
+                >
+                  Overview
+                </Button>
+                <Button
+                  variant={currentTab === 'playground' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => {
+                    setCurrentTab('playground');
+                    if (!selectedProblemId && challenge.problemIds.length > 0) {
+                      setSelectedProblemId(challenge.problemIds[0]);
+                    }
+                  }}
+                  className={currentTab === 'playground' ? 'bg-primary hover:bg-primary/90' : 'hover:bg-zinc-700/50'}
+                >
+                  Playground
+                </Button>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
-      {currentTab === 'overview' ? (
-        renderOverview()
-      ) : (
-        <div className="flex-1">
-          {selectedProblemId ? (
-            <ZenXPlayground
-              propsProblemID={selectedProblemId}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <p>No problem selected. Please select a problem to solve.</p>
+      <AnimatePresence mode="wait">
+        {currentTab === 'overview' ? (
+          <motion.div
+            key="overview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderOverview()}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="playground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex-1"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mr-2"
+                  onClick={() => setCurrentTab('overview')}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" /> Back
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  {challenge.problemIds.map((problemId, index) => (
+                    <Button
+                      key={problemId}
+                      variant={selectedProblemId === problemId ? "default" : "outline"}
+                      size="sm"
+                      className={selectedProblemId === problemId ? "bg-primary" : ""}
+                      onClick={() => setSelectedProblemId(problemId)}
+                    >
+                      Problem {index + 1}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              {challenge.endTime && (
+                <ChallengeTimer 
+                  endTime={challenge.endTime}
+                  onTimeWarning={handleTimeWarning}
+                  onTimeUp={handleTimeUp}
+                  className="w-64"
+                />
+              )}
             </div>
-          )}
-        </div>
-      )}
+            
+            <div className="h-[calc(100%-3rem)]">
+              {selectedProblemId ? (
+                <ZenXPlayground
+                  propsProblemID={selectedProblemId}
+                  onSubmit={handleSubmitCode}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p>No problem selected. Please select a problem to solve.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -881,8 +1030,8 @@ function formatTimeRemaining(milliseconds: number): string {
 
   return [
     hours > 0 ? `${hours}h` : '',
-    `${minutes}m`,
-    `${seconds}s`
+    `${minutes.toString().padStart(2, '0')}m`,
+    `${seconds.toString().padStart(2, '0')}s`
   ].filter(Boolean).join(' ');
 }
 

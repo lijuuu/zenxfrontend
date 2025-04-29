@@ -1,3 +1,4 @@
+
 // Challenge API types with snake_case for API communication and camelCase for frontend
 
 // Import from existing types
@@ -22,7 +23,7 @@ export interface Challenge {
   startTime?: number;
   endTime?: number;
   participantUsers?: UserProfile[]; // Added to store participant user details
-  leaderboard?:any
+  leaderboard?: LeaderboardEntry[]; // Added for leaderboard data
 }
 
 // API request/response types with snake_case
