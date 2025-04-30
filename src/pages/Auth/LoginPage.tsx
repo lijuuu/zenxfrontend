@@ -92,8 +92,9 @@ function LoginForm() {
       }
       // initiate google oauth
       const response = await axiosInstance.get("/auth/google/login");
-      navigate(response.data.payload.url); //google url dont touch
-      
+      window.location.href = response.data.payload.url;
+
+
     } catch (err: any) {
       dispatch(setAuthLoading(false));
       const errorMessage = err.response?.data?.error?.message || "Failed to initiate Google login";
@@ -130,7 +131,7 @@ function LoginForm() {
     if (accessToken) {
       // window.location.href= "/dashboard";
       navigate("/dashboard")
-      
+
       toast.success("Logged in!");
     }
   }, [navigate]);
@@ -191,7 +192,7 @@ function LoginForm() {
       window.history.replaceState({}, document.title, window.location.pathname);
       // window.location.href= "/dashboard";
       navigate("/dashboard")
-      
+
       toast.success('logged in successfully!');
     }
   }, [navigate, location]);
