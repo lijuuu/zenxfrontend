@@ -23,11 +23,7 @@ import {
   twoSumProblem
 } from '@/api/types';
 
-const environment = import.meta.env.VITE_ENVIRONMENT || 'PRODUCTION';
-const ENGINE_BASE_URL =
-  environment === 'DEVELOPMENT'
-    ? import.meta.env.VITE_XENGINELOCALENGINEURL || 'http://localhost:7000/api/v1'
-    : import.meta.env.VITE_XENGINEPRODUCTIONENGINEURL || 'https://xengine.lijuu.me/compile';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1`;
 
 const mapDifficulty = (difficulty: string): string => {
   switch (difficulty) {
@@ -42,7 +38,7 @@ const mapDifficulty = (difficulty: string): string => {
 };
 
 const fetchProblemById = async (problemId: string): Promise<ProblemMetadata> => {
-  const response = await fetch(`${ENGINE_BASE_URL}/problems/metadata?problem_id=${problemId}`);
+  const response = await fetch(`${API_BASE_URL}/problems/metadata?problem_id=${problemId}`);
   if (!response.ok) throw new Error('Failed to fetch problem');
   const data = await response.json();
   const problemData = data.payload || data;
