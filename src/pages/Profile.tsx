@@ -202,7 +202,7 @@ const Profile = () => {
 
                 {/* Challenges Card */}
                 {/* Challenges Card */}
-                {(
+                {/* {(
                   <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center gap-2">
@@ -236,7 +236,7 @@ const Profile = () => {
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                )} */}
 
                 {/* Top Performers from Leaderboard */}
                 {leaderboardData?.TopKGlobal && leaderboardData.TopKGlobal.length > 0 && (
@@ -298,13 +298,13 @@ const Profile = () => {
                     <CardContent className="space-y-3">
                       {profile?.socials?.website && (
                         <a
-                          href={profile?.socials?.website }
+                          href={profile?.socials?.website}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                         >
                           <Globe className="h-4 w-4" />
-                          <span className="text-sm truncate">{profile?.socials?.website }</span>
+                          <span className="text-sm truncate">{profile?.socials?.website}</span>
                         </a>
                       )}
                       {profile?.socials?.github && (
