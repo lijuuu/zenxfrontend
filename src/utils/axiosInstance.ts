@@ -10,7 +10,8 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 //use baseurl from environment variables or fallback to default
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000/api/v1';
+const baseURL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1`;
+
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL,
@@ -66,7 +67,7 @@ const refreshAccessToken = async () => {
     });
 
     return accessToken;
-  } 
+  }
   catch (error) {
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
@@ -82,9 +83,9 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig;
     const requiresAuth = originalRequest.headers['X-Requires-Auth'] !== 'false';
 
-    console.log("error in interceptor ",error)
+    console.log("error in interceptor ", error)
 
-    if (requiresAuth &&error?.response?.data?.error?.type != "ERR_LOGIN_NOT_VERIFIED" && error.response?.status === 401 && !originalRequest._retry) {
+    if (requiresAuth && error?.response?.data?.error?.type != "ERR_LOGIN_NOT_VERIFIED" && error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {

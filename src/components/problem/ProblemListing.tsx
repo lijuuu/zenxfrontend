@@ -25,7 +25,10 @@ interface Problem {
   placeholder_maps: { [key: string]: string };
 }
 
-const BASE_URL = "http://localhost:7000/api/v1/problems";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/problems`
+  : 'http://localhost:7000/api/v1/problems';
+
 
 const mapDifficulty = (difficulty: string): string => {
   const difficultyMap: Record<string, string> = {
@@ -60,9 +63,9 @@ const fetchProblems = async () => {
     // For production/deployed app
     const res = await axios.get(`${BASE_URL}/metadata/list`, { params: { page: 1, page_size: 100 } });
     const problemList = res.data.payload?.problems || [];
-    
+
     if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
-    
+
     const mappedProblems: Problem[] = problemList.map((item: any) => ({
       problem_id: item.problem_id || '',
       title: item.title || 'Untitled',
@@ -74,12 +77,12 @@ const fetchProblems = async () => {
       validated: item.validated || false,
       placeholder_maps: item.placeholder_maps || {},
     }));
-    
+
     return mappedProblems;
   } catch (error) {
     console.error("Error fetching problems:", error);
-    
-    
+
+
     // Map the mock data to match the Problem interface
     return mockProblems.map(p => ({
       problem_id: p.id,
@@ -87,11 +90,11 @@ const fetchProblems = async () => {
       description: p.description,
       tags: p.tags,
       difficulty: p.difficulty,
-      testcase_run: { 
-        run: p.examples.map(ex => ({ 
-          input: ex.input, 
-          expected: ex.output 
-        })) 
+      testcase_run: {
+        run: p.examples.map(ex => ({
+          input: ex.input,
+          expected: ex.output
+        }))
       },
       supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
       validated: true,
@@ -156,17 +159,17 @@ const ProblemListing: React.FC = () => {
     if (filters.search && !p.title.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
-    
+
     // Difficulty filter
     if (filters.difficulty !== "all" && mapDifficulty(p.difficulty) !== filters.difficulty) {
       return false;
     }
-    
+
     // Tags filter
     if (filters.tags && !p.tags.some(t => t.toLowerCase().includes(filters.tags.toLowerCase()))) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -177,7 +180,7 @@ const ProblemListing: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <MainNavbar />
-      
+
       <main className="page-container py-8 pt-20">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
           <div>
@@ -186,10 +189,10 @@ const ProblemListing: React.FC = () => {
               Practice your coding skills by solving our carefully curated problems
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-zinc-700 hover:bg-zinc-800"
               onClick={() => refetch()}
             >
@@ -198,20 +201,20 @@ const ProblemListing: React.FC = () => {
             </Button>
           </div>
         </div>
-        
+
         <div className="bg-zinc-800/40 border border-zinc-700/40 rounded-lg p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_200px] gap-4 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
-              <Input 
+              <Input
                 ref={searchInputRef}
-                placeholder="Search problems by title or tag" 
+                placeholder="Search problems by title or tag"
                 defaultValue={filters.search}
                 onChange={handleSearchChange}
                 className="pl-10 bg-zinc-800 border-zinc-700 focus-visible:ring-green-500"
               />
             </div>
-            
+
             <Select value={filters.difficulty} onValueChange={(value) => setFilters(prev => ({ ...prev, difficulty: value }))}>
               <SelectTrigger className="bg-zinc-800 border-zinc-700">
                 <SelectValue placeholder="Difficulty" />
@@ -224,11 +227,11 @@ const ProblemListing: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="border-zinc-700 hover:bg-zinc-800"
               onClick={() => {
                 setShowFilters(!showFilters);
@@ -240,7 +243,7 @@ const ProblemListing: React.FC = () => {
               <Filter className="h-4 w-4 mr-2" />
               Filter by Tag
             </Button>
-            
+
             {showFilters && (
               <div className="w-full mt-3">
                 <Input
@@ -252,18 +255,18 @@ const ProblemListing: React.FC = () => {
                 />
               </div>
             )}
-            
+
             {(filters.search || filters.difficulty !== "all" || filters.tags) && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={clearFilters}
                 className="text-zinc-400 hover:text-white hover:bg-zinc-800/70"
               >
                 Clear Filters
               </Button>
             )}
-            
+
             <div className="ml-auto">
               <p className="text-sm text-zinc-400">
                 {filteredProblems.length} {filteredProblems.length === 1 ? "problem" : "problems"} found
@@ -271,7 +274,7 @@ const ProblemListing: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-12 w-12 animate-spin text-green-500" />

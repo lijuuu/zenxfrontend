@@ -49,7 +49,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await axiosInstance.post(
-        `http://localhost:7000/api/v1/auth/password/forgot`,
+        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1/auth/password/forgot`,
         { email }
       );
       setSuccess("Password reset link sent to your email. Please check your inbox.");

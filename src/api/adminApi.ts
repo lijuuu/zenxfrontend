@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 import { GenericResponse, LoginCredentials, AdminLoginResponse, UsersResponse } from '@/api/types';
 import adminAxiosInstance from '@/utils/axiosAdminInstance';
 
-const API_BASE_URL = 'http://localhost:7000/api/v1';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1`;
 
 export const loginAdmin = async (credentials: LoginCredentials): Promise<AdminLoginResponse> => {
   try {
@@ -29,7 +29,7 @@ export const loginAdmin = async (credentials: LoginCredentials): Promise<AdminLo
 
 export const getAllUsers = async (
   nextPageToken?: string,
-  prevPageToken?:string,
+  prevPageToken?: string,
   limit: number = 10,
   roleFilter?: string,
   statusFilter?: string,
@@ -56,7 +56,7 @@ export const getAllUsers = async (
     return {
       users: payload.users,
       totalCount: payload.totalCount,
-      prevPageToken:payload.prevPageToken,
+      prevPageToken: payload.prevPageToken,
       nextPageToken: payload.nextPageToken,
     };
   } catch (error: any) {

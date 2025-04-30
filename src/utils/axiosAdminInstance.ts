@@ -10,7 +10,8 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 //use baseurl from environment variables or fallback to default
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000/api/v1';
+const baseURL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1`;
+
 
 const adminAxiosInstance: AxiosInstance = axios.create({
   baseURL,
