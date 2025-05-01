@@ -702,7 +702,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
         rawError?.data?.payload?.rawoutput?.failedTestCase?.error ||
         (error instanceof Error ? error.message : 'Network error occurred');
 
-      setOutput([`[Error] ${errorMessage}`]);
+      setOutput([`[Error] ${rawError}`]);
       setConsoleTab('output');
 
       toast.error(`${type === 'run' ? 'Run' : 'Submit'} Failed`, {

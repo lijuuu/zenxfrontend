@@ -190,10 +190,10 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
             folding: true,
             contextmenu: true,
             suggest: {
-              showMethods: true,
-              showFunctions: true,
-              showConstructors: true,
-              showFields: true,
+              // showMethods: true,
+              // showFunctions: true,
+              // showConstructors: true,
+              // showFields: true,
               showVariables: true,
               showClasses: true,
               showInterfaces: true

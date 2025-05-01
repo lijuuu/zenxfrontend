@@ -12,11 +12,8 @@ import LanguagesView from "@/pages-admin/Languages"
 import ValidationView from "@/pages-admin/Validate"
 import ProblemDetailsView from "@/pages-admin/ProblemsDetails"
 
-import {
-  Server,
-} from "lucide-react"
-
-const BASE_URL = "http://localhost:7000/api/v1/problems"
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1/problems`;
+// const BASE_URL = "http://localhost:7000/api/v1/problems"
 
 export interface Problem {
   problem_id: string;
