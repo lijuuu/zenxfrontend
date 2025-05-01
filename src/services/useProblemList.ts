@@ -23,9 +23,9 @@ interface ProblemFilters {
   solved?: boolean;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/problems`
-  : 'http://localhost:7000/api/v1/problems';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL 
+    ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/problems` 
+    : 'http://localhost:7000/api/v1/problems';
 
 
 const fetchProblems = async (filters?: ProblemFilters) => {
@@ -33,9 +33,9 @@ const fetchProblems = async (filters?: ProblemFilters) => {
     // For production/deployed app
     const res = await axios.get(`${BASE_URL}/metadata/list`, { params: { page: 1, page_size: 100, ...filters } });
     const problemList = res.data.payload?.problems || [];
-
+    
     if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
-
+    
     const mappedProblems: Problem[] = problemList.map((item: any) => ({
       problem_id: item.problem_id || '',
       title: item.title || 'Untitled',
@@ -47,11 +47,11 @@ const fetchProblems = async (filters?: ProblemFilters) => {
       validated: item.validated || false,
       placeholder_maps: item.placeholder_maps || {},
     }));
-
+    
     return mappedProblems;
   } catch (error) {
     console.error("Error fetching problems:", error);
-
+    
     // Map the mock data to match the Problem interface
     return mockProblems.map(p => ({
       problem_id: p.id,
@@ -59,11 +59,11 @@ const fetchProblems = async (filters?: ProblemFilters) => {
       description: p.description,
       tags: p.tags,
       difficulty: p.difficulty,
-      testcase_run: {
-        run: p.examples.map(ex => ({
-          input: ex.input,
-          expected: ex.output
-        }))
+      testcase_run: { 
+        run: p.examples.map(ex => ({ 
+          input: ex.input, 
+          expected: ex.output 
+        })) 
       },
       supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
       validated: true,

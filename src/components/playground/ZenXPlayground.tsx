@@ -114,11 +114,11 @@ const Timer: React.FC = () => {
 
 interface ProblemDescriptionProps {
   problem: ProblemMetadata;
-  hideBackButton?:boolean
+  hideBackButton?: boolean
 
 }
 
-const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem,hideBackButton }) => {
+const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, hideBackButton }) => {
   const navigate = useNavigate();
 
   return (
@@ -163,7 +163,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem,hideBac
         </div>
       </div>
 
-      {!hideBackButton &&<Button
+      {!hideBackButton && <Button
         variant="outline"
         size="sm"
         onClick={() => navigate("/problems")}
@@ -535,11 +535,11 @@ const Console: React.FC<ConsoleProps> = ({
 
 interface ZenXPlaygroundProps {
   propsProblemID?: string
-  hideBackButton?:boolean
+  hideBackButton?: boolean
 }
 
 
-const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBackButton }) => {
+const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBackButton }) => {
   const [problemId, setProblemId] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [code, setCode] = useState<string>('');
@@ -617,7 +617,6 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBack
     setOutput([]);
     setExecutionResult(null);
 
-    // alert(JSON.stringify(userProfile))
 
     try {
       const response = await axiosInstance.post(
@@ -636,16 +635,6 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBack
         }
       );
 
-      // const response = await fetch(`${ENGINE_BASE_URL}/problems/execute`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     problem_id: problem.problem_id,
-      //     language: language,
-      //     user_code: code,
-      //     is_run_testcase: type === 'run',
-      //   }),
-      // });
 
       type GenericResponse = {
         success: boolean;
@@ -695,7 +684,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBack
           toast.success(`${type === 'run' ? 'Run' : 'Submission'} Successful`, {
             description: `All ${executionResult.totalTestCases} test cases passed!`,
           });
-          setConsoleTab('output');
+          setConsoleTab('tests');
         } else {
           toast[type === 'run' ? 'warning' : 'error'](
             `${type === 'run' ? 'Run' : 'Submission'} ${!executionResult.overallPass ? ' Successful' : 'Failed'}`,
@@ -708,12 +697,16 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBack
       }
       setConsoleSize(80)
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Network error occurred';
-      setOutput([`[Error] ${errorMsg}`]);
+      const rawError = error as any;
+      const errorMessage =
+        rawError?.data?.payload?.rawoutput?.failedTestCase?.error ||
+        (error instanceof Error ? error.message : 'Network error occurred');
+
+      setOutput([`[Error] ${errorMessage}`]);
       setConsoleTab('output');
 
       toast.error(`${type === 'run' ? 'Run' : 'Submit'} Failed`, {
-        description: errorMsg,
+        description: rawError,
       });
     } finally {
       // setConsoleSize(80);
@@ -761,7 +754,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBack
           <p className="text-zinc-400">
             We couldn't find the problem you're looking for. Please check the URL and try again.
           </p>
-         { !hideBackButton && <Button
+          {!hideBackButton && <Button
             variant="outline"
             onClick={() => window.location.href = '/problems'}
             className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 mt-4"
@@ -838,7 +831,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID,hideBack
                 maxSize={50}
                 className="bg-zinc-900"
               >
-                <ProblemDescription problem={problem} hideBackButton={true}/>
+                <ProblemDescription problem={problem} hideBackButton={true} />
               </ResizablePanel>
               <ResizableHandle className="w-1.5 bg-zinc-800" />
             </>
