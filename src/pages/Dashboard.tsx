@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useQuery } from '@tanstack/react-query';
-import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award, Activity } from 'lucide-react';
+import React from 'react';
+import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,162 +12,63 @@ import { useLeaderboard } from '@/hooks';
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useEffect, useState } from 'react';
 import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
-import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval, subDays, isSameDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from 'date-fns';
+import { calculateStreak } from '@/utils/streakcalcUtils';
 import { useProblemStats } from '@/services/useProblemStats';
 
-// function to calculate past streak starting from yesterday with detailed logs
-const calculateStreak = (activityData, currentDate) => {
-  console.log("calculateStreak - Starting with Activity Data:", JSON.stringify(activityData, null, 2));
+// Loading Screen Component
+const LoadingScreen = () => (
+  <div className="fixed inset-0 bg-zinc-900 flex items-center justify-center z-50">
+    <div className="flex flex-col items-center gap-4">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-green-500"></div>
+      <p className="text-zinc-400 text-lg">Loading Dashboard...</p>
+    </div>
+  </div>
+);
 
-  if (!activityData || activityData.length === 0) {
-    console.log("calculateStreak - No activity data available, returning streak: 0");
-    return 0;
-  }
 
-  const sortedDays = [...activityData]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  console.log("calculateStreak - Sorted Days (descending order):", JSON.stringify(sortedDays, null, 2));
 
-  // find current date and yesterday in local timezone
-  const today = new Date(currentDate);
-  console.log("calculateStreak - Today (local timezone):", today.toString(), "ISO:", today.toISOString());
-  const yesterday = subDays(today, 1);
-  console.log("calculateStreak - Yesterday (local timezone):", yesterday.toString(), "ISO:", yesterday.toISOString());
+const Dashboard = React.memo(() => {
+  const navigate = useNavigate();
+  const now = new Date();
+  const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const currentMonth = currentDate.getMonth() + 1; // 4 (April)
+  const currentYear = currentDate.getFullYear(); // 2025
 
-  // check if today has contributions for bonus
-  const todayData = sortedDays.find(day => isSameDay(parseISO(day.date), today));
-  console.log("calculateStreak - Today Data:", todayData ? JSON.stringify(todayData, null, 2) : "Not found");
-  const todayBonus = todayData && todayData.count > 0 ? 1 : 0;
-  console.log("calculateStreak - Today Bonus (1 if count > 0, else 0):", todayBonus);
-
-  // find yesterday's data to start streak calculation
-  const yesterdayData = sortedDays.find(day => isSameDay(parseISO(day.date), yesterday));
-  console.log("calculateStreak - Yesterday Data:", yesterdayData ? JSON.stringify(yesterdayData, null, 2) : "Not found");
-  if (!yesterdayData) {
-    console.log("calculateStreak - No data for yesterday, returning streak as todayBonus:", todayBonus);
-    return todayBonus;
-  }
-
-  let currentStreak = 0;
-  let checkDate = yesterday;
-  console.log("calculateStreak - Starting Streak Calculation from Yesterday, checkDate:", checkDate.toString());
-
-  for (const day of sortedDays) {
-    const activityDate = parseISO(day.date);
-    console.log(
-      "calculateStreak - Checking Day:",
-      day.date,
-      "Parsed Activity Date (local timezone):",
-      activityDate.toString(),
-      "with count:",
-      day.count || 0
-    );
-
-    if (isSameDay(activityDate, checkDate)) {
-      if (day.count > 0) {
-        currentStreak++;
-        console.log(
-          "calculateStreak - Contributions found, Streak incremented to:",
-          currentStreak,
-          "for date:",
-          day.date
-        );
-        checkDate = subDays(checkDate, 1);
-        console.log("calculateStreak - Moving to previous day, new checkDate:", checkDate.toString());
-      } else {
-        console.log("calculateStreak - No contributions on", day.date, "streak ends");
-        break;
-      }
-    } else if (activityDate > checkDate) {
-      console.log(
-        "calculateStreak - Activity date",
-        activityDate.toString(),
-        "is after checkDate",
-        checkDate.toString(),
-        "skipping"
-      );
-      continue;
-    } else {
-      console.log(
-        "calculateStreak - Activity date",
-        activityDate.toString(),
-        "is before checkDate",
-        checkDate.toString(),
-        "but not matching, streak ends (missed day)"
-      );
-      break;
-    }
-  }
-
-  const finalStreak = currentStreak + todayBonus;
-  console.log(
-    "calculateStreak - Past Streak (from yesterday backwards):",
-    currentStreak,
-    "Today Bonus:",
-    todayBonus,
-    "Final Streak:",
-    finalStreak
-  );
-  return finalStreak;
-};
-
-const Dashboard = () => {
+  // Combine queries to track loading state
   const {
     data: userProfile,
     isLoading: profileLoading,
     isError: profileError,
-    error
+    error: profileErrorDetail,
   } = useGetUserProfile();
-  console.log("Dashboard - User Profile Data:", userProfile);
-  console.log("Dashboard - Profile Loading:", profileLoading, "Profile Error:", profileError, "Error Detail:", error);
 
   const userId = userProfile?.userID || localStorage.getItem('userid');
-  console.log("Dashboard - User ID:", userId);
-
-  const { data: leaderboardData } = useLeaderboard(userId);
-  console.log("Dashboard - Leaderboard Data:", leaderboardData);
-
+  const { data: leaderboardData, isLoading: leaderboardLoading } = useLeaderboard(userId);
   const { data: problemStats, isLoading: statsLoading } = useProblemStats(userId);
-  console.log("Dashboard - Problem Stats Data:", problemStats, "Stats Loading:", statsLoading);
+  const { data: monthlyActivityData, isLoading: activityLoading } = useMonthlyActivity(userId || '', currentMonth, currentYear);
 
   const [weeklyContributions, setWeeklyContributions] = useState(0);
   const [weekLabel, setWeekLabel] = useState('');
   const [dayStreak, setDayStreak] = useState(0);
-  console.log(
-    "Dashboard - State - Weekly Contributions:",
-    weeklyContributions,
-    "Week Label:",
-    weekLabel,
-    "Day Streak:",
-    dayStreak
-  );
 
-  // Use the current date in local timezone (set to April 27, 2025, for this example)
-  const currentDate = new Date(2025, 3, 27); // Months are 0-based in JS, so 3 = April
-  console.log(
-    "Dashboard - Date Setup - Current Date (local timezone):",
-    currentDate.toString(),
-    "ISO (UTC):",
-    currentDate.toISOString(),
-    "Timezone Offset (minutes):",
-    currentDate.getTimezoneOffset()
-  );
-  const currentMonth = currentDate.getMonth() + 1; // 4 (April)
-  const currentYear = currentDate.getFullYear(); // 2025
-  console.log(
-    "Dashboard - Date Setup - Current Month:",
-    currentMonth,
-    "Current Year:",
-    currentYear
-  );
+  // Calculate total loading state
+  const isLoading = profileLoading || leaderboardLoading || statsLoading || activityLoading;
+  const hasError = profileError;
 
-  const monthlyActivity = useMonthlyActivity(userId || '', currentMonth, currentYear);
-  console.log("Dashboard - Monthly Activity Response:", monthlyActivity);
-
+  // Save userID to localStorage
   useEffect(() => {
-    if (monthlyActivity?.data) {
+    if (userProfile?.userID) {
+      console.log("Dashboard - useEffect - Saving userID to localStorage:", userProfile.userID);
+      localStorage.setItem('userid', userProfile.userID);
+    }
+  }, [userProfile?.userID]);
+
+  // Calculate weekly contributions and streak
+  useEffect(() => {
+    if (monthlyActivityData && !activityLoading) {
       console.log("Dashboard - useEffect - Starting streak and contributions calculation");
-      console.log("Dashboard - useEffect - Monthly Activity Data:", JSON.stringify(monthlyActivity.data, null, 2));
+      console.log("Dashboard - useEffect - Monthly Activity Data:", JSON.stringify(monthlyActivityData, null, 2));
 
       const today = currentDate;
       const weekStart = startOfWeek(today);
@@ -183,7 +84,7 @@ const Dashboard = () => {
       console.log("Dashboard - useEffect - Setting Week Label:", weekLabelValue);
       setWeekLabel(weekLabelValue);
 
-      const contributionsThisWeek = monthlyActivity.data.reduce((count, day) => {
+      const contributionsThisWeek = monthlyActivityData.reduce((count, day) => {
         const date = parseISO(day.date);
         const isInWeek = isWithinInterval(date, { start: weekStart, end: weekEnd });
         console.log(
@@ -210,46 +111,44 @@ const Dashboard = () => {
       console.log("Dashboard - useEffect - Total Contributions This Week:", contributionsThisWeek);
       setWeeklyContributions(contributionsThisWeek);
 
-      const streak = calculateStreak(monthlyActivity.data, currentDate);
+      const streak = calculateStreak(monthlyActivityData, currentDate);
       console.log("Dashboard - useEffect - Calculated Streak:", streak);
       setDayStreak(streak);
-    } else {
-      console.log("Dashboard - useEffect - No monthly activity data yet");
     }
-  }, [monthlyActivity.data]);
+  }, [monthlyActivityData, activityLoading]);
 
-  useEffect(() => {
-    if (userProfile?.userID) {
-      console.log("Dashboard - useEffect - Saving userID to localStorage:", userProfile.userID);
-      localStorage.setItem('userid', userProfile.userID);
-    }
-  }, [userProfile?.userID]);
+  const totalProblemsDone = problemStats
+    ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
+    : 0;
 
-  const navigate = useNavigate();
+  // Show loading screen if any query is loading
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
-  const totalProblemsDone = problemStats ?
-    problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount : 0;
-  console.log(
-    "Dashboard - Total Problems Done Calculation:",
-    "Easy:",
-    problemStats?.doneEasyCount,
-    "Medium:",
-    problemStats?.doneMediumCount,
-    "Hard:",
-    problemStats?.doneHardCount,
-    "Total:",
-    totalProblemsDone
-  );
+  // Show error message if any query fails
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center text-zinc-400">
+          <p>Error loading dashboard: {profileErrorDetail?.message || 'Unknown error'}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen ">
       <MainNavbar />
       <main className="pt-16 pb-16">
-        <div className="page-container">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <section className="pt-6 pb-10">
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
               <div>
-                <h1 className="text-3xl font-bold">
+                <h1 className="text-3xl font-bold text-white">
                   Welcome back, {userProfile?.userName || 'Coder'}
                 </h1>
                 <p className="text-zinc-400 mt-1">
@@ -305,7 +204,7 @@ const Dashboard = () => {
 
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Users className="h-5 w-5 text-green-400" />
                     1v1 Challenges
                   </CardTitle>
@@ -321,7 +220,7 @@ const Dashboard = () => {
                           <Play className="h-5 w-5 text-green-400" />
                         </div>
                         <div>
-                          <div className="font-medium">Quick Match</div>
+                          <div className="font-medium text-white">Quick Match</div>
                           <div className="text-sm text-zinc-400">Find an opponent with similar skill</div>
                         </div>
                       </div>
@@ -336,7 +235,7 @@ const Dashboard = () => {
                           <User className="h-5 w-5 text-blue-400" />
                         </div>
                         <div>
-                          <div className="font-medium">Challenge a Friend</div>
+                          <div className="font-medium text-white">Challenge a Friend</div>
                           <div className="text-sm text-zinc-400">Send a challenge to a specific user</div>
                         </div>
                       </div>
@@ -354,7 +253,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="text-lg flex items-center gap-2 text-white">
                     <User className="h-5 w-5 text-blue-400" />
                     Your Profile
                   </CardTitle>
@@ -369,7 +268,7 @@ const Dashboard = () => {
                       />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{userProfile?.firstName} {userProfile?.lastName}</h3>
+                      <h3 className="font-semibold text-lg text-white">{userProfile?.firstName} {userProfile?.lastName}</h3>
                       <p className="text-zinc-400">@{userProfile?.userName}</p>
                     </div>
                   </div>
@@ -397,7 +296,7 @@ const Dashboard = () => {
 
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="text-lg flex items-center gap-2 text-white">
                     <Trophy className="h-5 w-5 text-amber-500" />
                     Top Performers
                   </CardTitle>
@@ -426,12 +325,12 @@ const Dashboard = () => {
                               />
                             </div>
                             <div>
-                              <div className="font-medium text-sm">{entry.UserName}</div>
+                              <div className="font-medium text-sm text-white">{entry.UserName}</div>
                               <div className="text-xs text-zinc-500">{entry.Entity.toUpperCase()}</div>
                             </div>
                           </div>
                         </div>
-                        <div className="font-semibold text-sm">{entry.Score.toLocaleString()}</div>
+                        <div className="font-semibold text-sm text-white">{entry.Score.toLocaleString()}</div>
                       </div>
                     ))}
                   </div>
@@ -448,6 +347,6 @@ const Dashboard = () => {
       </main>
     </div>
   );
-};
+});
 
 export default Dashboard;

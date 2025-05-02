@@ -8,7 +8,7 @@ import {
   BarChart3,
   Clock,
   Trophy,
-  Award
+  Award,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,11 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router";
 import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
 import { useLeaderboard } from "@/hooks";
-import { parseISO, isSameDay, subDays } from "date-fns";
+import { parseISO, startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
 import { useOwner } from "@/hooks/useOwner";
-import {formatDate} from "@/utils/formattedDate"
+import { formatDate } from "@/utils/formattedDate";
+import { calculateStreak } from "@/utils/streakcalcUtils";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -33,9 +34,10 @@ interface ProfileHeaderProps {
   showStats?: boolean;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStats = true }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userID, showStats = true }) => {
   const { toast } = useToast();
   const [dayStreak, setDayStreak] = useState(0);
+  const navigate = useNavigate();
 
   // Hook providing current owner user ID
   const { ownerUserID } = useOwner();
@@ -46,14 +48,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
   // Get problem stats data
   const { problemStats } = useProblemStats(profile.userID);
 
-  // Get current month and year for activity data
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1;
-  const currentYear = currentDate.getFullYear();
+  const now = new Date();
+  const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const currentMonth = currentDate.getMonth() + 1; // 1-12
+  const currentYear = currentDate.getFullYear(); // e.g., 2025
 
   // Fetch monthly activity data to calculate streak
-  const monthlyActivity = useMonthlyActivity(
-    profile.userID || '',
+  const { data: monthlyActivityData, isLoading: activityLoading } = useMonthlyActivity(
+    profile.userID || "",
     currentMonth,
     currentYear
   );
@@ -65,34 +67,15 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       ? (profile.stats.easy?.solved || 0) + (profile.stats.medium?.solved || 0) + (profile.stats.hard?.solved || 0)
       : profile.problemsSolved || 0;
 
-  // Calculate day streak based on continuous active days
+  // Calculate day streak
   useEffect(() => {
-    if (monthlyActivity.data?.data) {
-      // Sort days by date in descending order (most recent first)
-      const sortedDays = [...monthlyActivity.data.data]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-      let currentStreak = 0;
-      let currentDate = new Date();
-
-      // Check each day going backward from today
-      while (true) {
-        // Find if there's an activity for this day
-        const dayActivity = sortedDays.find(day =>
-          isSameDay(parseISO(day.date), currentDate) && day.count > 0
-        );
-
-        if (dayActivity) {
-          currentStreak++;
-          currentDate = subDays(currentDate, 1); // Move to previous day
-        } else {
-          break; // Break the streak when finding a day with no activity
-        }
-      }
-
-      setDayStreak(currentStreak);
+    if (monthlyActivityData && !activityLoading) {
+      console.log("ProfileHeader - useEffect - Monthly Activity Data:", JSON.stringify(monthlyActivityData, null, 2));
+      const streak = calculateStreak(monthlyActivityData, currentDate);
+      console.log("ProfileHeader - use  - Calculated Streak:", streak);
+      setDayStreak(streak);
     }
-  }, [monthlyActivity.data]);
+  }, [monthlyActivityData, activityLoading, currentDate]);
 
   // Use ownership from useOwner hook
   const isOwnProfile = ownerUserID === profile.userID;
@@ -105,18 +88,20 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
     });
   };
 
-  const navigate = useNavigate();
-
   // Get initials for avatar fallback
   const getInitials = () => {
-    const fullNameChars = `${profile.firstName} ${profile.lastName}`.split(' ').map(n => n[0]).join('');
+    const fullNameChars = `${profile.firstName} ${profile.lastName}`
+      .split(" ")
+      .map((n) => n[0])
+      .join("");
     if (fullNameChars) return fullNameChars;
     if (profile.userName) return profile.userName.charAt(0).toUpperCase();
     return "U";
   };
 
   // Calculate contest participation
-  const contestsParticipated = (profile.achievements?.weeklyContests || 0) +
+  const contestsParticipated =
+    (profile.achievements?.weeklyContests || 0) +
     (profile.achievements?.monthlyContests || 0) +
     (profile.achievements?.specialEvents || 0);
 
@@ -125,10 +110,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       <div className="flex flex-col items-center md:items-start">
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-            <AvatarImage src={profile?.profileImage || profile.avatarURL} alt={profile.firstName + ' ' + profile.lastName} />
-            <AvatarFallback className="text-xl font-bold">
-              {getInitials()}
-            </AvatarFallback>
+            <AvatarImage
+              src={profile?.profileImage || profile.avatarURL}
+              alt={profile.firstName + " " + profile.lastName}
+            />
+            <AvatarFallback className="text-xl font-bold">{getInitials()}</AvatarFallback>
           </Avatar>
 
           {profile.isOnline && (
@@ -139,7 +125,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
 
       <div className="flex-1 flex flex-col md:items-start items-center text-center md:text-left">
         <div className="flex flex-wrap gap-2 items-center">
-          <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+          <h1 className="text-2xl font-bold">
+            {profile.firstName} {profile.lastName}
+          </h1>
 
           {profile.ranking && profile.ranking <= 100 && (
             <Badge className="bg-gradient-to-r from-amber-500 to-yellow-300 text-zinc-900">
@@ -153,12 +141,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={handleCopyUsername}
-                >
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyUsername}>
                   <Copy className="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
@@ -182,9 +165,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
           )}
         </div>
 
-        {profile.bio && (
-          <p className="mt-2 text-muted-foreground">{profile.bio}</p>
-        )}
+        {profile.bio && <p className="mt-2 text-muted-foreground">{profile.bio}</p>}
 
         <div className="flex flex-wrap items-center gap-4 mt-3">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -195,7 +176,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
 
         <div className="flex flex-wrap gap-2 mt-4">
           {isOwnProfile ? (
-            <Button variant="outline" className="flex items-center gap-1.5" onClick={() => navigate("/settings")}>
+            <Button
+              variant="outline"
+              className="flex items-center gap-1.5"
+              onClick={() => navigate("/settings")}
+            >
               <Edit className="h-4 w-4" />
               Edit Profile
             </Button>
@@ -224,7 +209,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
 
             <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
               <Trophy className="h-4 w-4 text-amber-500 mb-1" />
-              <span className="text-xl font-bold">#{leaderboardData?.GlobalRank || '-'}</span>
+              <span className="text-xl font-bold">
+                #{leaderboardData?.GlobalRank || "-"}
+              </span>
               <span className="text-xs text-muted-foreground">Global Rank</span>
             </div>
 
@@ -238,6 +225,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, userID, showStat
       )}
     </div>
   );
-};
+});
 
 export default ProfileHeader;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import { Link } from "react-router-dom";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useOwner } from "@/hooks/useOwner";
 
-const Profile = () => {
+const Profile = React.memo(() => {
   const { username } = useParams<{ username: string }>();
   const { toast } = useToast();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -334,6 +334,6 @@ const Profile = () => {
       </main>
     </div>
   );
-};
+});
 
 export default Profile;
