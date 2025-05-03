@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChallengeSocketService, MOCK_PROBLEMS } from '../../services/challengeSocketService';
 import { useProblemStats } from '@/services/useProblemStats';
 import ChallengeOverview from './ChallengeOverview';
-import ZenXPlayground from "@/components/playground/ZenXPlayground"
+import ZenXPlayground from "@/components/playground/Playground"
 import ChallengeTimer from './ChallengeTimer';
 import ProblemCard from './ProblemCard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -528,7 +528,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
               transition={{ duration: 0.3 }}
               className="w-full"
             >
-              
+
               <ZenXPlayground
                 propsProblemID={selectedProblemId}
                 hideBackButton={true}

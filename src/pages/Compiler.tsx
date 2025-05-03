@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import FileSystem from '@/components/compiler/FileSystem';
 import CompilerLayout from '@/components/compiler/CompilerLayout';
-import ZenXPlayground from '@/components/playground/ZenXPlayground';
+import ZenXPlayground from '@/components/playground/Playground';
 
 const Compiler = () => {
   // Check if we're in playground mode by looking for problem_id in URL
