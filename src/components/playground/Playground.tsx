@@ -10,6 +10,7 @@ import { ProblemDescription } from './ProblemDescription';
 import { CodeEditor } from './CodeEditor';
 import { Console } from './Console';
 import { Timer } from './Timer';
+import Loader3 from '../ui/loader3';
 
 import {
   TestCase,
@@ -252,7 +253,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
   if (isLoading) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-50">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-300" />
+        <Loader3 className="h-8 w-8 animate-spin text-zinc-300" />
       </div>
     );
   }

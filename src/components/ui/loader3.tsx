@@ -24,12 +24,13 @@ const StyledWrapper = styled.div`
   }
 
   .spinner > div {
-    background-color: rgba(60, 231, 178, 0.2);
-    height: 100%;
-    position: absolute;
-    width: 100%;
-    border: 2px solid #3CE7B2;
-  }
+  background-color: rgba(34, 197, 94, 0.2); /* green-500 with opacity */
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  border: 2px solid #22c55e; /* tailwind green-500 */
+}
+
 
   .spinner div:nth-of-type(1) {
     transform: translateZ(-22px) rotateY(180deg);
