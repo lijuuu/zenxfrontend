@@ -185,7 +185,7 @@ const Dashboard = React.memo(() => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Streak"
-                  value={`${dayStreak} days`}
+                  value={`${dayStreak} day`}
                   icon={<Zap className="h-4 w-4 text-amber-400" />}
                 />
                 <StatsCard

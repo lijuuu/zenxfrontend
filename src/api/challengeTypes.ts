@@ -1,5 +1,4 @@
 
-// Challenge API types with snake_case for API communication and camelCase for frontend
 
 // Import from existing types
 import { UserProfile } from '@/api/types';
@@ -25,6 +24,20 @@ export interface Challenge {
   participantUsers?: UserProfile[]; // Added to store participant user details
   leaderboard?: LeaderboardEntry[]; // Added for leaderboard data
 }
+
+// ProblemMetadataList holds a list of challenge problem metadata
+export interface ProblemMetadataList {
+  challengeProblemMetadata: ChallengeProblemMetadata[];
+}
+
+// ChallengeProblemMetadata represents metadata for a problem in a challenge
+export interface ChallengeProblemMetadata {
+  problemId: string;
+  score: number;
+  timeTaken: number;
+  completedAt: number;
+}
+
 
 // API request/response types with snake_case
 export interface CreateChallengeRequest {
@@ -102,13 +115,6 @@ export interface SubmissionStatus {
   created_at: number;
 }
 
-// ChallengeProblemMetadata represents metadata for a problem in a challenge
-export interface ChallengeProblemMetadata {
-  problemId: string;
-  score: number;
-  timeTaken: number;
-  completedAt: number;
-}
 
 // Snake case version for API
 export interface ChallengeProblemMetadataAPI {
@@ -118,10 +124,6 @@ export interface ChallengeProblemMetadataAPI {
   completed_at: number;
 }
 
-// ProblemMetadataList holds a list of challenge problem metadata
-export interface ProblemMetadataList {
-  challengeProblemMetadata: ChallengeProblemMetadata[];
-}
 
 // UserStats represents user statistics across challenges
 export interface UserStats {

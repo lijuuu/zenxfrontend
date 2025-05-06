@@ -63,10 +63,10 @@ const AppContent = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/profile/:userid" element={<Profile />} />
-        <Route path="/challenges" element={<MinimalChallenge />} />
+        {/* <Route path="/challenges" element={<MinimalChallenge />} /> */}
         {/* <Route path="/challenges2" element={<Challenges />} /> */}
-        <Route path="/quick-match" element={<QuickMatch />} />
-        <Route path="/challenge-room" element={<ChallengeInterface/>}></Route>
+        {/* <Route path="/quick-match" element={<QuickMatch />} /> */}
+        {/* <Route path="/challenge-room" element={<ChallengeInterface/>}></Route> */}
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/playground" element={<Compiler />} />

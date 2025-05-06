@@ -108,39 +108,6 @@ const Leaderboard = () => {
     </TableRow>
   );
 
-  const LoadingTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow className="border-b border-zinc-700/50 bg-zinc-900/30">
-          <TableHead className="w-16 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Rank</TableHead>
-          <TableHead className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">User</TableHead>
-          <TableHead className="text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">Score</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {Array(5).fill(0).map((_, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              <Skeleton className="h-6 w-6 bg-zinc-700/50" />
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center">
-                <Skeleton className="h-10 w-10 rounded-full bg-zinc-700/50" />
-                <div className="ml-4">
-                  <Skeleton className="h-4 w-32 bg-zinc-700/50" />
-                  <Skeleton className="h-3 w-24 mt-2 bg-zinc-700/50" />
-                </div>
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <Skeleton className="h-4 w-16 ml-auto bg-zinc-700/50" />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-
   if (isLoading) {
     return (
       <div className="pt-4 pb-16">
@@ -283,7 +250,7 @@ const Leaderboard = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-400">Country Rank</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">#{leaderboardData.EntityRank}</span>
+                    <span className="font-medium">#{leaderboardData.EntityRank+1}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-zinc-500">{leaderboardData.Entity.toUpperCase()}</span>
                     </div>

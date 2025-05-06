@@ -136,7 +136,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
     }
   }, [code, problemId, language]);
 
-  const handleCodeExecution = useCallback(async (type: string) => {
+  const handleCodeExecutionViaHTTP = useCallback(async (type: string) => {
     if (!problem) return;
 
     setIsExecuting(true);
@@ -193,10 +193,10 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
         });
       } else {
         setOutput([
-          `ProblemID: ${payload.problem_id}`,
-          `Language: ${payload.language}`,
-          `IsRunTestcase: ${payload.is_run_testcase}`,
-          `ExecutionResult: ${JSON.stringify(executionResult, null, 2)}`,
+          `problemID: ${payload.problem_id}`,
+          `language: ${payload.language}`,
+          `isRunTestcase: ${payload.is_run_testcase}`,
+          `executionResult: ${JSON.stringify(executionResult, null, 2)}`,
         ]);
         setExecutionResult(executionResult);
 
@@ -315,7 +315,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
             ))}
           </select>
           <Button
-            onClick={() => handleCodeExecution('run')}
+            onClick={() => handleCodeExecutionViaHTTP('run')}
             className="h-8 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 text-xs px-3"
             disabled={isExecuting}
           >
@@ -323,7 +323,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
             Run
           </Button>
           <Button
-            onClick={() => handleCodeExecution('submit')}
+            onClick={() => handleCodeExecutionViaHTTP('submit')}
             className="h-8 bg-green-600 hover:bg-green-700 text-white text-xs px-3"
             disabled={isExecuting}
           >
