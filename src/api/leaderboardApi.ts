@@ -1,5 +1,4 @@
 
-import { LeaderboardEntry } from './types';
 import axiosInstance from '@/utils/axiosInstance';
 
 export interface LeaderboardUser {
