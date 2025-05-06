@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star,Sparkles } from 'lucide-react';
+import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star, Sparkles } from 'lucide-react';
 import Footer from './Footer';
 import ChatBattleNotification from '@/components/challenges/ChatBattleNotification';
 import MainNavbar from './MainNavbar';
@@ -15,7 +15,7 @@ const Home = () => {
   const [showAnimation, setShowAnimation] = useState(false);
 
   const handleQuickMatch = () => {
-    navigate('/quick-match');
+    navigate('/problems');
   };
 
   const handleChallengeAccept = () => {
@@ -50,7 +50,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainNavbar isAuthenticated={false} />
+      <MainNavbar />
 
       <main className="flex-1 bg-gradient-to-b from-white to-green-50 dark:from-zinc-900 dark:to-zinc-950">
         {/* Hero Section */}
@@ -84,16 +84,16 @@ const Home = () => {
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <Flame className="h-5 w-5 group-hover:animate-pulse relative z-10" />
                   <span className="relative z-10">Quick Match</span>
-                 
+
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => navigate('/challenges')}
+                  onClick={() => navigate('/problems')}
                   className="py-6 px-8 rounded-xl dark:bg-zinc-800/80 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-700 flex items-center justify-center gap-2 transition-all backdrop-blur-sm"
                 >
                   <Sword className="h-5 w-5" />
-                  Browse Challenges
+                  Browse Problems
                 </Button>
               </div>
             </div>
@@ -149,7 +149,7 @@ const Home = () => {
                 Start coding with beginner-friendly tools to learn, practice, and grow your skills.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <Card className="border-green-100 dark:border-green-900/30 dark:bg-zinc-800/90 backdrop-blur-sm transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-green-200 dark:hover:border-green-800">
                 <CardHeader>
@@ -163,7 +163,7 @@ const Home = () => {
                   </CardDescription>
                 </CardHeader>
               </Card>
-              
+
               <Card className="border-green-100 dark:border-green-900/30 dark:bg-zinc-800/90 backdrop-blur-sm transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-green-200 dark:hover:border-green-800">
                 <CardHeader>
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/20 flex items-center justify-center mb-4 relative overflow-hidden group shadow-md">
@@ -176,7 +176,7 @@ const Home = () => {
                   </CardDescription>
                 </CardHeader>
               </Card>
-              
+
               <Card className="border-green-100 dark:border-green-900/30 dark:bg-zinc-800/90 backdrop-blur-sm transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-green-200 dark:hover:border-green-800">
                 <CardHeader>
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/20 flex items-center justify-center mb-4 relative overflow-hidden group shadow-md">
@@ -245,7 +245,7 @@ const Home = () => {
                 Meet friendly coders, ask questions, and start your coding adventure together.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className="border-green-100 dark:border-green-900/30 dark:bg-zinc-800/90 backdrop-blur-sm transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-green-200 dark:hover:border-green-800">
                 <CardHeader>
@@ -259,7 +259,7 @@ const Home = () => {
                   </CardDescription>
                 </CardHeader>
               </Card>
-              
+
               <Card className="border-green-100 dark:border-green-900/30 dark:bg-zinc-800/90 backdrop-blur-sm transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-green-200 dark:hover:border-green-800">
                 <CardHeader>
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/20 flex items-center justify-center mb-4 relative overflow-hidden group shadow-md">
@@ -272,7 +272,7 @@ const Home = () => {
                   </CardDescription>
                 </CardHeader>
               </Card>
-              
+
               <Card className="border-green-100 dark:border-green-900/30 dark:bg-zinc-800/90 backdrop-blur-sm transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-green-200 dark:hover:border-green-800">
                 <CardHeader>
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/20 flex items-center justify-center mb-4 relative overflow-hidden group shadow-md">

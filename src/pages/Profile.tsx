@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getChallenges } from "@/api/challengeApi";
+// import { getChallenges } from "@/api/challengeApi";
 import { Challenge } from "@/api/challengeTypes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
@@ -46,27 +46,6 @@ const Profile = React.memo(() => {
 
   // Fetch leaderboard data for this user on component mount
   const { data: leaderboardData } = useLeaderboard(profile?.userID);
-
-  useEffect(() => {
-    const loadChallenges = async () => {
-      if (profile?.userID) {
-        try {
-          const userChallenges = await getChallenges({ userId: profile.userID });
-          setChallenges(userChallenges || []);
-        } catch (error) {
-          console.error("Failed to load user challenges:", error);
-          toast({
-            title: "Error",
-            description: "Failed to load user challenges. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-
-    // if (!username) return;
-    loadChallenges();
-  }, [profile?.userID, username, toast]);
 
   // Count private and public challenges
   const privateChallenges = Array.isArray(challenges)

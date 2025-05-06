@@ -33,9 +33,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { Challenge } from "@/api/challengeTypes";
-import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
-import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
+// import { Challenge } from "@/api/challengeTypes";
+// import CreateChallengeForm from "@/components/challenges/CreateChallengeForm";
+// import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
 import { useProblemStats } from "@/services/useProblemStats";
 import { useProblemList } from "@/services/useProblemList";
 import { useChallenges, useUserChallengeHistory, useJoinChallenge } from "@/services/useChallenges";
@@ -43,207 +43,167 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { formatDate } from "@/utils/formattedDate";
 
 const MinimalChallenges = () => {
-  const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
-  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const navigate = useNavigate();
-  const user = useAppSelector(state => state.auth.userProfile);
+  // const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
+  // const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  // const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  // const navigate = useNavigate();
+  // const user = useAppSelector(state => state.auth.userProfile);
 
-  const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
+  // const { data: problemStats, isLoading: statsLoading } = useProblemStats("current");
 
-  const joinChallengeMutation = useJoinChallenge();
+  // const joinChallengeMutation = useJoinChallenge();
 
-  const { data: activeChallenges, isLoading: activeChallengesLoading } = useChallenges({
-    active: true,
-    pageSize: 10
-  });
-  const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({
-    isPrivate: false,
-  });
+  // const { data: activeChallenges, isLoading: activeChallengesLoading } = useChallenges({
+  //   active: true,
+  //   pageSize: 10
+  // });
+  // const { data: publicChallenges, isLoading: publicChallengesLoading } = useChallenges({
+  //   isPrivate: false,
+  // });
 
-  const { data: publicChallengeHistory, isLoading: publicHistoryLoading } = useUserChallengeHistory({
-    userId: user?.userID,
-    isPrivate: false
-  });
+  // const { data: publicChallengeHistory, isLoading: publicHistoryLoading } = useUserChallengeHistory({
+  //   userId: user?.userID,
+  //   isPrivate: false
+  // });
 
-  const { data: privateChallengeHistory, isLoading: privateHistoryLoading } = useUserChallengeHistory({
-    userId: user?.userID,
-    isPrivate: true
-  });
+  // const { data: privateChallengeHistory, isLoading: privateHistoryLoading } = useUserChallengeHistory({
+  //   userId: user?.userID,
+  //   isPrivate: true
+  // });
 
   // console.log("activeChallenges",activeChallenges)
   // console.log('publicChallengeHistory',publicChallengeHistory)
   // console.log('privateChallengeHistory',privateChallengeHistory)
 
-  const totalProblemsDone = problemStats
-    ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
-    : 0;
+  // const totalProblemsDone = problemStats
+  //   ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
+  //   : 0;
 
-  const loadChallenge = async (id: string) => {
-    try {
-      const challenge = [
-        ...(activeChallenges || []),
-        ...(publicChallenges || []),
-        ...(publicChallengeHistory?.challenges || []),
-        ...(privateChallengeHistory?.challenges || []),
-      ].find((c) => c.id === id);
+  // const loadChallenge = async (id: string) => {
+  //   try {
+  //     const challenge = [
+  //       ...(activeChallenges || []),
+  //       ...(publicChallenges || []),
+  //       ...(publicChallengeHistory?.challenges || []),
+  //       ...(privateChallengeHistory?.challenges || []),
+  //     ].find((c) => c.id === id);
 
-      if (challenge) {
-        setActiveChallenge(challenge);
-        setActiveChallengeId(id);
-      }
-    } catch (error) {
-      console.error("Failed to load challenge:", error);
-    }
-  };
+  //     if (challenge) {
+  //       setActiveChallenge(challenge);
+  //       setActiveChallengeId(id);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to load challenge:", error);
+  //   }
+  // };
 
-  const handleChallengeCreated = (newChallenge: Challenge) => {
-    toast.success(`Challenge "${newChallenge.title}" created successfully!`);
-  };
+  // const handleChallengeCreated = (newChallenge: Challenge) => {
+  //   toast.success(`Challenge "${newChallenge.title}" created successfully!`);
+  // };
 
-  const handleJoinChallenge = async (challenge: Challenge) => {
-    if (!challenge.id) return;
+  // const handleJoinChallenge = async (challenge: Challenge) => {
+  //   if (!challenge.id) return;
 
-    try {
-      await joinChallengeMutation.mutateAsync({
-        challengeId: challenge.id,
-        accessCode: challenge.isPrivate ? challenge.accessCode : undefined
-      });
+  //   try {
+  //     await joinChallengeMutation.mutateAsync({
+  //       challengeId: challenge.id,
+  //       accessCode: challenge.isPrivate ? challenge.accessCode : undefined
+  //     });
 
-      navigate(`/challenge-room/${challenge.id}`);
-    } catch (error) {
-      console.error("Failed to join challenge:", error);
-    }
-  };
+  //     navigate(`/challenge-room/${challenge.id}`);
+  //   } catch (error) {
+  //     console.error("Failed to join challenge:", error);
+  //   }
+  // };
 
-  const handleJoinSuccess = (challenge: Challenge) => {
-    toast.success(`Joined challenge "${challenge.title}" successfully!`);
-  };
+  // const handleJoinSuccess = (challenge: Challenge) => {
+  //   toast.success(`Joined challenge "${challenge.title}" successfully!`);
+  // };
 
-  const handleQuickMatch = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
-    const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
-    const password = Math.random().toString(36).substring(2, 8);
 
-    const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}`;
+  // const copyRoomInfo = (challenge: Challenge) => {
+  //   const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"
+  //     }\nDifficulty: ${challenge.difficulty}`;
+  //   navigator.clipboard.writeText(roomInfo);
+  //   toast.success("Room information copied to clipboard!");
+  // };
 
-    navigate(roomUrl);
-  };
-
-  const startFriendChallenge = (difficulty: "Easy" | "Medium" | "Hard" = "Easy") => {
-    const roomId = `rm_${Math.random().toString(36).substring(2, 10)}`;
-    const password = Math.random().toString(36).substring(2, 8);
-
-    const roomUrl = `/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
-
-    const shareableLink = `${window.location.origin}/quick-match?room=${roomId}&password=${password}&difficulty=${difficulty}&mode=friend`;
-
-    toast("Challenge created! Share this link with your friend.", {
-      description: (
-        <div className="mt-2">
-          <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded mb-2 text-xs font-mono">
-            <span className="truncate">{shareableLink}</span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6"
-              onClick={() => {
-                navigator.clipboard.writeText(shareableLink);
-                toast.success("Link copied to clipboard!");
-              }}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-          </div>
-          <Button size="sm" className="w-full" onClick={() => navigate(roomUrl)}>
-            Enter Challenge Room
-          </Button>
-        </div>
-      ),
-      duration: 10000,
-    });
-  };
-
-  const copyRoomInfo = (challenge: Challenge) => {
-    const roomInfo = `Challenge: ${challenge.title}\nRoom ID: ${challenge.id}\nAccess Code: ${challenge.accessCode || "None (Public)"
-      }\nDifficulty: ${challenge.difficulty}`;
-    navigator.clipboard.writeText(roomInfo);
-    toast.success("Room information copied to clipboard!");
-  };
-
-  const renderChallengeCard = (challenge: Challenge, actions?: React.ReactNode) => (
-    <Card
-      key={challenge.id}
-      className="cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => loadChallenge(challenge.id)}
-    >
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            {challenge.title}
-            {challenge.isPrivate && (
-              <Lock className="h-4 w-4 text-amber-500" />
-            )}
-          </CardTitle>
-          <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
-            {challenge.difficulty}
-          </div>
-        </div>
-        <CardDescription className="flex items-center gap-1">
-          <Clock className="h-3 w-3" /> Created:{" "}
-          {formatDate(challenge.createdAt)}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-4 w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">Creator ID: {challenge.creatorId.substring(0, 8)}...</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Challenge Creator</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">Problems: {challenge.problemIds.length}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" /> {challenge.participantIds.length || 0}{" "}
-                participants
-              </span>
-            </p>
-          </div>
-        </div>
-        <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
-          <span>Room ID: {challenge.id.substring(0, 8)}...</span>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              copyRoomInfo(challenge);
-            }}
-          >
-            <Copy className="h-3 w-3 mr-1" />
-            Copy Info
-          </Button>
-        </div>
-      </CardContent>
-      {actions && (
-        <CardFooter className="flex justify-end">
-          {actions}
-        </CardFooter>
-      )}
-    </Card>
-  );
+  // const renderChallengeCard = (challenge: Challenge, actions?: React.ReactNode) => (
+  //   <Card
+  //     key={challenge.id}
+  //     className="cursor-pointer hover:shadow-md transition-shadow"
+  //     onClick={() => loadChallenge(challenge.id)}
+  //   >
+  //     <CardHeader className="pb-2">
+  //       <div className="flex items-center justify-between">
+  //         <CardTitle className="flex items-center gap-2">
+  //           {challenge.title}
+  //           {challenge.isPrivate && (
+  //             <Lock className="h-4 w-4 text-amber-500" />
+  //           )}
+  //         </CardTitle>
+  //         <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded dark:bg-green-900/30 dark:text-green-300">
+  //           {challenge.difficulty}
+  //         </div>
+  //       </div>
+  //       <CardDescription className="flex items-center gap-1">
+  //         <Clock className="h-3 w-3" /> Created:{" "}
+  //         {formatDate(challenge.createdAt)}
+  //       </CardDescription>
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="flex items-center justify-between">
+  //         <div className="flex items-center gap-2">
+  //           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+  //             <User className="h-4 w-4 text-primary" />
+  //           </div>
+  //           <div>
+  //             <p className="text-sm font-medium">Creator ID: {challenge.creatorId.substring(0, 8)}...</p>
+  //             <p className="text-xs text-zinc-500 dark:text-zinc-400">Challenge Creator</p>
+  //           </div>
+  //         </div>
+  //         <div className="text-right">
+  //           <p className="text-sm font-medium">Problems: {challenge.problemIds.length}</p>
+  //           <p className="text-xs text-zinc-500 dark:text-zinc-400">
+  //             <span className="flex items-center gap-1">
+  //               <Users className="h-3 w-3" /> {challenge.participantIds.length || 0}{" "}
+  //               participants
+  //             </span>
+  //           </p>
+  //         </div>
+  //       </div>
+  //       <div className="mt-2 text-xs text-zinc-500 flex items-center justify-between">
+  //         <span>Room ID: {challenge.id.substring(0, 8)}...</span>
+  //         <Button
+  //           size="sm"
+  //           variant="ghost"
+  //           className="h-6 p-0"
+  //           onClick={(e) => {
+  //             e.stopPropagation();
+  //             copyRoomInfo(challenge);
+  //           }}
+  //         >
+  //           <Copy className="h-3 w-3 mr-1" />
+  //           Copy Info
+  //         </Button>
+  //       </div>
+  //     </CardContent>
+  //     {actions && (
+  //       <CardFooter className="flex justify-end">
+  //         {actions}
+  //       </CardFooter>
+  //     )}
+  //   </Card>
+  // );
 
   return (
     <div className="min-h-screen rounded-lg shadow-lg text-foreground pt-16 pb-8">
       <MainNavbar />
 
-      {activeChallengeId ? (
+      <p className="flex justify-center ">Ongoing Work</p>
+
+      {/* {activeChallengeId ? (
         <main className="page-container py-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold">{activeChallenge?.title || "Active Challenge"}</h1>
@@ -278,7 +238,7 @@ const MinimalChallenges = () => {
                     Create Challenge
                   </Button>
                 </div>
-              </div>
+              </div> */}
 
               {/* <div className=" gap-6">
                 <Card className="bento-card shadow-green-500/5 hover:shadow-green-500/10">
@@ -370,7 +330,7 @@ const MinimalChallenges = () => {
 
               </div> */}
 
-              <Tabs defaultValue="active" className="w-full">
+              {/* <Tabs defaultValue="active" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-4">
                   <TabsTrigger value="active">Active Challenges</TabsTrigger>
                   <TabsTrigger value="public">Public History</TabsTrigger>
@@ -541,7 +501,7 @@ const MinimalChallenges = () => {
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
         onSuccess={handleJoinSuccess}
-      />
+      /> */}
     </div>
   );
 };

@@ -48,11 +48,7 @@ interface NavItem {
   requiresAuth?: boolean;
 }
 
-interface MainNavbarProps {
-  isAuthenticated?: boolean;
-}
-
-const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) => {
+const MainNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const location = useLocation();
@@ -69,11 +65,11 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
   } = useGetUserProfile();
 
   // Determine authentication status
-  const isUserAuthenticated =  !!Cookies.get("accessToken");
+  const isUserAuthenticated = !!Cookies.get("accessToken");
 
   console.log(isUserAuthenticated, userProfile)
-  
-  if (!isUserAuthenticated || !userProfile?.userID ){
+
+  if (!isUserAuthenticated || !userProfile?.userID) {
     refetch()
   }
 
@@ -174,10 +170,10 @@ const MainNavbar = ({ isAuthenticated: propIsAuthenticated }: MainNavbarProps) =
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              aria-label="Search" 
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Search"
               className="text-zinc-400 hover:text-white"
               onClick={handleSearchClick}
             >
