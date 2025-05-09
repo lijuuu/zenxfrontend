@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useUpdateUserProfile } from "@/services/useUpdateUserProfile";
 import { useUpdateProfileImage } from "@/services/useUpdateProfileImage";
@@ -18,6 +17,9 @@ import SimpleSpinLoader from "../ui/simplespinloader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Cropper from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
+import useCountries from '@/hooks/useCountries';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 // validation schema
 const profileSchema = z.object({
@@ -28,7 +30,73 @@ const profileSchema = z.object({
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
   bio: z.string().max(160).optional(),
+  country: z.string().min(1, 'Country is required'),
 });
+
+// CountriesWithFlags component
+const CountriesWithFlags = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) => {
+  const { countries } = useCountries();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleSelect = (name: string) => {
+    onChange(name);
+    setDropdownOpen(false);
+  };
+
+  const selectedCountryCode = value
+    ? Object.keys(countries).find((code) => countries[code] === value)
+    : '';
+
+  return (
+    <div className="relative w-full">
+      <Label className="block text-sm font-medium text-white">Country</Label>
+      <div
+        className="flex items-center justify-between bg-zinc-800 text-white p-3 rounded-md mt-1 cursor-pointer hover:border-green-500 border border-zinc-700 transition-all duration-200"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+      >
+        {value && selectedCountryCode ? (
+          <div className="flex items-center space-x-2">
+            <img
+              src={`https://flagcdn.com/24x18/${selectedCountryCode.toLowerCase()}.png`}
+              alt={`${value} flag`}
+              className="w-6 h-6"
+            />
+            <span>{value}</span>
+          </div>
+        ) : (
+          <span>Select a country</span>
+        )}
+        <span>▼</span>
+      </div>
+      {dropdownOpen && (
+        <div className="absolute w-full bg-zinc-900 text-white mt-2 max-h-60 overflow-y-auto rounded-xl shadow-lg z-10 border border-zinc-800">
+          {Object.entries(countries)
+            .sort(([, a], [, b]) => a.localeCompare(b))
+            .map(([code, name]) => (
+              <div
+                key={code}
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-zinc-800 cursor-pointer transition-colors duration-200"
+                onClick={() => handleSelect(name)}
+              >
+                <img
+                  src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
+                  alt={`${name} flag`}
+                  className="w-6 h-6"
+                />
+                <span>{name}</span>
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -48,23 +116,78 @@ const ProfileEditTab: React.FC = () => {
   const { mutate: updateProfileImage, isPending: isUpdatingImage } = useUpdateProfileImage(userProfile?.userID);
   const queryClient = useQueryClient();
 
+  const { control, register, handleSubmit, formState: { errors }, setValue } = useForm<{
+    userName: string;
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    country: string;
+    primaryLanguageID?: string;
+    muteNotifications?: boolean;
+    github?: string;
+    twitter?: string;
+    linkedin?: string;
+  }>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      userName: userProfile?.userName || '',
+      firstName: userProfile?.firstName || '',
+      lastName: userProfile?.lastName || '',
+      bio: userProfile?.bio || '',
+      country: userProfile?.country || '',
+      primaryLanguageID: userProfile?.primaryLanguageID || '',
+      muteNotifications: userProfile?.muteNotifications || false,
+      github: userProfile?.socials?.github || '',
+      twitter: userProfile?.socials?.twitter || '',
+      linkedin: userProfile?.socials?.linkedin || '',
+    },
+  });
+
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "not_available">("idle");
   const [usernameError, setUsernameError] = useState<string>("");
   const [suggestedUsernames, setSuggestedUsernames] = useState<string[]>([]);
   const [currentUsername, setCurrentUsername] = useState<string>("");
   const debouncedUsername = useDebounce(currentUsername, 500);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [crop, setCrop ] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // set initial username
+  // set initial values
   useEffect(() => {
     if (userProfile?.userName) {
       setCurrentUsername(userProfile.userName);
+      setValue('userName', userProfile.userName);
     }
-  }, [userProfile?.userName]);
+    if (userProfile?.country) {
+      setValue('country', userProfile.country);
+    }
+    if (userProfile?.firstName) {
+      setValue('firstName', userProfile.firstName);
+    }
+    if (userProfile?.lastName) {
+      setValue('lastName', userProfile.lastName);
+    }
+    if (userProfile?.bio) {
+      setValue('bio', userProfile.bio);
+    }
+    if (userProfile?.primaryLanguageID) {
+      setValue('primaryLanguageID', userProfile.primaryLanguageID);
+    }
+    if (userProfile?.muteNotifications !== undefined) {
+      setValue('muteNotifications', userProfile.muteNotifications);
+    }
+    if (userProfile?.socials?.github) {
+      setValue('github', userProfile.socials.github);
+    }
+    if (userProfile?.socials?.twitter) {
+      setValue('twitter', userProfile.socials.twitter);
+    }
+    if (userProfile?.socials?.linkedin) {
+      setValue('linkedin', userProfile.socials.linkedin);
+    }
+  }, [userProfile, setValue]);
 
   // check username availability
   useEffect(() => {
@@ -115,36 +238,42 @@ const ProfileEditTab: React.FC = () => {
   // handle username change
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentUsername(e.target.value);
+    setValue('userName', e.target.value);
   };
 
   // handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
     setCurrentUsername(suggestion);
+    setValue('userName', suggestion);
     setUsernameError("");
   };
 
   // handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (usernameStatus !== "available" && currentUsername !== userProfile?.userName) {
-      setUsernameError("please choose an available username");
-      return;
-    }
-
-    const formData = new FormData(e.currentTarget);
+  const onSubmit = (formData: {
+    userName: string;
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    country: string;
+    primaryLanguageID?: string;
+    muteNotifications?: boolean;
+    github?: string;
+    twitter?: string;
+    linkedin?: string;
+  }) => {
     const profileData = {
       userID: userProfile?.userID,
-      userName: formData.get("userName") as string,
-      firstName: formData.get("firstName") as string,
-      lastName: formData.get("lastName") as string,
-      country: formData.get("country") as string,
-      primaryLanguageID: formData.get("primaryLanguageID") as string,
-      muteNotifications: formData.get("muteNotifications") === "on",
-      bio: formData.get("bio") as string,
+      userName: formData.userName,
+      firstName: formData.firstName || '',
+      lastName: formData.lastName || '',
+      country: formData.country,
+      primaryLanguageID: formData.primaryLanguageID || '',
+      muteNotifications: formData.muteNotifications || false,
+      bio: formData.bio || '',
       socials: {
-        github: formData.get("github") as string,
-        twitter: formData.get("twitter") as string,
-        linkedin: formData.get("linkedin") as string,
+        github: formData.github || '',
+        twitter: formData.twitter || '',
+        linkedin: formData.linkedin || '',
       },
     };
 
@@ -153,10 +282,13 @@ const ProfileEditTab: React.FC = () => {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
       bio: profileData.bio,
+      country: profileData.country,
     });
 
     if (validation.success) {
       updateUser(profileData);
+    } else {
+      console.error(validation.error);
     }
   };
 
@@ -238,7 +370,7 @@ const ProfileEditTab: React.FC = () => {
           <SimpleSpinLoader />
         </div>
       )}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Card className="border border-zinc-800 bg-zinc-900/40">
           <CardHeader>
             <CardTitle className="text-xl">Personal Information</CardTitle>
@@ -291,18 +423,17 @@ const ProfileEditTab: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" name="firstName" defaultValue={userProfile?.firstName} />
+                    <Input id="firstName" {...register('firstName')} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" name="lastName" defaultValue={userProfile?.lastName} />
+                    <Input id="lastName" {...register('lastName')} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="userName">Username</Label>
                   <Input
                     id="userName"
-                    name="userName"
                     value={currentUsername}
                     onChange={handleUsernameChange}
                     className={usernameError ? "border-red-500" : ""}
@@ -343,58 +474,48 @@ const ProfileEditTab: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea id="bio" name="bio" defaultValue={userProfile?.bio} rows={4} />
+                  <Textarea id="bio" {...register('bio')} rows={4} />
+                </div>
+                <div className="space-y-2">
+                  <Controller
+                    name="country"
+                    control={control}
+                    render={({ field }) => (
+                      <CountriesWithFlags value={field.value} onChange={field.onChange} />
+                    )}
+                  />
+                  {errors.country && (
+                    <p className="text-red-500 text-sm">{errors.country.message}</p>
+                  )}
                 </div>
               </div>
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Select name="country" defaultValue={userProfile?.country}>
-                  <SelectTrigger id="country">
-                    <SelectValue placeholder="Select Your Country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="us">United States</SelectItem>
-                    <SelectItem value="ca">Canada</SelectItem>
-                    <SelectItem value="uk">United Kingdom</SelectItem>
-                    <SelectItem value="in">India</SelectItem>
-                    <SelectItem value="au">Australia</SelectItem>
-                    <SelectItem value="de">Germany</SelectItem>
-                    <SelectItem value="fr">France</SelectItem>
-                    <SelectItem value="jp">Japan</SelectItem>
-                    <SelectItem value="br">Brazil</SelectItem>
-                    <SelectItem value="ng">Nigeria</SelectItem>
-                    <SelectItem value="cn">China</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="primaryLanguageID">Preferred Language</Label>
-                <Select name="primaryLanguageID" defaultValue={userProfile?.primaryLanguageID}>
-                  <SelectTrigger id="primaryLanguageID">
-                    <SelectValue placeholder="Select Language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="js">JavaScript</SelectItem>
-                    <SelectItem value="py">Python</SelectItem>
-                    <SelectItem value="java">Java</SelectItem>
-                    <SelectItem value="cpp">C++</SelectItem>
-                    <SelectItem value="cs">C#</SelectItem>
-                    <SelectItem value="go">Go</SelectItem>
-                    <SelectItem value="ts">TypeScript</SelectItem>
-                    <SelectItem value="ruby">Ruby</SelectItem>
-                    <SelectItem value="php">PHP</SelectItem>
-                    <SelectItem value="swift">Swift</SelectItem>
-                    <SelectItem value="kotlin">Kotlin</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  id="primaryLanguageID"
+                  {...register('primaryLanguageID')}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
+                >
+                  <option value="">Select Language</option>
+                  <option value="js">JavaScript</option>
+                  <option value="py">Python</option>
+                  <option value="java">Java</option>
+                  <option value="cpp">C++</option>
+                  <option value="cs">C#</option>
+                  <option value="go">Go</option>
+                  <option value="ts">TypeScript</option>
+                  <option value="ruby">Ruby</option>
+                  <option value="php">PHP</option>
+                  <option value="swift">Swift</option>
+                  <option value="kotlin">Kotlin</option>
+                </select>
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="muteNotifications"
-                  name="muteNotifications"
-                  defaultChecked={userProfile?.muteNotifications}
+                  {...register('muteNotifications')}
                 />
                 <Label htmlFor="muteNotifications">Mute Notifications</Label>
               </div>
@@ -409,21 +530,21 @@ const ProfileEditTab: React.FC = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="github">Github</Label>
-              <Input id="github" name="github" defaultValue={userProfile?.socials?.github} />
+              <Input id="github" {...register('github')} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="twitter">Twitter</Label>
-              <Input id="twitter" name="twitter" defaultValue={userProfile?.socials?.twitter} />
+              <Input id="twitter" {...register('twitter')} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="linkedin">Linkedin</Label>
-              <Input id="linkedin" name="linkedin" defaultValue={userProfile?.socials?.linkedin} />
+              <Input id="linkedin" {...register('linkedin')} />
             </div>
             <div className="flex justify-end mt-6">
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700"
-                disabled={isUpdating || (currentUsername !== userProfile?.userName && usernameStatus !== "available")}
+                disabled={isUpdating}
               >
                 {isUpdating ? "Saving..." : "Save Changes"}
               </Button>

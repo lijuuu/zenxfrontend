@@ -7,7 +7,7 @@ import { Submission } from "@/api/types";
 interface UseRecentSubmissionsOptions {
   userId: string;
   page?: number;
-  limit?:number;
+  limit?: number;
 }
 
 export const useRecentSubmissions = ({
@@ -16,9 +16,10 @@ export const useRecentSubmissions = ({
   limit
 }: UseRecentSubmissionsOptions) => {
   return useQuery<Submission[], Error>({
-    queryKey: ['submissions', userId, page], 
-    queryFn: () => getUserSubmissions(userId, "", page,limit),
+    queryKey: ['submissions', userId, page],
+    queryFn: () => getUserSubmissions(userId, "", page, limit),
     enabled: !!userId,
-    refetchOnWindowFocus: true, 
+    refetchOnMount: true, // refetches when component remounts
+    refetchOnWindowFocus: 'always', // refetches every time window regains focus
   });
 };

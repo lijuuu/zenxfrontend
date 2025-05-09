@@ -190,7 +190,7 @@ const ProblemListing: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Button
               variant="outline"
               className="border-zinc-700 hover:bg-zinc-800"
@@ -199,7 +199,7 @@ const ProblemListing: React.FC = () => {
               <Loader2 className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-          </div>
+          </div> */}
         </div>
 
         <div className="bg-zinc-800/40 border border-zinc-700/40 rounded-lg p-6 mb-6">
