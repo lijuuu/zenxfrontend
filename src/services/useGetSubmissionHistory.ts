@@ -7,7 +7,7 @@ import { Submission } from "@/api/types";
 interface UseRecentSubmissionsOptions {
   userId: string;
   page?: number;
-  limit?: number;
+  limit?:number;
 }
 
 export const useRecentSubmissions = ({
