@@ -37,7 +37,6 @@ const commentSchema = z.object({
 
 const IssuesPage: React.FC = () => {
   const { issues, isLoading, addIssue, addComment, updateIssueStatus } = useIssues();
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
@@ -120,17 +119,6 @@ const IssuesPage: React.FC = () => {
         return "bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500/20";
     }
   };
-
-  // Redirect to login if not authenticated
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: '/issues' } });
-    }
-  }, [isAuthenticated, navigate]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
