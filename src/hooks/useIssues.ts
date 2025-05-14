@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useGetUserProfile } from '@/services/useGetUserProfile';
+
 
 export interface Issue {
   id: string;
@@ -33,7 +34,8 @@ export interface IssueComment {
 export const useIssues = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { userProfile } = useAuth();
+  const { data: userProfile } = useGetUserProfile();
+
   const { toast } = useToast();
 
   // Load issues from localStorage on mount
@@ -87,12 +89,12 @@ export const useIssues = () => {
     };
 
     setIssues(prev => [newIssue, ...prev]);
-    
+
     toast({
       title: "Issue reported",
       description: "Thank you for your feedback!",
     });
-    
+
     return newIssue;
   };
 
@@ -117,21 +119,21 @@ export const useIssues = () => {
       },
     };
 
-    setIssues(prev => 
-      prev.map(issue => 
-        issue.id === issueId 
-          ? { 
-              ...issue, 
-              comments: [...(issue.comments || []), newComment] 
-            }
+    setIssues(prev =>
+      prev.map(issue =>
+        issue.id === issueId
+          ? {
+            ...issue,
+            comments: [...(issue.comments || []), newComment]
+          }
           : issue
       )
     );
-    
+
     toast({
       description: "Comment added",
     });
-    
+
     return newComment;
   };
 
@@ -145,14 +147,14 @@ export const useIssues = () => {
       return;
     }
 
-    setIssues(prev => 
-      prev.map(issue => 
-        issue.id === issueId 
-          ? { ...issue, status } 
+    setIssues(prev =>
+      prev.map(issue =>
+        issue.id === issueId
+          ? { ...issue, status }
           : issue
       )
     );
-    
+
     toast({
       description: `Issue status updated to ${status}`,
     });

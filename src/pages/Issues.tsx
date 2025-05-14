@@ -13,13 +13,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Issue, useIssues } from '@/hooks/useIssues';
-import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bug, HelpCircle, Lightbulb, MessageSquare, FileText, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDistanceToNow } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
-import { useNavigate } from 'react-router-dom';
 
 // Form schema for creating a new issue
 const formSchema = z.object({
@@ -37,7 +35,6 @@ const commentSchema = z.object({
 
 const IssuesPage: React.FC = () => {
   const { issues, isLoading, addIssue, addComment, updateIssueStatus } = useIssues();
-  const navigate = useNavigate();
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [isNewIssueOpen, setIsNewIssueOpen] = useState(false);
