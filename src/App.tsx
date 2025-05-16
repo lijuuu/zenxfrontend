@@ -33,7 +33,6 @@ import FollowersPage from "./pages/FollowersPage";
 import FollowingPage from "./pages/FollowingPage";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import ChallengeInterface from "./components/challenges/ChallengeInterface";
-import Issues from "./pages/Issues"; // Import the new Issues page
 
 // Create a client
 const queryClient = new QueryClient({
@@ -71,7 +70,6 @@ const AppContent = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/playground" element={<Compiler />} />
-        <Route path="/issues" element={<Issues />} /> {/* Add the new Issues route */}
 
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />

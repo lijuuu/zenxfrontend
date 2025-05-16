@@ -1,7 +1,6 @@
 import * as monaco from 'monaco-editor';
 import { useEffect, useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { Loader2 } from 'lucide-react';
 
 interface CodeEditorProps {
   value: string;
@@ -12,7 +11,6 @@ interface CodeEditorProps {
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, language, loading }) => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const [editorTheme, setEditorTheme] = useState<string>('vs-dark');
 
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
@@ -41,7 +39,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, languag
         value={value}
         onChange={(v) => onChange(v || '')}
         onMount={handleEditorDidMount}
-        theme={editorTheme}
+        theme={'vs-dark'}
         options={{
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
@@ -50,6 +48,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, languag
           fontFamily: 'JetBrains Mono, monospace, Consolas, "Courier New"',
           tabSize: 2,
           wordWrap: 'on',
+          autoIndent: 'full',
           cursorBlinking: 'smooth',
           cursorSmoothCaretAnimation: 'on',
           smoothScrolling: true,
@@ -62,7 +61,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, languag
           suggest: { showMethods: true, showFunctions: true, showConstructors: true, showFields: true, showVariables: true, showClasses: true, showInterfaces: true },
         }}
       />
-      
+
 
     </div>
   );

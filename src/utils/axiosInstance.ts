@@ -48,7 +48,7 @@ const refreshAccessToken = async () => {
   try {
     const refreshToken = Cookies.get('refreshToken');
     if (!refreshToken) {
-      throw new Error('no refresh token available');
+      throw new Error('please login');
     }
 
     const response = await axios.post(`${baseURL}/auth/token/refresh`, { refreshToken });
