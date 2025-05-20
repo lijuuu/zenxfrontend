@@ -11,6 +11,7 @@ import { CodeEditor } from './CodeEditor';
 import { Console } from './Console';
 import { Timer } from './Timer';
 import Loader3 from '../ui/loader3';
+import CodeResetModal from '@/components/common/CodeResetModal';
 
 import {
   TestCase,
@@ -79,6 +80,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
   const [customTestCases, setCustomTestCases] = useState<TestCase[]>([]);
   const [consoleTab, setConsoleTab] = useState<'output' | 'tests' | 'custom'>('tests');
   const [showDescription, setShowDescription] = useState<boolean>(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { data: userProfile } = useGetUserProfile();
@@ -135,6 +137,38 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
       localStorage.setItem(codeKey, code);
     }
   }, [code, problemId, language]);
+
+  const handleResetCode = () => {
+    if (problem && language) {
+      setIsResetModalOpen(true);
+    }
+  };
+
+  const confirmResetCode = () => {
+    if (problem && language) {
+      const codeKey = `${problem.problem_id}_${language}`;
+      localStorage.removeItem(codeKey);
+      setCode(problem.placeholder_maps[language] || '');
+      setOutput([]);
+      setExecutionResult(null);
+      setCustomTestCases([]);
+      setConsoleTab('tests');
+      toast.info('Code Reset', { description: 'Editor reset to default code.' });
+      setIsResetModalOpen(false);
+    }
+  };
+
+  const cancelResetCode = () => {
+    setIsResetModalOpen(false);
+  };
+
+  // New function to reset console output
+  const handleResetOutput = () => {
+    setOutput([]); // Clear the output
+    setExecutionResult(null); // Clear the execution result
+    setConsoleTab('tests'); // Switch back to the 'tests' tab
+    toast.info('Output Reset', { description: 'Console output has been cleared.' }); // Notify the user
+  };
 
   const handleCodeExecutionViaHTTP = useCallback(async (type: string) => {
     if (!problem) return;
@@ -232,19 +266,6 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
     }
   }, [code, problem, language]);
 
-  const handleResetCode = () => {
-    if (problem && language) {
-      const codeKey = `${problem.problem_id}_${language}`;
-      localStorage.removeItem(codeKey);
-      setCode(problem.placeholder_maps[language] || '');
-      setOutput([]);
-      setExecutionResult(null);
-      setCustomTestCases([]);
-      setConsoleTab('tests');
-      toast.info('Code Reset', { description: 'Editor reset to default code.' });
-    }
-  };
-
   const handleAddCustomTestCase = (input: string, expected: string) => {
     setCustomTestCases(prev => [...prev, { input, expected }]);
     toast.success('Custom Test Case Added', { description: 'Added to your test cases.' });
@@ -311,12 +332,14 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
             className="text-xs rounded-md bg-zinc-800 border-zinc-700 text-zinc-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500/30"
           >
             {problem.supported_languages.map(lang => (
-              <option key={lang} value={lang}>{lang}</option>
+              <option key={lang} value={lang}>
+                {lang.charAt(0).toUpperCase() + lang.slice(1)}
+              </option>
             ))}
           </select>
           <Button
             onClick={() => handleCodeExecutionViaHTTP('run')}
-            className="h-8 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 text-xs px-3"
+            className="h-8 bg-yellow-700 hover:bg-yellow-800 text-zinc-300 border border-zinc-700 text-xs px-3"
             disabled={isExecuting}
           >
             <Play className="h-3.5 w-3.5 mr-1" />
@@ -328,6 +351,12 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
             disabled={isExecuting}
           >
             Submit
+          </Button>
+          <Button
+            onClick={handleResetCode}
+            className="h-8 bg-red-600 hover:bg-red-700 text-white text-xs px-3"
+          >
+            Reset
           </Button>
         </div>
       </div>
@@ -375,7 +404,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
                   output={output}
                   executionResult={executionResult}
                   isMobile={isMobile}
-                  onReset={handleResetCode}
+                  onResetOutput={handleResetOutput} 
                   testCases={problem.testcase_run?.run || []}
                   customTestCases={customTestCases}
                   onAddCustomTestCase={handleAddCustomTestCase}
@@ -387,6 +416,12 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+
+      <CodeResetModal
+        isOpen={isResetModalOpen}
+        onResetCancel={cancelResetCode}
+        onResetConfirm={confirmResetCode}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef,useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   TestCase,
   ExecutionResult,
@@ -8,12 +8,11 @@ import { Play, RefreshCw, CheckCircle, XCircle, ArrowLeft, Plus } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-
 interface ConsoleProps {
   output: string[];
   executionResult: ExecutionResult | null;
   isMobile: boolean;
-  onReset: () => void;
+  onResetOutput: () => void;
   testCases: TestCase[];
   customTestCases: TestCase[];
   onAddCustomTestCase: (input: string, expected: string) => void;
@@ -25,7 +24,7 @@ export const Console: React.FC<ConsoleProps> = ({
   output = [],
   executionResult,
   isMobile,
-  onReset,
+  onResetOutput,
   testCases = [],
   customTestCases = [],
   onAddCustomTestCase,
@@ -53,9 +52,6 @@ export const Console: React.FC<ConsoleProps> = ({
   return (
     <motion.div
       className="h-full overflow-hidden flex flex-col bg-zinc-900 border-t border-zinc-800"
-    // initial={{ opacity: 0, y: 20 }}
-    // animate={{ opacity: 1, y: 0 }}
-    // transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2 bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -78,6 +74,7 @@ export const Console: React.FC<ConsoleProps> = ({
             >
               Test Cases
             </Button>
+            {/* Uncomment if you want to re-enable the Custom Tests tab */}
             {/* <Button
               variant="ghost"
               size="sm"
@@ -88,14 +85,17 @@ export const Console: React.FC<ConsoleProps> = ({
             </Button> */}
           </div>
         </div>
-        <motion.button
-          onClick={onReset}
-          className="px-2 py-1 rounded-md flex items-center gap-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-          whileTap={{ scale: 0.97 }}
-          whileHover={{ scale: 1.02 }}
-        >
-          <RefreshCw className="h-4 w-4" /> Reset
-        </motion.button>
+        <div className="flex gap-2">
+          <motion.button
+            onClick={onResetOutput} // Add the Reset Output button
+            className="px-2 py-1 rounded-md flex items-center gap-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <RefreshCw className="h-4 w-4" /> Reset Output
+          </motion.button>
+         
+        </div>
       </div>
 
       <div className="overflow-y-auto p-3 font-mono text-sm flex-grow bg-[#1A1D23]">

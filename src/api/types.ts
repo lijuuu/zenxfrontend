@@ -494,47 +494,6 @@ export interface SubmissionStatus {
   created_at: number;
 }
 
-// API response wrapper for challenge operations
-export interface ChallengeResponse {
-  success: boolean;
-  challenge?: Challenge;
-  message?: string;
-}
-
-// Challenge represents a coding challenge
-export interface Challenge {
-  id: string;
-  title: string;
-  creatorId: string;
-  difficulty: string;
-  isPrivate: boolean;
-  status: string;
-  password?: string; // Only for private challenges
-  accessCode?: string; // Frontend version of password
-  problemIds: string[];
-  timeLimit: number;
-  createdAt: number;
-  isActive: boolean;
-  participantIds: string[];
-  userProblemMetadata?: { [key: string]: ProblemMetadataList };
-  startTime?: number;
-  endTime?: number;
-  participantUsers?: UserProfile[]; // Added to store participant user details
-}
-
-// ChallengeProblemMetadata represents metadata for a problem in a challenge
-export interface ChallengeProblemMetadata {
-  problemId: string;
-  score: number;
-  timeTaken: number;
-  completedAt: number;
-}
-
-// ProblemMetadataList holds a list of challenge problem metadata
-export interface ProblemMetadataList {
-  challengeProblemMetadata: ChallengeProblemMetadata[];
-}
-
 // UserStats represents user statistics across challenges
 export interface UserStats {
   userId: string;
@@ -576,12 +535,7 @@ export interface GetChallengeDetailsRequest {
   userId: string;
 }
 
-// GetChallengeDetailsResponse represents the response for getting challenge details
-export interface GetChallengeDetailsResponse {
-  challenge: Challenge;
-  leaderboard: LeaderboardEntry[];
-  userMetadata: ProblemMetadataList;
-}
+
 
 // GetPublicChallengesRequest represents the request to get public challenges
 export interface GetPublicChallengesRequest {
@@ -593,10 +547,7 @@ export interface GetPublicChallengesRequest {
   includePrivate: boolean;
 }
 
-// GetPublicChallengesResponse represents the response for getting public challenges
-export interface GetPublicChallengesResponse {
-  challenges: Challenge[];
-}
+
 
 // JoinChallengeRequest represents the request to join a challenge
 export interface JoinChallengeRequest {
@@ -670,15 +621,6 @@ export interface GetUserStatsResponse {
 export interface GetChallengeUserStatsRequest {
   challengeId: string;
   userId: string;
-}
-
-// GetChallengeUserStatsResponse represents the response for getting challenge-specific user stats
-export interface GetChallengeUserStatsResponse {
-  userId: string;
-  problemsCompleted: number;
-  totalScore: number;
-  rank: number;
-  challengeProblemMetadata: ChallengeProblemMetadata[];
 }
 
 
