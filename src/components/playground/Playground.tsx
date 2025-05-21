@@ -162,12 +162,11 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
     setIsResetModalOpen(false);
   };
 
-  // New function to reset console output
+
   const handleResetOutput = () => {
-    setOutput([]); // Clear the output
-    setExecutionResult(null); // Clear the execution result
-    setConsoleTab('tests'); // Switch back to the 'tests' tab
-    toast.info('Output Reset', { description: 'Console output has been cleared.' }); // Notify the user
+    setOutput([]);
+    setExecutionResult(null);
+    setConsoleTab('tests');
   };
 
   const handleCodeExecutionViaHTTP = useCallback(async (type: string) => {
@@ -218,12 +217,12 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
       const payload = data.payload;
       const executionResult = payload.rawoutput;
 
-      if (executionResult.syntaxError) {
-        setOutput([`[Error] Syntax Error: ${executionResult.syntaxError}`]);
+      if (executionResult.error) {
+        setOutput([`[Error] ${executionResult?.error}`]);
         setExecutionResult(executionResult);
         setConsoleTab('output');
         toast.error(`Syntax Error`, {
-          description: executionResult.syntaxError,
+          description: executionResult.error,
         });
       } else {
         setOutput([
@@ -251,20 +250,36 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
       }
     } catch (error) {
       const rawError = error as any;
-      const errorMessage =
-        rawError?.data?.payload?.randomoutput?.failedTestCase?.error ||
-        (error instanceof Error ? error.message : 'Network error occurred');
 
-      setOutput([`[Error] ${errorMessage}`]);
+      // try to get rawoutput if server responded with failure payload
+      let cliError =
+        rawError?.response?.data?.payload?.rawoutput?.failedTestCase?.error ??
+        rawError?.response?.data?.payload?.rawoutput?.error;
+
+        if (cliError){
+          cliError = "SyntaxError"
+        }
+
+      const fallbackMessage =
+        rawError?.response?.data?.error?.message ??
+        (error instanceof Error ? error.message : 'Execution failed');
+
+      const finalErrorMessage = cliError?.trim()
+        ? cliError.trim()
+        : fallbackMessage;
+
+      setOutput([`[Error] ${finalErrorMessage}`]);
       setConsoleTab('output');
+
       toast.error(`${type === 'run' ? 'Run' : 'Submit'} Failed`, {
-        description: errorMessage,
+        description: finalErrorMessage,
       });
     } finally {
       setIsLoading(false);
       setIsExecuting(false);
     }
   }, [code, problem, language]);
+
 
   const handleAddCustomTestCase = (input: string, expected: string) => {
     setCustomTestCases(prev => [...prev, { input, expected }]);
@@ -390,7 +405,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
 
           <ResizablePanel defaultSize={isMobile ? (showDescription ? 60 : 100) : 70} className="flex flex-col">
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={isMobile ? 60 : 70} minSize={40} maxSize={80}>
+              <ResizablePanel defaultSize={isMobile ? 60 : 70} minSize={10} maxSize={80}>
                 <CodeEditor
                   value={code}
                   onChange={setCode}
@@ -404,7 +419,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
                   output={output}
                   executionResult={executionResult}
                   isMobile={isMobile}
-                  onResetOutput={handleResetOutput} 
+                  onResetOutput={handleResetOutput}
                   testCases={problem.testcase_run?.run || []}
                   customTestCases={customTestCases}
                   onAddCustomTestCase={handleAddCustomTestCase}

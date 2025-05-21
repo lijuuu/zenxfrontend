@@ -381,7 +381,7 @@ export type ExecutionResult = {
   failedTestCases: number;
   overallPass: boolean;
   failedTestCase?: TestResult;
-  syntaxError?: string;
+  error?: string;
 };
 
 export type ApiResponsePayload = {
