@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { getUserLeaderboardData, LeaderboardData } from "@/api/leaderboardApi";
+import { getUserLeaderboardData } from "@/api/leaderboardApi";
 
 export const useLeaderboard = (userId?: string) => {
   return useQuery({

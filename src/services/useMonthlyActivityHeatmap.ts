@@ -70,7 +70,8 @@ export const useMonthlyActivity = (userID: string, month: number, year: number) 
     queryKey,
     queryFn: () => fetchMonthlyActivity({ userID: effectiveUserID, month, year }),
     enabled: !!effectiveUserID && month >= 1 && month <= 12 && year >= 1970 && year <= 9999,
-    staleTime: 5 * 60 * 1000,
+    // staleTime: 5 * 60 * 1000,
     retry: 1,
+    refetchOnWindowFocus:true
   });
 };

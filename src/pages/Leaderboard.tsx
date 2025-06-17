@@ -83,30 +83,43 @@ const Leaderboard = () => {
           <RankBadge rank={rank} />
         </div>
       </TableCell>
+
       <TableCell>
         <Link to={`/profile/${user.UserName}`} className="flex items-center group">
           <div className="h-10 w-10 rounded-full overflow-hidden border border-zinc-700">
-            <img src={user.AvatarURL} alt={user.UserName} className="h-full w-full object-cover" />
+            <img
+              src={user.AvatarURL}
+              alt={user.UserName}
+              className="h-full w-full object-cover"
+            />
           </div>
+
           <div className="ml-4">
             <div className="text-sm font-medium text-white group-hover:text-green-400 transition-colors">
               {user.UserName}
             </div>
-            <div className="text-xs text-zinc-500 flex items-center gap-1">
-              {user.Entity && (
-                <span className="ml-1 inline-flex items-center gap-1">
-                  <Flag className="w-3 h-3" /> {user.Entity.toUpperCase()}
-                </span>
-              )}
-            </div>
+
+            {user.Entity && (
+              <div className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
+                <Flag className="w-3 h-3" />
+                <span>{user.Entity.toUpperCase()}</span>
+                <img
+                  src={`https://flagcdn.com/24x18/${user.Entity.toLowerCase()}.png`}
+                  alt={`${user.Entity} flag`}
+                  className="ml-1 w-4 h-3 object-cover rounded-sm"
+                />
+              </div>
+            )}
           </div>
         </Link>
       </TableCell>
+
       <TableCell className="text-right">
         <div className="text-sm font-semibold text-white">{user.Score.toLocaleString()}</div>
       </TableCell>
     </TableRow>
   );
+
 
   if (isLoading) {
     return (
@@ -253,6 +266,7 @@ const Leaderboard = () => {
                     <span className="font-medium">#{leaderboardData.EntityRank + 1}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-zinc-500">{leaderboardData.Entity.toUpperCase()}</span>
+                      <img src={`https://flagcdn.com/24x18/${leaderboardData.Entity?.toLowerCase()}.png`}></img>
                     </div>
                   </div>
                 </div>
@@ -310,6 +324,7 @@ const Leaderboard = () => {
                       <TableBody>
                         {leaderboardData.TopKEntity.map((user, index) => (
                           <UserRow key={user.UserId} user={user} rank={index + 1} />
+
                         ))}
                       </TableBody>
                     </Table>

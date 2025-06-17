@@ -17,21 +17,30 @@ import SimpleSpinLoader from "../ui/simplespinloader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Cropper from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
-import useCountries from '@/hooks/useCountries';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import useCountries from "@/hooks/useCountries";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-// validation schema
+// Validation schema with socials object
 const profileSchema = z.object({
-  userName: z.string()
+  userName: z
+    .string()
     .min(3, "username must be at least 3 characters")
     .max(20, "username must be at most 20 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "username can only contain letters, numbers, and underscores"),
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
   bio: z.string().max(160).optional(),
-  country: z.string().min(1, 'Country is required'),
-
+  country: z.string().min(1, "Country is required"),
+  primaryLanguageID: z.string().optional(),
+  muteNotifications: z.boolean().optional(),
+  socials: z
+    .object({
+      github: z.string().url("Invalid GitHub URL").optional().or(z.literal("")),
+      twitter: z.string().url("Invalid Twitter URL").optional().or(z.literal("")),
+      linkedin: z.string().url("Invalid LinkedIn URL").optional().or(z.literal("")),
+    })
+    .optional(),
 });
 
 interface CountriesWithFlagsProps {
@@ -67,7 +76,7 @@ const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
               className="w-6 h-6"
               onError={(e) => {
                 console.error(`Failed to load flag for ${value}`);
-                e.currentTarget.src = "https://flagcdn.com/24x18/us.png"; //fallback to US
+                e.currentTarget.src = "https://flagcdn.com/24x18/us.png"; // Fallback to US
               }}
             />
             <span>{displayName}</span>
@@ -93,7 +102,7 @@ const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
                   className="w-6 h-6"
                   onError={(e) => {
                     console.error(`Failed to load flag for ${code}`);
-                    e.currentTarget.src = "https://flagcdn.com/24x18/us.png";//fallback to US
+                    e.currentTarget.src = "https://flagcdn.com/24x18/us.png"; // Fallback to US
                   }}
                 />
                 <span>{name}</span>
@@ -104,7 +113,8 @@ const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
     </div>
   );
 };
-// debounce hook
+
+// Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
@@ -130,22 +140,26 @@ const ProfileEditTab: React.FC = () => {
     country: string;
     primaryLanguageID?: string;
     muteNotifications?: boolean;
-    github?: string;
-    twitter?: string;
-    linkedin?: string;
+    socials?: {
+      github?: string;
+      twitter?: string;
+      linkedin?: string;
+    };
   }>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      userName: userProfile?.userName || '',
-      firstName: userProfile?.firstName || '',
-      lastName: userProfile?.lastName || '',
-      bio: userProfile?.bio || '',
-      country: userProfile?.country || '',
-      primaryLanguageID: userProfile?.primaryLanguageID || '',
+      userName: userProfile?.userName || "",
+      firstName: userProfile?.firstName || "",
+      lastName: userProfile?.lastName || "",
+      bio: userProfile?.bio || "",
+      country: userProfile?.country || "",
+      primaryLanguageID: userProfile?.primaryLanguageID || "",
       muteNotifications: userProfile?.muteNotifications || false,
-      github: userProfile?.socials?.github || '',
-      twitter: userProfile?.socials?.twitter || '',
-      linkedin: userProfile?.socials?.linkedin || '',
+      socials: {
+        github: userProfile?.socials?.github || "",
+        twitter: userProfile?.socials?.twitter || "",
+        linkedin: userProfile?.socials?.linkedin || "",
+      },
     },
   });
 
@@ -160,42 +174,42 @@ const ProfileEditTab: React.FC = () => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // set initial values
+  // Set initial values
   useEffect(() => {
     if (userProfile?.userName) {
       setCurrentUsername(userProfile.userName);
-      setValue('userName', userProfile.userName);
+      setValue("userName", userProfile.userName);
     }
     if (userProfile?.country) {
-      setValue('country', userProfile.country);
+      setValue("country", userProfile.country);
     }
     if (userProfile?.firstName) {
-      setValue('firstName', userProfile.firstName);
+      setValue("firstName", userProfile.firstName);
     }
     if (userProfile?.lastName) {
-      setValue('lastName', userProfile.lastName);
+      setValue("lastName", userProfile.lastName);
     }
     if (userProfile?.bio) {
-      setValue('bio', userProfile.bio);
+      setValue("bio", userProfile.bio);
     }
     if (userProfile?.primaryLanguageID) {
-      setValue('primaryLanguageID', userProfile.primaryLanguageID);
+      setValue("primaryLanguageID", userProfile.primaryLanguageID);
     }
     if (userProfile?.muteNotifications !== undefined) {
-      setValue('muteNotifications', userProfile.muteNotifications);
+      setValue("muteNotifications", userProfile.muteNotifications);
     }
     if (userProfile?.socials?.github) {
-      setValue('github', userProfile.socials.github);
+      setValue("socials.github", userProfile.socials.github);
     }
     if (userProfile?.socials?.twitter) {
-      setValue('twitter', userProfile.socials.twitter);
+      setValue("socials.twitter", userProfile.socials.twitter);
     }
     if (userProfile?.socials?.linkedin) {
-      setValue('linkedin', userProfile.socials.linkedin);
+      setValue("socials.linkedin", userProfile.socials.linkedin);
     }
   }, [userProfile, setValue]);
 
-  // check username availability
+  // Check username availability
   useEffect(() => {
     if (debouncedUsername === userProfile?.userName || debouncedUsername === "") {
       setUsernameStatus("idle");
@@ -241,20 +255,20 @@ const ProfileEditTab: React.FC = () => {
       });
   }, [debouncedUsername, userProfile?.userName]);
 
-  // handle username change
+  // Handle username change
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentUsername(e.target.value);
-    setValue('userName', e.target.value);
+    setValue("userName", e.target.value);
   };
 
-  // handle suggestion click
+  // Handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
     setCurrentUsername(suggestion);
-    setValue('userName', suggestion);
+    setValue("userName", suggestion);
     setUsernameError("");
   };
 
-  // handle form submission
+  // Handle form submission
   const onSubmit = (formData: {
     userName: string;
     firstName?: string;
@@ -263,23 +277,25 @@ const ProfileEditTab: React.FC = () => {
     country: string;
     primaryLanguageID?: string;
     muteNotifications?: boolean;
-    github?: string;
-    twitter?: string;
-    linkedin?: string;
+    socials?: {
+      github?: string;
+      twitter?: string;
+      linkedin?: string;
+    };
   }) => {
     const profileData = {
       userID: userProfile?.userID,
       userName: formData.userName,
-      firstName: formData.firstName || '',
-      lastName: formData.lastName || '',
+      firstName: formData.firstName || "",
+      lastName: formData.lastName || "",
       country: formData.country,
-      primaryLanguageID: formData.primaryLanguageID || '',
+      primaryLanguageID: formData.primaryLanguageID || "",
       muteNotifications: formData.muteNotifications || false,
-      bio: formData.bio || '',
+      bio: formData.bio || "",
       socials: {
-        github: formData.github || '',
-        twitter: formData.twitter || '',
-        linkedin: formData.linkedin || '',
+        github: formData.socials?.github || "",
+        twitter: formData.socials?.twitter || "",
+        linkedin: formData.socials?.linkedin || "",
       },
     };
 
@@ -289,6 +305,9 @@ const ProfileEditTab: React.FC = () => {
       lastName: profileData.lastName,
       bio: profileData.bio,
       country: profileData.country,
+      primaryLanguageID: profileData.primaryLanguageID,
+      muteNotifications: profileData.muteNotifications,
+      socials: profileData.socials,
     });
 
     if (validation.success) {
@@ -298,7 +317,7 @@ const ProfileEditTab: React.FC = () => {
     }
   };
 
-  // handle image selection
+  // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -308,12 +327,12 @@ const ProfileEditTab: React.FC = () => {
     }
   };
 
-  // handle crop completion
+  // Handle crop completion
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  // crop and upload image
+  // Crop and upload image
   const handleCropAndUpload = useCallback(async () => {
     if (!imageSrc || !croppedAreaPixels || !userProfile?.userID) return;
 
@@ -357,7 +376,7 @@ const ProfileEditTab: React.FC = () => {
     }, "image/jpeg", 0.9);
   }, [imageSrc, croppedAreaPixels, updateProfileImage, userProfile?.userID, queryClient]);
 
-  // get avatar initials
+  // Get avatar initials
   const getInitials = () => {
     if (userProfile?.firstName && userProfile?.lastName)
       return `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase();
@@ -429,11 +448,11 @@ const ProfileEditTab: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" {...register('firstName')} />
+                    <Input id="firstName" {...register("firstName")} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" {...register('lastName')} />
+                    <Input id="lastName" {...register("lastName")} />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -480,7 +499,7 @@ const ProfileEditTab: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea id="bio" {...register('bio')} rows={4} />
+                  <Textarea id="bio" {...register("bio")} rows={4} />
                 </div>
                 <div className="space-y-2">
                   <Controller
@@ -494,31 +513,26 @@ const ProfileEditTab: React.FC = () => {
                     <p className="text-red-500 text-sm">{errors.country.message}</p>
                   )}
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="primaryLanguageID">Preferred Language</Label>
+                  <select
+                    id="primaryLanguageID"
+                    {...register("primaryLanguageID")}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
+                  >
+                    <option value="">Select Language</option>
+                    <option value="js">JavaScript</option>
+                    <option value="py">Python</option>
+                    <option value="cpp">C++</option>
+                    <option value="go">Go</option>
+                  </select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch id="muteNotifications" {...register("muteNotifications")} />
+                  <Label htmlFor="muteNotifications">Mute Notifications</Label>
+                </div>
               </div>
             </div>
-            {/* <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="primaryLanguageID">Preferred Language</Label>
-                <select
-                  id="primaryLanguageID"
-                  {...register('primaryLanguageID')}
-                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md p-2 hover:border-green-500 focus:border-green-500 focus:ring-green-500 transition-all duration-200"
-                >
-                  <option value="">Select Language</option>
-                  <option value="js">JavaScript</option>
-                  <option value="py">Python</option>
-                  <option value="cpp">C++</option>
-                  <option value="go">Go</option>
-                </select>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="muteNotifications"
-                  {...register('muteNotifications')}
-                />
-                <Label htmlFor="muteNotifications">Mute Notifications</Label>
-              </div>
-            </div> */}
           </CardContent>
         </Card>
         <Card className="mt-6 border border-zinc-800 bg-zinc-900/40">
@@ -528,16 +542,25 @@ const ProfileEditTab: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="github">Github</Label>
-              <Input id="github" {...register('github')} />
+              <Label htmlFor="socials.github">GitHub</Label>
+              <Input id="socials.github" {...register("socials.github")} />
+              {errors.socials?.github && (
+                <p className="text-red-500 text-sm">{errors.socials.github.message}</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="twitter">Twitter</Label>
-              <Input id="twitter" {...register('twitter')} />
+              <Label htmlFor="socials.twitter">Twitter</Label>
+              <Input id="socials.twitter" {...register("socials.twitter")} />
+              {errors.socials?.twitter && (
+                <p className="text-red-500 text-sm">{errors.socials.twitter.message}</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="linkedin">Linkedin</Label>
-              <Input id="linkedin" {...register('linkedin')} />
+              <Label htmlFor="socials.linkedin">LinkedIn</Label>
+              <Input id="socials.linkedin" {...register("socials.linkedin")} />
+              {errors.socials?.linkedin && (
+                <p className="text-red-500 text-sm">{errors.socials.linkedin.message}</p>
+              )}
             </div>
             <div className="flex justify-end mt-6">
               <Button

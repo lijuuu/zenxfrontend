@@ -59,7 +59,7 @@ const Dashboard = React.memo(() => {
   // Save userID to localStorage
   useEffect(() => {
     if (userProfile?.userID) {
-      console.log("Dashboard - useEffect - Saving userID to localStorage:", userProfile.userID);
+      // console.log("Dashboard - useEffect - Saving userID to localStorage:", userProfile.userID);
       localStorage.setItem('userid', userProfile.userID);
     }
   }, [userProfile?.userID]);
@@ -67,21 +67,21 @@ const Dashboard = React.memo(() => {
   // Calculate weekly contributions and streak
   useEffect(() => {
     if (monthlyActivityData && !activityLoading) {
-      console.log("Dashboard - useEffect - Starting streak and contributions calculation");
-      console.log("Dashboard - useEffect - Monthly Activity Data:", JSON.stringify(monthlyActivityData, null, 2));
+      // console.log("Dashboard - useEffect - Starting streak and contributions calculation");
+      // console.log("Dashboard - useEffect - Monthly Activity Data:", JSON.stringify(monthlyActivityData, null, 2));
 
       const today = currentDate;
       const weekStart = startOfWeek(today);
       const weekEnd = endOfWeek(today);
-      console.log(
-        "Dashboard - useEffect - Week Range - Start (local timezone):",
-        weekStart.toString(),
-        "End (local timezone):",
-        weekEnd.toString()
-      );
+      // console.log(
+      //   "Dashboard - useEffect - Week Range - Start (local timezone):",
+      //   weekStart.toString(),
+      //   "End (local timezone):",
+      //   weekEnd.toString()
+      // );
 
       const weekLabelValue = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
-      console.log("Dashboard - useEffect - Setting Week Label:", weekLabelValue);
+      // console.log("Dashboard - useEffect - Setting Week Label:", weekLabelValue);
       setWeekLabel(weekLabelValue);
 
       const contributionsThisWeek = monthlyActivityData.reduce((count, day) => {
@@ -108,11 +108,11 @@ const Dashboard = React.memo(() => {
         }
         return count;
       }, 0);
-      console.log("Dashboard - useEffect - Total Contributions This Week:", contributionsThisWeek);
+      // console.log("Dashboard - useEffect - Total Contributions This Week:", contributionsThisWeek);
       setWeeklyContributions(contributionsThisWeek);
 
       const streak = calculateStreak(monthlyActivityData, currentDate);
-      console.log("Dashboard - useEffect - Calculated Streak:", streak);
+      // console.log("Dashboard - useEffect - Calculated Streak:", streak);
       setDayStreak(streak);
     }
   }, [monthlyActivityData, activityLoading]);
