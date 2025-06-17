@@ -208,6 +208,7 @@ const staticCountries = {
   ZW: 'Zimbabwe',
 };
 
+
 type CountryData = {
   [key: string]: string;
 };

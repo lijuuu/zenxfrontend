@@ -31,27 +31,26 @@ const profileSchema = z.object({
   lastName: z.string().max(50).optional(),
   bio: z.string().max(160).optional(),
   country: z.string().min(1, 'Country is required'),
+
 });
 
-// CountriesWithFlags component
-const CountriesWithFlags = ({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) => {
+interface CountriesWithFlagsProps {
+  value: string; // Country code (e.g., "US")
+  onChange: (value: string) => void; // Updates form with country code
+}
+
+const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
   const { countries } = useCountries();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const handleSelect = (name: string) => {
-    onChange(name);
+  const handleSelect = (code: string) => {
+    console.log(`Selected code: ${code}, name: ${countries[code]}`);
+    onChange(code); // Pass country code to form
     setDropdownOpen(false);
   };
 
-  const selectedCountryCode = value
-    ? Object.keys(countries).find((code) => countries[code] === value)
-    : '';
+  // Get display name for the selected country code
+  const displayName = value && countries[value] ? countries[value] : "";
 
   return (
     <div className="relative w-full">
@@ -60,14 +59,18 @@ const CountriesWithFlags = ({
         className="flex items-center justify-between bg-zinc-800 text-white p-3 rounded-md mt-1 cursor-pointer hover:border-green-500 border border-zinc-700 transition-all duration-200"
         onClick={() => setDropdownOpen(!dropdownOpen)}
       >
-        {value && selectedCountryCode ? (
+        {value && displayName ? (
           <div className="flex items-center space-x-2">
             <img
-              src={`https://flagcdn.com/24x18/${selectedCountryCode.toLowerCase()}.png`}
-              alt={`${value} flag`}
+              src={`https://flagcdn.com/24x18/${value.toLowerCase()}.png`}
+              alt={`${displayName} flag`}
               className="w-6 h-6"
+              onError={(e) => {
+                console.error(`Failed to load flag for ${value}`);
+                e.currentTarget.src = "https://flagcdn.com/24x18/us.png"; //fallback to US
+              }}
             />
-            <span>{value}</span>
+            <span>{displayName}</span>
           </div>
         ) : (
           <span>Select a country</span>
@@ -82,12 +85,16 @@ const CountriesWithFlags = ({
               <div
                 key={code}
                 className="flex items-center space-x-2 px-3 py-2 hover:bg-zinc-800 cursor-pointer transition-colors duration-200"
-                onClick={() => handleSelect(name)}
+                onClick={() => handleSelect(code)}
               >
                 <img
                   src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
                   alt={`${name} flag`}
                   className="w-6 h-6"
+                  onError={(e) => {
+                    console.error(`Failed to load flag for ${code}`);
+                    e.currentTarget.src = "https://flagcdn.com/24x18/us.png";//fallback to US
+                  }}
                 />
                 <span>{name}</span>
               </div>
@@ -97,7 +104,6 @@ const CountriesWithFlags = ({
     </div>
   );
 };
-
 // debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -149,7 +155,7 @@ const ProfileEditTab: React.FC = () => {
   const [currentUsername, setCurrentUsername] = useState<string>("");
   const debouncedUsername = useDebounce(currentUsername, 500);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop ] = useState({ x: 0, y: 0 });
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -490,7 +496,7 @@ const ProfileEditTab: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="primaryLanguageID">Preferred Language</Label>
                 <select
@@ -501,15 +507,8 @@ const ProfileEditTab: React.FC = () => {
                   <option value="">Select Language</option>
                   <option value="js">JavaScript</option>
                   <option value="py">Python</option>
-                  <option value="java">Java</option>
                   <option value="cpp">C++</option>
-                  <option value="cs">C#</option>
                   <option value="go">Go</option>
-                  <option value="ts">TypeScript</option>
-                  <option value="ruby">Ruby</option>
-                  <option value="php">PHP</option>
-                  <option value="swift">Swift</option>
-                  <option value="kotlin">Kotlin</option>
                 </select>
               </div>
               <div className="flex items-center space-x-2">
@@ -519,7 +518,7 @@ const ProfileEditTab: React.FC = () => {
                 />
                 <Label htmlFor="muteNotifications">Mute Notifications</Label>
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
         <Card className="mt-6 border border-zinc-800 bg-zinc-900/40">

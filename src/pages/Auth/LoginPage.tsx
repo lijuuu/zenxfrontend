@@ -199,7 +199,7 @@ function LoginForm() {
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
-      <MainNavbar isAuthenticated={false} />
+      <MainNavbar />
       <div className="flex justify-center items-center flex-1 pt-16">
         {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
         <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-lg p-6 hover:border-zinc-700 transition-all duration-300">
