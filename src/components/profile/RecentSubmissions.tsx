@@ -11,25 +11,26 @@ import {
   SiPhp,
   SiRuby,
   SiSwift,
-  SiC
+  SiC,
 } from 'react-icons/si';
 import { Submission } from '@/api/types';
+import SubmissionDetails from '@/pages/SubmissionDetails';
 
 interface RecentSubmissionsProps {
   userId?: string;
 }
 
-// Updated language logo mapping using Simple Icons
+// Language logo mapping using Simple Icons
 const languageIcons: Record<string, JSX.Element> = {
-  'javascript': <SiJavascript className="h-4 w-4 text-yellow-500" />,
-  'python': <SiPython className="h-4 w-4 text-blue-500" />,
-  'c': <SiC className="h-4 w-4 text-gray-600" />,
-  'cpp': <SiCplusplus className="h-4 w-4 text-blue-700" />,
-  'rust': <SiRust className="h-4 w-4 text-orange-600" />,
-  'go': <SiGo className="h-4 w-4 text-cyan-500" />,
-  'php': <SiPhp className="h-4 w-4 text-indigo-600" />,
-  'ruby': <SiRuby className="h-4 w-4 text-red-700" />,
-  'swift': <SiSwift className="h-4 w-4 text-orange-500" />,
+  javascript: <SiJavascript className="h-4 w-4 text-yellow-500" />,
+  python: <SiPython className="h-4 w-4 text-blue-500" />,
+  c: <SiC className="h-4 w-4 text-gray-600" />,
+  cpp: <SiCplusplus className="h-4 w-4 text-blue-700" />,
+  rust: <SiRust className="h-4 w-4 text-orange-600" />,
+  go: <SiGo className="h-4 w-4 text-cyan-500" />,
+  php: <SiPhp className="h-4 w-4 text-indigo-600" />,
+  ruby: <SiRuby className="h-4 w-4 text-red-700" />,
+  swift: <SiSwift className="h-4 w-4 text-orange-500" />,
 };
 
 const getStatusBadge = (status: Submission['status'], isFirst: boolean) => {
@@ -70,9 +71,9 @@ const getStatusBadge = (status: Submission['status'], isFirst: boolean) => {
 
 const getDifficultyBadge = (difficulty: Submission['difficulty']) => {
   const difficultyMap: Record<Submission['difficulty'], { text: string; className: string }> = {
-    'E': { text: 'Easy', className: 'text-green-600 dark:text-green-400 border-green-200' },
-    'M': { text: 'Medium', className: 'text-amber-600 dark:text-amber-400 border-amber-200' },
-    'H': { text: 'Hard', className: 'text-red-600 dark:text-red-400 border-red-200' },
+    E: { text: 'Easy', className: 'text-green-600 dark:text-green-400 border-green-200 dark:border-green-800/50' },
+    M: { text: 'Medium', className: 'text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/50' },
+    H: { text: 'Hard', className: 'text-red-600 dark:text-red-400 border-red-200 dark:border-red-800/50' },
   };
 
   const config = difficultyMap[difficulty];
@@ -84,12 +85,25 @@ const getDifficultyBadge = (difficulty: Submission['difficulty']) => {
 };
 
 const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ userId }) => {
-  const [page, setPage] = useState(1); 
+  const [page, setPage] = useState(1);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
 
   const { data: submissions = [], isLoading, error } = useRecentSubmissions({
     userId,
-    limit: 50, 
+    limit: 50,
   });
+
+  const handleViewSubmission = (submission: Submission) => {
+    setSelectedSubmission(submission);
+  };
+
+  const handleBack = () => {
+    setSelectedSubmission(null);
+  };
+
+  if (selectedSubmission) {
+    return <SubmissionDetails {...selectedSubmission} onBack={handleBack} />;
+  }
 
   if (isLoading) {
     return (
@@ -139,10 +153,12 @@ const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ userId }) => {
       {paginatedSubmissions.map((submission) => (
         <div
           key={submission.id}
-          className={`border border-border/50 rounded-lg p-4 transition-all duration-200 hover:shadow-sm ${submission.status === 'SUCCESS' && submission.isFirst
+          className={`border border-border/50 rounded-lg p-4 transition-all duration-200 hover:shadow-sm cursor-pointer ${
+            submission.status === 'SUCCESS' && submission.isFirst
               ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50'
               : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-            }`}
+          }`}
+          onClick={() => handleViewSubmission(submission)}
         >
           <div className="flex justify-between items-center">
             <div className="font-medium text-gray-800 dark:text-gray-200">
@@ -150,7 +166,6 @@ const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ userId }) => {
             </div>
             {getStatusBadge(submission.status, submission.isFirst)}
           </div>
-
           <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="flex items-center gap-1 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -178,13 +193,15 @@ const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ userId }) => {
               })}
             </span>
           </div>
-        </div> 
+        </div>
       ))}
       <div className="flex justify-between items-center mt-4">
         <button
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={isFirstPage}
-          className={`px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${!isFirstPage ? 'hover:bg-gray-300 dark:hover:bg-gray-600' : ''}`}
+          className={`px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+            !isFirstPage ? 'hover:bg-gray-300 dark:hover:bg-gray-600' : ''
+          }`}
         >
           Previous
         </button>
@@ -194,7 +211,9 @@ const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ userId }) => {
         <button
           onClick={() => setPage((prev) => prev + 1)}
           disabled={isLastPage}
-          className={`px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${!isLastPage ? 'hover:bg-gray-300 dark:hover:bg-gray-600' : ''}`}
+          className={`px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+            !isLastPage ? 'hover:bg-gray-300 dark:hover:bg-gray-600' : ''
+          }`}
         >
           Next
         </button>
