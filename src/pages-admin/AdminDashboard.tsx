@@ -1,8 +1,7 @@
-
-
 import React, { useRef, useEffect, useState, useCallback } from "react"
-import axios from "axios"
+import axios, { AxiosHeaders } from "axios"
 import { toast } from "sonner"
+import Cookies from 'js-cookie'
 
 import { Button } from "@/components/ui/button"
 import ProblemListView from "@/pages-admin/ProblemsList"
@@ -11,9 +10,12 @@ import TestCasesView from "@/pages-admin/TestCases"
 import LanguagesView from "@/pages-admin/Languages"
 import ValidationView from "@/pages-admin/Validate"
 import ProblemDetailsView from "@/pages-admin/ProblemsDetails"
+import axiosInstance from "@/utils/axiosInstance"
 
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1/problems`;
-// const BASE_URL = "http://localhost:7000/api/v1/problems"
+// Define the admin-specific base URL
+const BASE_ADMIN_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1/problems`;
+
+
 
 export interface Problem {
   problem_id: string;
@@ -35,8 +37,8 @@ export interface Problem {
     }>;
   };
   [key: string]: any;
+  visible: boolean;
 }
-
 
 interface ApiHistoryEntry {
   timestamp: string
@@ -53,6 +55,14 @@ interface LanguageSupport {
   template: string
 }
 
+// Define the custom Axios request config interface
+interface CustomAxiosRequestConfig {
+  headers: any;
+  method?: string;
+  url?: string;
+  data?: any;
+  params?: any;
+}
 
 export default function AdminDashboard() {
   const [problems, setProblems] = useState<any[]>([])
@@ -71,7 +81,10 @@ export default function AdminDashboard() {
     setLoading(true)
     setError(null)
     try {
-      const res = await axios.get(`${BASE_URL}/list`, { params: { page: 1, page_size: 100 } })
+      const res = await axiosInstance.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:7000'}/api/v1/problems/list/all`, {
+        params: { page: 1, page_size: 100 },
+        headers: { 'X-Requires-Auth': 'true', 'X-Admin': 'true' }
+      })
       const problemList = res.data.payload?.problems || []
       if (!Array.isArray(problemList)) throw new Error("Expected an array of problems")
       setProblems(problemList)
@@ -90,8 +103,14 @@ export default function AdminDashboard() {
     setError(null)
     try {
       const [problemRes, languagesRes] = await Promise.all([
-        axios.get(`${BASE_URL}/`, { params: { problem_id: problemId } }),
-        axios.get(`${BASE_URL}/languages`, { params: { problem_id: problemId } }),
+        axiosInstance.get(`${BASE_ADMIN_URL}/`, {
+          params: { problem_id: problemId },
+          headers: { 'X-Requires-Auth': 'true', 'X-Admin': 'true' }
+        }),
+        axiosInstance.get(`${BASE_ADMIN_URL}/languages`, {
+          params: { problem_id: problemId },
+          headers: { 'X-Requires-Auth': 'true', 'X-Admin': 'true' }
+        }),
       ])
       const problemData = problemRes.data.payload || problemRes.data
       setSelectedProblem(problemData)
@@ -121,8 +140,14 @@ export default function AdminDashboard() {
       setSuccess(null)
       const timestamp = new Date().toISOString()
       try {
-        const config = { method, url: `${BASE_URL}${url}`, data, params }
-        const res = await axios(config)
+        const config = {
+          method,
+          url: `${BASE_ADMIN_URL}${url}`,
+          data,
+          params,
+          headers: { 'X-Requires-Auth': 'true', 'X-Admin': 'true' }
+        }
+        const res = await axiosInstance(config)
         const historyEntry: ApiHistoryEntry = {
           timestamp,
           method,
@@ -182,7 +207,6 @@ export default function AdminDashboard() {
     }
   }
 
-
   const applyFilters = useCallback(() => {
     let filtered = [...problems];
     if (filters.search) {
@@ -202,13 +226,9 @@ export default function AdminDashboard() {
     applyFilters();
   }, [applyFilters]);
 
-
-
   return (
     <div className="flex-1 overflow-auto p-6 bg-white dark:bg-[#0F0F12] min-h-screen">
       <div className="space-y-6">
-
-
         {view === "list" && <ProblemListView
           setFilters={setFilters}
           filters={filters}
@@ -221,39 +241,36 @@ export default function AdminDashboard() {
           fetchProblemDetails={fetchProblemDetails}
           setView={setView}
         />}
-        {/* const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
-          selectedProblem,
-          setView,
-          handleApiCall,
-          loading,
-          setSelectedProblem
-        }) => {
-  const {
-            register,
-            handleSubmit,
-            reset,
-            control,
-            formState: {errors, isSubmitting},
-  } = useForm<ProblemFormData>({
-            resolver: zodResolver(problemSchema),
-            defaultValues: selectedProblem
-            ? {
-              title: selectedProblem.title,
-            description: selectedProblem.description,
-            tags: selectedProblem.tags || [],
-            difficulty: mapDifficulty(selectedProblem.difficulty),
-        }
-            : {title: "", description: "", tags: [], difficulty: "" },
-  }); */}
-        {view === "details" && <ProblemDetailsView selectedProblem={selectedProblem} setView={setView} handleApiCall={handleApiCall} loading={loading} setSelectedProblem={setSelectedProblem} />}
-        {/* {view === "list" && <ProblemListView />} */}
-        {view === "testcases" && selectedProblem && <TestCasesView selectedProblem={selectedProblem} setError={setError} handleApiCall={handleApiCall} setView={setView} loading={loading} />}
-        {view === "languages" && selectedProblem && <LanguagesView selectedProblem={selectedProblem} handleApiCall={handleApiCall} setView={setView} />}
-        {view === "validation" && selectedProblem && <ValidationView handleApiCall={handleApiCall} selectedProblem={selectedProblem} setView={setView} loading={loading} />}
-        {view === "api" && <ApiResponseHistory apiHistory={apiHistory} setView={setView} />}
-
+        {view === "details" && <ProblemDetailsView
+          selectedProblem={selectedProblem}
+          setView={setView}
+          handleApiCall={handleApiCall}
+          loading={loading}
+          setSelectedProblem={setSelectedProblem}
+        />}
+        {view === "testcases" && selectedProblem && <TestCasesView
+          selectedProblem={selectedProblem}
+          setError={setError}
+          handleApiCall={handleApiCall}
+          setView={setView}
+          loading={loading}
+        />}
+        {view === "languages" && selectedProblem && <LanguagesView
+          selectedProblem={selectedProblem}
+          handleApiCall={handleApiCall}
+          setView={setView}
+        />}
+        {view === "validation" && selectedProblem && <ValidationView
+          handleApiCall={handleApiCall}
+          selectedProblem={selectedProblem}
+          setView={setView}
+          loading={loading}
+        />}
+        {view === "api" && <ApiResponseHistory
+          apiHistory={apiHistory}
+          setView={setView}
+        />}
       </div>
     </div>
   )
 }
-

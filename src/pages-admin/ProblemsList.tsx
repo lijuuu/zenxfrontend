@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Filter, Plus, Loader2, FileCode, Search,Server } from "lucide-react";
+import { Filter, Plus, Loader2, FileCode, Search, Server } from "lucide-react";
 
 // Define Problem interface (assuming this is what's imported from AdminDashboard)
 interface Problem {
@@ -14,6 +14,7 @@ interface Problem {
   tags: string[];
   difficulty: string;
   validated: boolean;
+  visible: boolean;
 }
 
 // Props interface for MultiSelect

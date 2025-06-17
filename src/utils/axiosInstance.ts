@@ -18,23 +18,36 @@ const axiosInstance: AxiosInstance = axios.create({
   timeout: 10000,
 });
 
-//request interceptor with conditional token addition
+
+//request interceptor with separated logic for user/admin tokens
 axiosInstance.interceptors.request.use(
   (config: CustomAxiosRequestConfig) => {
-    const requiresAuth = config.headers['X-Requires-Auth'] !== 'false';
+    const requiresAuthHeader = config.headers['X-Requires-Auth'];
+    const isAdminHeader = config.headers['X-Admin'];
+
+    const requiresAuth = requiresAuthHeader !== 'false';
+    const isAdmin = isAdminHeader === 'true';
 
     if (!(config.headers instanceof AxiosHeaders)) {
       config.headers = new AxiosHeaders(config.headers);
     }
 
     if (requiresAuth) {
-      const token = Cookies.get('accessToken');
-      if (token) {
-        config.headers.set('Authorization', `Bearer ${token}`);
+      const userToken = Cookies.get('accessToken');
+      const adminToken = Cookies.get('adminAccessToken');
+
+      if (isAdmin && adminToken) {
+        config.headers.set('Authorization', `Bearer ${adminToken}`);
+      }
+
+      if (!isAdmin && userToken) {
+        config.headers.set('Authorization', `Bearer ${userToken}`);
       }
     }
 
     config.headers.delete('X-Requires-Auth');
+    config.headers.delete('X-Admin');
+
     return config;
   },
   (error) => {
@@ -42,6 +55,8 @@ axiosInstance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+
 
 //function to refresh token
 const refreshAccessToken = async () => {

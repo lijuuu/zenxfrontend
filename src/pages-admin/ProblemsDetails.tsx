@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, Loader2, Trash2 } from "lucide-react";
 import MDEditor from '@uiw/react-md-editor';
 
@@ -15,6 +16,7 @@ const problemSchema = z.object({
   description: z.string().min(1, "Description is required"),
   tags: z.array(z.string()).min(1, "At least one tag is required"),
   difficulty: z.string().min(1, "Difficulty is required"),
+  visible: z.boolean(),
 });
 
 type ProblemFormData = z.infer<typeof problemSchema>;
@@ -26,12 +28,13 @@ interface Problem {
   description: string;
   tags: string[];
   difficulty: string;
+  visible: boolean;
 }
 
 // Props interface for ProblemDetailsView
 interface ProblemDetailsProps {
   selectedProblem: Problem | null;
-  setView: any
+  setView: any;
   handleApiCall: (
     method: "post" | "put" | "delete",
     url: string,
@@ -68,14 +71,25 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredOptions = options.filter(
     (option) => !selected.find((s) => s.value === option.value) &&
       option.label.toLowerCase().includes(searchValue.toLowerCase())
   );
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <div className={className} onClick={() => setIsOpen(!isOpen)}>
         <div className="flex flex-wrap gap-1">
           {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
@@ -121,6 +135,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                   e.stopPropagation();
                   onChange([...selected, option]);
                   setSearchValue("");
+                  setIsOpen(false);
                 }}
               >
                 {option.label}
@@ -145,7 +160,6 @@ const mapDifficulty = (difficulty: string): string => {
   return difficultyMap[difficulty] || difficulty;
 };
 
-// Problem Details View
 const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
   selectedProblem,
   setView,
@@ -167,8 +181,9 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
         description: selectedProblem.description,
         tags: selectedProblem.tags || [],
         difficulty: mapDifficulty(selectedProblem.difficulty),
+        visible: selectedProblem.visible ?? false,
       }
-      : { title: "", description: "", tags: [], difficulty: "" },
+      : { title: "", description: "", tags: [], difficulty: "", visible: false },
   });
 
   useEffect(() => {
@@ -178,9 +193,10 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
         description: selectedProblem.description,
         tags: selectedProblem.tags || [],
         difficulty: mapDifficulty(selectedProblem.difficulty),
+        visible: selectedProblem.visible ?? false,
       });
     } else {
-      reset({ title: "", description: "", tags: [], difficulty: "" });
+      reset({ title: "", description: "", tags: [], difficulty: "", visible: false });
     }
   }, [selectedProblem, reset]);
 
@@ -190,6 +206,7 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
       description: data.description,
       tags: data.tags,
       difficulty: data.difficulty.charAt(0),
+      visible: data.visible,
     };
     if (selectedProblem) {
       await handleApiCall("put", "/", { problem_id: selectedProblem.problem_id, ...payload });
@@ -200,7 +217,7 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
   };
 
   const onDelete = async () => {
-    if (selectedProblem && window.confirm("Are you sure you want to delete this problem. This cant be undone and will be deleted from the database as well.?")) {
+    if (selectedProblem && window.confirm("Are you sure you want to delete this problem? This cannot be undone and will be deleted from the database as well.")) {
       await handleApiCall("delete", "/", null, { problem_id: selectedProblem.problem_id });
       setSelectedProblem(null);
       setView("list");
@@ -321,6 +338,32 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
                 />
                 {errors.description && (
                   <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.description.message}</p>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center space-x-2">
+                  <Controller
+                    name="visible"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="visible"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="border-gray-200 dark:border-[#1F1F23]"
+                      />
+                    )}
+                  />
+                  <label htmlFor="visible" className="text-gray-700 dark:text-gray-300">
+                    Visible
+                  </label>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Toggle this to hide this problem from users.
+                </p>
+                {errors.visible && (
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.visible.message}</p>
                 )}
               </div>
             </div>
