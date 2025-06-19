@@ -4,31 +4,43 @@ import { motion } from "framer-motion";
 import { IonIcon } from "@ionic/react";
 import { addOutline, removeOutline, playSharp, pauseSharp } from "ionicons/icons";
 
-// Define props interface to accept className
-interface MusicPlayerProps {
-  className?: string;
+// Define and export Track type
+export interface Track {
+  title: string;
+  artist: string;
+  url: string;
+  image: string;
 }
 
-const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
+// Define props interface
+interface MusicPlayerProps {
+  className?: string;
+  newTrack?: Track[];
+  audioRefProp?: React.MutableRefObject<HTMLAudioElement>;
+}
+
+const MusicPlayer: React.FC<MusicPlayerProps> = ({
+  className = "",
+  newTrack,
+  audioRefProp
+}) => {
+  const defaultTrack: Track = {
+    title: "Feel",
+    artist: "Misanthrop",
+    url: "https://azuki-songs.s3.amazonaws.com/f1/11%20-%20Feel.mp3",
+    image: "https://elementals-images.b-cdn.net/2461bf97-fd5f-406f-8ea4-81b051e70e9c.png",
+  };
+
   const [trackIndex, setTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState({
-    title: "",
-    artist: "",
-    url: "",
-    image: "",
-  });
+  const [currentTrack, setCurrentTrack] = useState<Track>(defaultTrack);
   const [soundBarsLottie, setSoundBarsLottie] = useState<any>(null);
-  const audioRef = useRef(new Audio());
+  const defaultAudioRef = useRef(new Audio());
+  const audioRef = audioRefProp || defaultAudioRef;
 
-  const trackList = [
-    {
-      title: "Feel",
-      artist: "Misanthrop",
-      url: "https://azuki-songs.s3.amazonaws.com/f1/11%20-%20Feel.mp3",
-      image: "https://elementals-images.b-cdn.net/2461bf97-fd5f-406f-8ea4-81b051e70e9c.png",
-    },
+  const [trackList, setTrackList] = useState<Track[]>([
+    defaultTrack,
     {
       title: "WRATH",
       artist: "FREDDIE DREAD",
@@ -65,10 +77,52 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
       url: "https://azuki-songs.s3.amazonaws.com/f1/2%20-%20BADDERS%20%5BExplicit%5D.mp3",
       image: "https://elementals-images.b-cdn.net/0ab85d49-16d8-4787-91c3-ec79c7715c56.png",
     },
+  ]);
 
-  ];
+  // Append new tracks if provided and load the first one
+  useEffect(() => {
+    if (newTrack && newTrack.length > 0) {
+      // Validate tracks
+      const validTracks = newTrack.filter(track => track && track.url && track.title && track.artist && track.image);
+      if (validTracks.length > 0) {
+        setTrackList(prev => {
+          const newTrackList = [...prev, ...validTracks];
+          const newIndex = prev.length; // Index of the first new track
+          setTrackIndex(newIndex);
+          loadTrack(newIndex);
+          return newTrackList;
+        });
+        console.log("Added new tracks:", validTracks);
+      } else {
+        console.warn("No valid tracks provided in newTrack array");
+      }
+    }
+  }, [newTrack]);
+
+  // Handle window resize to toggle minimize state
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMinimized(window.innerWidth < 640);
+    };
+
+    // Set initial state
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const loadTrack = (index: number) => {
+    if (!trackList[index]) {
+      console.error(`No track found at index ${index}`);
+      setCurrentTrack(defaultTrack);
+      audioRef.current.src = defaultTrack.url;
+      audioRef.current.load();
+      setTrackIndex(0);
+      return;
+    }
+
     audioRef.current.pause();
     audioRef.current.removeEventListener("ended", nextTrack);
     const track = trackList[index];
@@ -122,8 +176,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
       path: "https://assets5.lottiefiles.com/packages/lf20_jJJl6i.json",
     });
     setSoundBarsLottie(lottieInstance);
+    // Removed playPauseTrack to prevent autoplay
     loadTrack(0);
-    playPauseTrack();
     return () => lottieInstance.destroy();
   }, []);
 
@@ -142,17 +196,21 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
   return (
     <div className={`fixed z-20 ${className}`}>
       <motion.div
-        className="relative flex items-center p-2 rounded-lg shadow-lg overflow-visible"
-        initial={{ width: isMinimized ? "70px" : "440px", height: isMinimized ? "66px" : "72px" }}
-        animate={{ width: isMinimized ? "70px" : "440px", height: isMinimized ? "66px" : "72px" }}
-        transition={{ duration: 0.3, ease: "linear" }}
+        className="relative flex items-center p-2 rounded-lg shadow-lg overflow-visible bg-white bg-opacity-10 backdrop-blur-lg"
+        initial={{
+          width: isMinimized ? "4.5rem" : "min(28rem, 90vw)",
+          height: isMinimized ? "4.125rem" : "4.5rem"
+        }}
+        animate={{
+          width: isMinimized ? "4.5rem" : "min(28rem, 90vw)",
+          height: isMinimized ? "4.125rem" : "4.5rem"
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         style={{
           border: "1px solid rgba(255, 255, 255, 0.18)",
           borderRadius: "16px",
         }}
-
       >
-        {/* Grain overlay */}
         <div
           className="pointer-events-none absolute inset-0 z-10 m-[1.5px]"
           style={{
@@ -163,7 +221,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
           }}
         />
 
-        {/* Background image with blur */}
         <div
           className="absolute inset-0 border"
           style={{
@@ -176,30 +233,60 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
           }}
         />
 
-        {/* Content layer with fixed positions */}
         <div className="relative w-full h-full">
-          {/* Sound bars at fixed left position */}
           <div
             className={`sound-bars absolute top-1/2 transform -translate-y-1/2 transition-all duration-300`}
             style={{
-              width: isMinimized ? "48px" : "40px",
-              height: isMinimized ? "48px" : "40px",
+              width: isMinimized ? "2.5rem" : "2rem",
+              height: isMinimized ? "2.5rem" : "2rem",
               filter: isMinimized ? "brightness(0) invert(1)" : "none",
+              left: isMinimized ? "0.5rem" : "0.5rem",
             }}
           ></div>
 
-          {/* Avatar (pfp) at fixed position when not minimized */}
           {!isMinimized && (
-            <div className="w-14 h-14 rounded-full overflow-hidden absolute left-12 top-1/2 transform -translate-y-1/2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden absolute left-12 top-1/2 transform -translate-y-1/2">
               <img src={currentTrack.image} className="w-full h-full object-cover" />
             </div>
           )}
 
-          {/* Text area (flexible) including minimized state */}
-          <div className="flex flex-col justify-center overflow-hidden ml-32 mr-24">
-            <span className="font-bold text-lg text-gray-900 drop-shadow-md truncate">{currentTrack.title}</span>
+          <div
+            className={`flex flex-col justify-center transition-all duration-300  ${isMinimized
+              ? "ml-0"
+              : "ml-28"
+              }`}
+            style={{
+              minWidth: isMinimized ? "0" : "0",
+              maxWidth: isMinimized ? "calc(100% - 3.5rem)" : "calc(100% - 10rem)",
+              flex: "1 1 0%",
+              overflow: "hidden",
+            }}
+          >
+            <span
+              className={`font-bold truncate drop-shadow-md  ${isMinimized ? "text-sm" : "text-base sm:text-lg"
+                } text-gray-900`}
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                color: "#111827",
+              }}
+              title={currentTrack.title}
+            >
+              {currentTrack.title}
+            </span>
             {!isMinimized && (
-              <span className="text-xs text-gray-900  opacity-90 truncate">
+              <span
+                className="text-xs sm:text-sm truncate"
+                style={{
+                  color: "#111827",
+                  opacity: 0.9,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={currentTrack.artist}
+              >
                 {currentTrack.artist}
               </span>
             )}
@@ -209,41 +296,41 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ className = "" }) => {
           {!isMinimized && (
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
               <motion.button
-                className="p-1 w-8 h-8 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                className="p-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
                 onClick={prevTrack}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <IonIcon icon={playSharp} className="text-white" style={{ transform: "rotate(180deg)" }} />
+                <IonIcon icon={playSharp} className="text-white text-sm sm:text-base" style={{ transform: "rotate(180deg)" }} />
               </motion.button>
               <motion.button
-                className="p-1 w-8 h-8 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                className="p-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
                 onClick={playPauseTrack}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <IonIcon icon={isPlaying ? pauseSharp : playSharp} className="text-white text-lg" />
+                <IonIcon icon={isPlaying ? pauseSharp : playSharp} className="text-white text-sm sm:text-lg sm:text-center" />
               </motion.button>
               <motion.button
-                className="p-1 w-8 h-8 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                className="p-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
                 onClick={nextTrack}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <IonIcon icon={playSharp} className="text-white" />
+                <IonIcon icon={playSharp} className="text-white text-sm sm:text-base" />
               </motion.button>
             </div>
           )}
 
           {/* Minimize button at fixed top-right position */}
           <motion.button
-            className={`absolute ${isMinimized ? "top-[-26px] right-[-23px]" : "top-[-23px] right-[-23px]"} w-8 h-8 rounded-full bg-black bg-opacity-50 flex justify-center items-center border border-white border-opacity-10 cursor-pointer`}
+            className={`absolute ${isMinimized ? "top-[-1.5rem] right-[-1.5rem]" : "top-[-1.5rem] right-[-2rem]"} w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black bg-opacity-50 flex justify-center items-center border border-white border-opacity-10 cursor-pointer sm:right-[-2rem] sm:duration-50`}
             onClick={toggleMinimize}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             style={{ zIndex: 10 }}
           >
-            <IonIcon icon={isMinimized ? addOutline : removeOutline} className="text-white" />
+            <IonIcon icon={isMinimized ? addOutline : removeOutline} className="text-white text-sm sm:text-base" />
           </motion.button>
         </div>
       </motion.div>
