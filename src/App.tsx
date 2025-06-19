@@ -60,7 +60,7 @@ const AppContent = () => {
           path="/music"
           element={
             <MusicPlayer
-              className="right-[1%] top-[50%]"
+              className="right-[7%] top-[50%]"
               audioRefProp={useRef(new Audio())}
               newTrack={
                 [
