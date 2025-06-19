@@ -52,7 +52,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <Routes>
-        <Route path="/music" element={<MusicPlayer className="right-[50%] top-[50%]" />} />
+        <Route path="/music" element={<MusicPlayer className="right-[1%] top-[50%]" />} />
 
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
