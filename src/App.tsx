@@ -29,8 +29,8 @@ import AdminLayout from "./components/layout/AdminLayout";
 import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
 import AdminDashboard from "./pages-admin/AdminDashboard";
-// import {MusicPlayer} from "@lijuu/musicplayerwidget";
-import MusicPlayer,{Track} from "./components/music/MusicPlayer";
+import {MusicPlayer,Track} from "@lijuu/musicplayerwidget";
+// import MusicPlayer,{Track} from "./components/music/MusicPlayer";
 
 // Create a client
 const queryClient = new QueryClient({
