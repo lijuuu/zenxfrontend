@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@ionic/react": "^8.6.1",
+    "@lijuu/musicplayerwidget": "^1.0.0",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -59,7 +61,9 @@
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
+    "ionicons": "^8.0.9",
     "js-cookie": "^3.0.5",
+    "lottie-web": "^5.13.0",
     "lucide-react": "^0.462.0",
     "monaco-editor": "^0.52.2",
     "motion": "^12.6.2",

@@ -40,6 +40,7 @@ import SimpleSpinLoader from "../ui/simplespinloader";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import GlobalSearch from "../search/GlobalSearch";
+import MusicPlayer from "../music/MusicPlayer";
 
 interface NavItem {
   name: string;

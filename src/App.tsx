@@ -22,17 +22,13 @@ import VerifyEmail from "./pages/Auth/VerifyEmail";
 import Login from "./pages/Auth/LoginPage";
 import SignupForm from "./pages/Auth/Register/RegisterPage";
 import VerifyInfo from "./pages/Auth/VerifyInfo"
-import QuickMatch from "./components/challenges/QuickMatch";
 import AdminLogin from "./pages-admin/AdminLogin";
-import AdminDashboardHome from "./pages-admin/AdminDashboardHome";
 import UserManagement from "./pages-admin/UserManagement";
 import AdminLayout from "./components/layout/AdminLayout";
 import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
-import FollowersPage from "./pages/FollowersPage";
-import FollowingPage from "./pages/FollowingPage";
 import AdminDashboard from "./pages-admin/AdminDashboard";
-import ChallengeInterface from "./components/challenges/ChallengeInterface";
+import {MusicPlayer} from "@lijuu/musicplayerwidget";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -56,6 +52,8 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <Routes>
+        <Route path="/music" element={<MusicPlayer className="right-[50%] top-[50%]" />} />
+
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
@@ -104,9 +102,10 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient} >
       <Provider store={store}>
         <TooltipProvider>
+
           <AppContent />
         </TooltipProvider>
       </Provider>

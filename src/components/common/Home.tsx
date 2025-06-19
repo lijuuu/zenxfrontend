@@ -8,6 +8,7 @@ import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap,
 import Footer from './Footer';
 import ChatBattleNotification from '@/components/challenges/ChatBattleNotification';
 import MainNavbar from './MainNavbar';
+import MusicPlayer from '../music/MusicPlayer';
 
 const Home = () => {
   const navigate = useNavigate();
