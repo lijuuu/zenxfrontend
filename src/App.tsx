@@ -14,7 +14,6 @@ import NotFound from "./pages/NotFound";
 import Problems from "./pages/Problems";
 import Profile from "./pages/Profile";
 import ChallengeMain from "./pages/Challenge";
-import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import Compiler from "./pages/Compiler";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -26,7 +25,6 @@ import VerifyInfo from "./pages/Auth/VerifyInfo"
 import AdminLogin from "./pages-admin/AdminLogin";
 import UserManagement from "./pages-admin/UserManagement";
 import AdminLayout from "./components/layout/AdminLayout";
-import MinimalChallenge from "./pages/MinimalChallenges";
 import { useEffect } from "react";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import {MusicPlayer,Track} from "@lijuu/musicplayerwidget";
@@ -120,9 +118,7 @@ const AppContent = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/profile/:userid" element={<Profile />} />
-        <Route path="/challenges" element={<MinimalChallenge />} />
         <Route path="/challenges2" element={<ChallengeMain />} />
-        <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/playground" element={<Compiler />} />
 

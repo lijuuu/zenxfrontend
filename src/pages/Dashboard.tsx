@@ -247,7 +247,7 @@ const Dashboard = React.memo(() => {
                 </CardContent>
               </Card>
 
-              <ClearInactivityCard referralLink={userProfile?.referralLink} />
+              {/* <ClearInactivityCard referralLink={userProfile?.referralLink} /> */}
             </div>
 
             <div className="space-y-6">
