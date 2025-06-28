@@ -121,24 +121,23 @@ const MainNavbar = () => {
 
   const headerStyle = isChallengeRoute
     ? {
-        background: '#18181b',
+        background: '#141416', // slightly darker
         backgroundImage: `
-          linear-gradient(rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.85) 100%),
+          linear-gradient(rgba(0,0,0,0.60) 60%, rgba(0,0,0,0.92) 100%),
           url(${bgGradient}),
           repeating-linear-gradient(
             135deg,
-            rgba(0,0,0,0.10) 0px,
+            rgba(0,0,0,0.15) 0px,
             rgba(0,255,128,0.08) 2px,
-            rgba(0,0,0,0.10) 4px
+            rgba(0,0,0,0.15) 4px
           )
         `,
         backgroundSize: '100% 100%, cover, 80px 80px',
-        backgroundPosition: 'center',
+        backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat, no-repeat, repeat',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
       }
     : {
-        background: '#131316',
+        background: '#101014', // slightly darker
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
       };
 

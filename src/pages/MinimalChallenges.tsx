@@ -167,7 +167,11 @@ const MinimalChallenges = () => {
   const renderChallengeCard = (challenge: Challenge, actions?: React.ReactNode) => (
     <Card
       key={challenge.id}
-      className="metallic-card cursor-pointer"
+      className={cn(
+        "metallic-card cursor-pointer backdrop-blur-lg bg-black/40 border shadow-lg transition-colors duration-200 group",
+        // border is transparent by default, highlight on hover/focus
+        "hover:border-green-500"
+      )}
       onClick={() => loadChallenge(challenge.id)}
       role="button"
       tabIndex={0}
@@ -181,7 +185,7 @@ const MinimalChallenges = () => {
               <Lock className="h-4 w-4 text-amber-400" aria-label="Private challenge" />
             )}
           </CardTitle>
-          <div className="px-2 py-1 bg-green-900/20 text-green-400 text-xs font-medium rounded">
+          <div className="px-2 py-1 bg-green-900/30 text-green-400 text-xs font-medium rounded">
             {challenge.difficulty}
           </div>
         </div>
@@ -192,7 +196,7 @@ const MinimalChallenges = () => {
       <CardContent>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-blue-900/40 flex items-center justify-center">
               <User className="h-4 w-4 text-blue-400" aria-hidden="true" />
             </div>
             <div>

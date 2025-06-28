@@ -212,7 +212,7 @@ const Home = () => {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/signup')}
                   size="lg"
                   className="bg-green-500 text-black hover:bg-green-600 py-6 px-8 rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-700/30 transition-all"
                 >
