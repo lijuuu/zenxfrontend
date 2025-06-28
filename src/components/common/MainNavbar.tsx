@@ -7,16 +7,13 @@ import {
   Terminal,
   Zap,
   Award,
-  MessageSquare,
   Settings,
   LogOut,
   Search,
   Menu,
   X,
-  Bell,
   LayoutDashboard,
-  Flag,
-  Bug
+  Flag
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { cn } from "@/lib/utils";
@@ -31,16 +28,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDispatch, useSelector } from "react-redux";
-import { getUser } from "@/store/slices/authSlice";
+import { useDispatch } from "react-redux";
 import { clearAuthState } from "@/store/slices/authSlice";
 import { useGetUserProfile } from "@/services/useGetUserProfile";
-import { isPending } from "@reduxjs/toolkit";
-import SimpleSpinLoader from "../ui/simplespinloader";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import GlobalSearch from "../search/GlobalSearch";
-import MusicPlayer from "../music/MusicPlayer";
 import bgGradient from "@/assets/challengegradient.png";
 
 interface NavItem {
@@ -58,6 +51,7 @@ const MainNavbar = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const {
     data: userProfile,
@@ -70,10 +64,8 @@ const MainNavbar = () => {
   // Determine authentication status
   const isUserAuthenticated = !!Cookies.get("accessToken");
 
-  console.log(isUserAuthenticated, userProfile)
-
   if (!isUserAuthenticated || !userProfile?.userID) {
-    refetch()
+    refetch();
   }
 
   const navItems: NavItem[] = [
@@ -91,8 +83,6 @@ const MainNavbar = () => {
   const filteredNavItems = navItems.filter(
     (item) => !item.requiresAuth || (item.requiresAuth && isUserAuthenticated)
   );
-
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -129,11 +119,10 @@ const MainNavbar = () => {
   // Conditional background style for /challenges route
   const isChallengeRoute = location.pathname.startsWith("/challenges");
 
-  // Animated glowing gradient for /challenges route
   const headerStyle = isChallengeRoute
     ? {
-      background: '#18181b',
-      backgroundImage: `
+        background: '#18181b',
+        backgroundImage: `
           linear-gradient(rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.85) 100%),
           url(${bgGradient}),
           repeating-linear-gradient(
@@ -143,15 +132,15 @@ const MainNavbar = () => {
             rgba(0,0,0,0.10) 4px
           )
         `,
-      backgroundSize: '100% 100%, cover, 80px 80px',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat, no-repeat, repeat',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-    }
+        backgroundSize: '100% 100%, cover, 80px 80px',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat, no-repeat, repeat',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      }
     : {
-      background: '#131316',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-    };
+        background: '#131316',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      };
 
   return (
     <>
@@ -169,7 +158,6 @@ const MainNavbar = () => {
               >
                 zenx
               </span>
-              {/* <img src="./avatar.png" className="w-8 h-8 mt-1" /> */}
             </Link>
 
             {/* Desktop Navigation */}
@@ -214,17 +202,12 @@ const MainNavbar = () => {
 
             {isUserAuthenticated ? (
               <>
-                {/* <Button variant="ghost" size="icon" aria-label="Notifications" className="text-zinc-400 hover:text-white relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
-                </Button> */}
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={userProfile?.avatarURL || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"}
+                          src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"}
                           alt={userProfile?.firstName || "User"}
                         />
                         <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
@@ -298,9 +281,8 @@ const MainNavbar = () => {
         <div
           className={cn(
             "xl:hidden fixed inset-y-0 right-0 z-40 transition-transform duration-300 ease-in-out",
-            isChallengeRoute
-              ? "bg-[#0f0f0f]"
-              : "bg-zinc-900"
+            mobileMenuOpen ? "translate-x-0 w-[85%]" : "translate-x-full w-[85%]",
+            isChallengeRoute ? "bg-[#0f0f0f]" : "bg-zinc-900"
           )}
           style={isChallengeRoute ? {
             backgroundImage: `linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.7)), url(${bgGradient})`,
@@ -315,7 +297,7 @@ const MainNavbar = () => {
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={userProfile.avatarURL || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"}
+                      src={userProfile.avatarURL || "https://i.pravatar.cc/300?img=1"}
                       alt={userProfile.firstName || "User"}
                     />
                     <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
