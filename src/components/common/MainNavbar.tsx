@@ -136,10 +136,11 @@ const MainNavbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 mr-8">
               <span
-                className="text-2xl lowercase font-bold font-display tracking-tight relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 bg-clip-text text-transparent animate-glow"
+              className="text-4xl lowercase font-bold font-display tracking-tight relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 bg-clip-text text-transparent animate-glow mb-2"
               >
-                zenx
+              zenx
               </span>
+              {/* <img src="./avatar.png" className="w-8 h-8 mt-1" /> */}
             </Link>
 
             {/* Desktop Navigation */}

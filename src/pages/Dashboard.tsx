@@ -15,25 +15,55 @@ import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
 import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from 'date-fns';
 import { calculateStreak } from '@/utils/streakcalcUtils';
 import { useProblemStats } from '@/services/useProblemStats';
+import { motion } from "framer-motion";
+import avatar from "@/assets/avatar.png";
 
 // Loading Screen Component
 const LoadingScreen = () => (
   <div className="fixed inset-0 bg-zinc-900 flex items-center justify-center z-50">
-    <div className="flex flex-col items-center gap-4">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-green-500"></div>
-      <p className="text-zinc-400 text-lg">Loading Dashboard...</p>
+    <div className="flex flex-col items-center gap-6">
+      <motion.div
+        className="relative flex justify-center items-center"
+        style={{ willChange: "transform, opacity" }}
+        initial={{ x: -150, opacity: 1 }}
+        animate={{
+          x: [-150, -100, -50, 0, 50, 100, 150, -150],
+          y: [0, -10, 0, -10, 0, -10, 0, 0],
+          opacity: [1, 1, 1, 1, 1, 0.5, 0, 1],
+          scale: [1, 1, 1, 1, 1, 1.05, 1.1, 1]
+        }}
+        transition={{
+          duration: 4,
+          ease: "easeInOut",
+          times: [0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1],
+          repeat: Infinity
+        }}
+      >
+        <img
+          src={avatar}
+          alt="Loading Avatar"
+          className="w-20 h-20 rounded-full shadow-2xl"
+        />
+      </motion.div>
+
+      <motion.p
+        className="text-zinc-400 text-lg"
+        initial={{ opacity: 0.5 }}
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+      >
+        Loading...
+      </motion.p>
     </div>
   </div>
 );
-
-
 
 const Dashboard = React.memo(() => {
   const navigate = useNavigate();
   const now = new Date();
   const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const currentMonth = currentDate.getMonth() + 1; // 4 (April)
-  const currentYear = currentDate.getFullYear(); // 2025
+  const currentMonth = currentDate.getMonth() + 1; // 1-12
+  const currentYear = currentDate.getFullYear();
 
   // Combine queries to track loading state
   const {
@@ -59,7 +89,6 @@ const Dashboard = React.memo(() => {
   // Save userID to localStorage
   useEffect(() => {
     if (userProfile?.userID) {
-      // console.log("Dashboard - useEffect - Saving userID to localStorage:", userProfile.userID);
       localStorage.setItem('userid', userProfile.userID);
     }
   }, [userProfile?.userID]);
@@ -67,52 +96,24 @@ const Dashboard = React.memo(() => {
   // Calculate weekly contributions and streak
   useEffect(() => {
     if (monthlyActivityData && !activityLoading) {
-      // console.log("Dashboard - useEffect - Starting streak and contributions calculation");
-      // console.log("Dashboard - useEffect - Monthly Activity Data:", JSON.stringify(monthlyActivityData, null, 2));
-
       const today = currentDate;
       const weekStart = startOfWeek(today);
       const weekEnd = endOfWeek(today);
-      // console.log(
-      //   "Dashboard - useEffect - Week Range - Start (local timezone):",
-      //   weekStart.toString(),
-      //   "End (local timezone):",
-      //   weekEnd.toString()
-      // );
 
       const weekLabelValue = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
-      // console.log("Dashboard - useEffect - Setting Week Label:", weekLabelValue);
       setWeekLabel(weekLabelValue);
 
       const contributionsThisWeek = monthlyActivityData.reduce((count, day) => {
         const date = parseISO(day.date);
         const isInWeek = isWithinInterval(date, { start: weekStart, end: weekEnd });
-        console.log(
-          "Dashboard - useEffect - Checking Contribution for Day:",
-          day.date,
-          "Is in Week:",
-          isInWeek,
-          "Count:",
-          day.count || 0
-        );
         if (isInWeek && day.count > 0) {
-          console.log(
-            "Dashboard - useEffect - Adding contribution for",
-            day.date,
-            "Count:",
-            day.count,
-            "New Total:",
-            count + day.count
-          );
           return count + day.count;
         }
         return count;
       }, 0);
-      // console.log("Dashboard - useEffect - Total Contributions This Week:", contributionsThisWeek);
       setWeeklyContributions(contributionsThisWeek);
 
       const streak = calculateStreak(monthlyActivityData, currentDate);
-      // console.log("Dashboard - useEffect - Calculated Streak:", streak);
       setDayStreak(streak);
     }
   }, [monthlyActivityData, activityLoading]);
@@ -140,8 +141,9 @@ const Dashboard = React.memo(() => {
     );
   }
 
+  // Render content only after all data is loaded
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <MainNavbar />
       <main className="pt-16 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
