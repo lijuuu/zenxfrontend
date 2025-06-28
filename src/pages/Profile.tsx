@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Challenge } from "@/api/challengeTypes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
-import ChallengesList from "@/components/profile/ChallengesList";
 import MonthlyActivityHeatmap from "@/components/activity/MonthlyActivityHeatmap";
 import ProblemsSolvedChart from "@/components/profile/ProblemsSolvedChart";
 import RecentSubmissions from "@/components/profile/RecentSubmissions";

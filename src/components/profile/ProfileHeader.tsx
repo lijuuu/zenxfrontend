@@ -111,7 +111,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userI
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-background shadow-md">
             <AvatarImage
-              src={profile?.profileImage || profile.avatarURL}
+              src={profile?.profileImage || profile.avatarURL || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"}
               alt={profile.firstName + " " + profile.lastName}
             />
             <AvatarFallback className="text-xl font-bold">{getInitials()}</AvatarFallback>

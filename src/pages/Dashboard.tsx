@@ -1,22 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trophy, Users, Code, Zap, Plus, Play, User, ChevronRight, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
 import StatsCard from '@/components/common/StatsCard';
 import MonthlyActivityHeatmap from '@/components/activity/MonthlyActivityHeatmap';
-import ClearInactivityCard from '@/components/common/ClearInactivityCard';
 import MainNavbar from '@/components/common/MainNavbar';
 import { useLeaderboard } from '@/hooks';
-import { useGetUserProfile } from "@/services/useGetUserProfile";
-import { useEffect, useState } from 'react';
+import { useGetUserProfile } from '@/services/useGetUserProfile';
 import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
 import { format, startOfWeek, endOfWeek, parseISO, isWithinInterval } from 'date-fns';
 import { calculateStreak } from '@/utils/streakcalcUtils';
 import { useProblemStats } from '@/services/useProblemStats';
-import { motion } from "framer-motion";
-import avatar from "@/assets/avatar.png";
+import { motion } from 'framer-motion';
+import avatar from '@/assets/avatar.png';
 
 // Loading Screen Component
 const LoadingScreen = () => (
@@ -24,19 +22,19 @@ const LoadingScreen = () => (
     <div className="flex flex-col items-center gap-6">
       <motion.div
         className="relative flex justify-center items-center"
-        style={{ willChange: "transform, opacity" }}
+        style={{ willChange: 'transform, opacity' }}
         initial={{ x: -150, opacity: 1 }}
         animate={{
           x: [-150, -100, -50, 0, 50, 100, 150, -150],
           y: [0, -10, 0, -10, 0, -10, 0, 0],
           opacity: [1, 1, 1, 1, 1, 0.5, 0, 1],
-          scale: [1, 1, 1, 1, 1, 1.05, 1.1, 1]
+          scale: [1, 1, 1, 1, 1, 1.05, 1.1, 1],
         }}
         transition={{
           duration: 4,
-          ease: "easeInOut",
+          ease: 'easeInOut',
           times: [0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1],
-          repeat: Infinity
+          repeat: Infinity,
         }}
       >
         <img
@@ -45,12 +43,11 @@ const LoadingScreen = () => (
           className="w-20 h-20 rounded-full shadow-2xl"
         />
       </motion.div>
-
       <motion.p
         className="text-zinc-400 text-lg"
         initial={{ opacity: 0.5 }}
         animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+        transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
       >
         Loading...
       </motion.p>
@@ -60,75 +57,33 @@ const LoadingScreen = () => (
 
 const Dashboard = React.memo(() => {
   const navigate = useNavigate();
-  const now = new Date();
-  const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const currentMonth = currentDate.getMonth() + 1; // 1-12
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
 
-  // Combine queries to track loading state
-  const {
-    data: userProfile,
-    isLoading: profileLoading,
-    isError: profileError,
-    error: profileErrorDetail,
-  } = useGetUserProfile();
-
+  const { data: userProfile, isLoading: profileLoading, isError: profileError, error: profileErrorDetail } = useGetUserProfile();
   const userId = userProfile?.userID || localStorage.getItem('userid');
   const { data: leaderboardData, isLoading: leaderboardLoading } = useLeaderboard(userId);
   const { data: problemStats, isLoading: statsLoading } = useProblemStats(userId);
   const { data: monthlyActivityData, isLoading: activityLoading } = useMonthlyActivity(userId || '', currentMonth, currentYear);
 
-  const [weeklyContributions, setWeeklyContributions] = useState(0);
-  const [weekLabel, setWeekLabel] = useState('');
   const [dayStreak, setDayStreak] = useState(0);
 
-  // Calculate total loading state
   const isLoading = profileLoading || leaderboardLoading || statsLoading || activityLoading;
-  const hasError = profileError;
 
-  // Save userID to localStorage
-  useEffect(() => {
-    if (userProfile?.userID) {
-      localStorage.setItem('userid', userProfile.userID);
-    }
-  }, [userProfile?.userID]);
 
-  // Calculate weekly contributions and streak
   useEffect(() => {
     if (monthlyActivityData && !activityLoading) {
-      const today = currentDate;
-      const weekStart = startOfWeek(today);
-      const weekEnd = endOfWeek(today);
-
-      const weekLabelValue = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
-      setWeekLabel(weekLabelValue);
-
-      const contributionsThisWeek = monthlyActivityData.reduce((count, day) => {
-        const date = parseISO(day.date);
-        const isInWeek = isWithinInterval(date, { start: weekStart, end: weekEnd });
-        if (isInWeek && day.count > 0) {
-          return count + day.count;
-        }
-        return count;
-      }, 0);
-      setWeeklyContributions(contributionsThisWeek);
-
-      const streak = calculateStreak(monthlyActivityData, currentDate);
-      setDayStreak(streak);
+      const weekStart = startOfWeek(currentDate);
+      const weekEnd = endOfWeek(currentDate);
+      setDayStreak(calculateStreak(monthlyActivityData, currentDate));
     }
   }, [monthlyActivityData, activityLoading]);
 
-  const totalProblemsDone = problemStats
-    ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount
-    : 0;
+  const totalProblemsDone = problemStats ? problemStats.doneEasyCount + problemStats.doneMediumCount + problemStats.doneHardCount : 0;
 
-  // Show loading screen if any query is loading
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  // Show error message if any query fails
-  if (hasError) {
+  if (isLoading) return <LoadingScreen />;
+  if (profileError) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center text-zinc-400">
@@ -141,7 +96,6 @@ const Dashboard = React.memo(() => {
     );
   }
 
-  // Render content only after all data is loaded
   return (
     <div className="min-h-screen">
       <MainNavbar />
@@ -150,20 +104,14 @@ const Dashboard = React.memo(() => {
           <section className="pt-6 pb-10">
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
               <div>
-                <h1 className="text-3xl font-bold text-white">
-                  Welcome back, {userProfile?.userName || 'Coder'}
-                </h1>
-                <p className="text-zinc-400 mt-1">
-                  Continue improving your coding skills and climb the ranks
-                </p>
+                <h1 className="text-3xl font-bold text-white">Welcome back, {userProfile?.userName || 'Coder'}</h1>
+                <p className="text-zinc-400 mt-1">Continue improving your coding skills and climb the ranks</p>
               </div>
-
               <div className="flex flex-wrap gap-3">
-                <Button className="bg-green-500 hover:bg-green-600 gap-2" onClick={() => navigate("/challenges")}>
+                <Button className="bg-green-500 hover:bg-green-600 gap-2" onClick={() => navigate('/challenges')}>
                   <Plus className="h-4 w-4" />
                   Create Challenge
                 </Button>
-
                 <Link to="/problems">
                   <Button variant="outline" className="border-zinc-700 hover:bg-zinc-800 gap-2">
                     <Code className="h-4 w-4" />
@@ -173,7 +121,6 @@ const Dashboard = React.memo(() => {
               </div>
             </div>
           </section>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -181,7 +128,6 @@ const Dashboard = React.memo(() => {
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Problems Done"
                   value={totalProblemsDone}
-                  change={statsLoading ? "Loading..." : ""}
                   icon={<Code className="h-4 w-4 text-green-400" />}
                 />
                 <StatsCard
@@ -193,7 +139,7 @@ const Dashboard = React.memo(() => {
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Global Rank"
-                  value={leaderboardData?.GlobalRank ? `#${leaderboardData.GlobalRank}` : "-"}
+                  value={leaderboardData?.GlobalRank ? `#${leaderboardData.GlobalRank}` : '--'}
                   icon={<Trophy className="h-4 w-4 text-amber-500" />}
                 />
                 <StatsCard
@@ -203,16 +149,13 @@ const Dashboard = React.memo(() => {
                   icon={<Award className="h-4 w-4 text-blue-400" />}
                 />
               </div>
-
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-white">
                     <Users className="h-5 w-5 text-green-400" />
                     1v1 Challenges
                   </CardTitle>
-                  <CardDescription>
-                    Challenge friends or random opponents
-                  </CardDescription>
+                  <CardDescription>Challenge friends or random opponents</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -226,11 +169,10 @@ const Dashboard = React.memo(() => {
                           <div className="text-sm text-zinc-400">Find an opponent with similar skill</div>
                         </div>
                       </div>
-                      <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={() => navigate("/challenges")}>
+                      <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={() => navigate('/challenges')}>
                         Start
                       </Button>
                     </div>
-
                     <div className="bg-zinc-800/70 backdrop-blur-sm border border-zinc-700/50 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="bg-blue-500/10 p-2 rounded-lg">
@@ -241,17 +183,14 @@ const Dashboard = React.memo(() => {
                           <div className="text-sm text-zinc-400">Send a challenge to a specific user</div>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="border-zinc-700 hover:bg-zinc-700" onClick={() => navigate("/challenges")}>
+                      <Button size="sm" variant="outline" className="border-zinc-700 hover:bg-zinc-700" onClick={() => navigate('/challenges')}>
                         Select
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* <ClearInactivityCard referralLink={userProfile?.referralLink} /> */}
             </div>
-
             <div className="space-y-6">
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader className="pb-2">
@@ -264,7 +203,7 @@ const Dashboard = React.memo(() => {
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-zinc-700">
                       <img
-                        src={userProfile?.avatarURL || userProfile?.profileImage}
+                        src={userProfile?.avatarURL || userProfile?.profileImage || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"}
                         alt={userProfile?.userName}
                         className="w-full h-full object-cover"
                       />
@@ -274,11 +213,7 @@ const Dashboard = React.memo(() => {
                       <p className="text-zinc-400">@{userProfile?.userName}</p>
                     </div>
                   </div>
-
-                  {userProfile?.bio && (
-                    <p className="text-sm text-zinc-300 mb-4 line-clamp-3">{userProfile.bio}</p>
-                  )}
-
+                  {userProfile?.bio && <p className="text-sm text-zinc-300 mb-4 line-clamp-3">{userProfile.bio}</p>}
                   <Link to="/profile">
                     <Button className="w-full text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700">
                       View Full Profile
@@ -286,7 +221,6 @@ const Dashboard = React.memo(() => {
                   </Link>
                 </CardContent>
               </Card>
-
               <MonthlyActivityHeatmap
                 userID={userProfile?.userID}
                 showTitle={true}
@@ -295,16 +229,13 @@ const Dashboard = React.memo(() => {
                 compact={true}
                 className="w-full"
               />
-
               <Card className="bg-zinc-900/40 backdrop-blur-sm border-zinc-800/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2 text-white">
                     <Trophy className="h-5 w-5 text-amber-500" />
                     Top Performers
                   </CardTitle>
-                  <CardDescription>
-                    This week's leading coders
-                  </CardDescription>
+                  <CardDescription>This week's leading coders</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -320,11 +251,7 @@ const Dashboard = React.memo(() => {
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full overflow-hidden">
-                              <img
-                                src={entry.AvatarURL}
-                                alt={entry.UserName}
-                                className="w-full h-full object-cover"
-                              />
+                              <img src={entry.AvatarURL || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"} alt={entry.UserName} className="w-full h-full object-cover" />
                             </div>
                             <div>
                               <div className="font-medium text-sm text-white">{entry.UserName}</div>
@@ -336,7 +263,6 @@ const Dashboard = React.memo(() => {
                       </div>
                     ))}
                   </div>
-
                   <Link to="/leaderboard" className="mt-4 flex items-center text-sm text-green-400 hover:text-green-300 transition-colors group">
                     View full leaderboard
                     <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />

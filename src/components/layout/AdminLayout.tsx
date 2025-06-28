@@ -59,12 +59,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       name: "Users",
       path: "/admin/users",
       icon: <Users className="h-5 w-5" />
-    },
-    {
-      name: "Settings",
-      path: "/admin/settings",
-      icon: <Settings className="h-5 w-5" />
-    },
+    }
   ];
 
   return (

@@ -41,6 +41,7 @@ import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import GlobalSearch from "../search/GlobalSearch";
 import MusicPlayer from "../music/MusicPlayer";
+import bgGradient from "@/assets/challengegradient.png";
 
 interface NavItem {
   name: string;
@@ -125,20 +126,48 @@ const MainNavbar = () => {
     setSearchDialogOpen(true);
   };
 
+  // Conditional background style for /challenges route
+  const isChallengeRoute = location.pathname.startsWith("/challenges");
+
+  // Animated glowing gradient for /challenges route
+  const headerStyle = isChallengeRoute
+    ? {
+      background: '#18181b',
+      backgroundImage: `
+          linear-gradient(rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.85) 100%),
+          url(${bgGradient}),
+          repeating-linear-gradient(
+            135deg,
+            rgba(0,0,0,0.10) 0px,
+            rgba(0,255,128,0.08) 2px,
+            rgba(0,0,0,0.10) 4px
+          )
+        `,
+      backgroundSize: '100% 100%, cover, 80px 80px',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat, no-repeat, repeat',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    }
+    : {
+      background: '#131316',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    };
+
   return (
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 h-16 z-50 transition-all duration-300 ease-in-out bg-zinc-900 border-b border-zinc-800"
+          "fixed top-0 left-0 right-0 h-16 z-50 transition-all duration-300 ease-in-out"
         )}
+        style={headerStyle}
       >
         <div className="page-container h-full flex items-center justify-between z-10 position-relative">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 mr-8">
               <span
-              className="text-4xl lowercase font-bold font-display tracking-tight relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 bg-clip-text text-transparent animate-glow mb-2"
+                className="text-4xl lowercase font-bold font-display tracking-tight relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 bg-clip-text text-transparent animate-glow mb-2"
               >
-              zenx
+                zenx
               </span>
               {/* <img src="./avatar.png" className="w-8 h-8 mt-1" /> */}
             </Link>
@@ -195,7 +224,7 @@ const MainNavbar = () => {
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={userProfile?.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                          src={userProfile?.avatarURL || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"}
                           alt={userProfile?.firstName || "User"}
                         />
                         <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
@@ -268,9 +297,17 @@ const MainNavbar = () => {
         {/* Mobile Navigation */}
         <div
           className={cn(
-            "xl:hidden fixed inset-y-0 right-0 z-40 transition-transform duration-300 ease-in-out bg-zinc-900",
-            mobileMenuOpen ? "translate-x-0 w-[85%]" : "translate-x-full w-[85%]"
+            "xl:hidden fixed inset-y-0 right-0 z-40 transition-transform duration-300 ease-in-out",
+            isChallengeRoute
+              ? "bg-[#0f0f0f]"
+              : "bg-zinc-900"
           )}
+          style={isChallengeRoute ? {
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.7)), url(${bgGradient})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          } : {}}
         >
           <nav className="py-6 px-4 space-y-1 min-h-screen overflow-y-auto">
             {isUserAuthenticated && userProfile && (
@@ -278,7 +315,7 @@ const MainNavbar = () => {
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={userProfile.avatarURL || "https://i.pravatar.cc/300?img=1"}
+                      src={userProfile.avatarURL || "https://res.cloudinary.com/dcfoqhrxb/image/upload/v1751096235/demo/avatar_rlqkrp.jpg"}
                       alt={userProfile.firstName || "User"}
                     />
                     <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
