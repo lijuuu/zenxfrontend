@@ -116,11 +116,8 @@ const MainNavbar = () => {
     setSearchDialogOpen(true);
   };
 
-  // Conditional background style for /challenges route
-  const isChallengeRoute = location.pathname.startsWith("/challenges");
 
-  const headerStyle = isChallengeRoute
-    ? {
+  const headerStyle =  {
         background: '#141416', // slightly darker
         backgroundImage: `
           linear-gradient(rgba(0,0,0,0.60) 60%, rgba(0,0,0,0.92) 100%),
@@ -136,10 +133,6 @@ const MainNavbar = () => {
         backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat, no-repeat, repeat',
       }
-    : {
-        background: '#101014', // slightly darker
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-      };
 
   return (
     <>
@@ -281,14 +274,14 @@ const MainNavbar = () => {
           className={cn(
             "xl:hidden fixed inset-y-0 right-0 z-40 transition-transform duration-300 ease-in-out",
             mobileMenuOpen ? "translate-x-0 w-[85%]" : "translate-x-full w-[85%]",
-            isChallengeRoute ? "bg-[#0f0f0f]" : "bg-zinc-900"
+              "bg-zinc-900"
           )}
-          style={isChallengeRoute ? {
+          style={ {
             backgroundImage: `linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.7)), url(${bgGradient})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-          } : {}}
+          } }
         >
           <nav className="py-6 px-4 space-y-1 min-h-screen overflow-y-auto">
             {isUserAuthenticated && userProfile && (

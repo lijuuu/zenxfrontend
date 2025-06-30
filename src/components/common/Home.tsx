@@ -9,6 +9,8 @@ import Footer from './Footer';
 import ChatBattleNotification from '@/components/challenges/ChatBattleNotification';
 import MainNavbar from './MainNavbar';
 import MusicPlayer from '../music/MusicPlayer';
+import bgGradient from "@/assets/challengegradient.png";
+
 
 const Home = () => {
   const navigate = useNavigate();
@@ -53,7 +55,7 @@ const Home = () => {
     <div className="flex flex-col min-h-screen">
       <MainNavbar />
 
-      <main className="flex-1 bg-gradient-to-b from-white to-green-50 dark:from-zinc-900 dark:to-zinc-950">
+      <main className="flex-1 bg-gradient-to-b from-white to-green-50 dark:from-black">
         {/* Hero Section */}
         <section className="py-16 md:py-24 relative overflow-hidden">
           {/* Background Effects */}
@@ -102,7 +104,7 @@ const Home = () => {
         </section>
 
         {/* Mock Battle Interface */}
-        <section className="py-12 bg-zinc-50 dark:bg-zinc-900/50 relative overflow-hidden">
+        <section className="py-12 bg-zinc-50 dark:bg-black relative overflow-hidden">
           {/* Background pattern */}
           <div className="absolute inset-0 opacity-[0.03]">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMjI')] opacity-[0.03]" />
@@ -137,7 +139,7 @@ const Home = () => {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 bg-gradient-to-b from-green-50 to-white dark:from-zinc-900 dark:to-zinc-950">
+        <section className="py-20 bg-gradient-to-b from-green-50 to-white dark:from-black">
           <div className="container mx-auto px-4 md:px-8">
             <div className="text-center mb-12">
               <Badge className="mb-4 bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 hover:bg-green-200 hover:dark:bg-green-900/50 px-3 py-1.5 shadow-sm">
