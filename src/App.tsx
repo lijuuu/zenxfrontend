@@ -27,8 +27,10 @@ import UserManagement from "./pages-admin/UserManagement";
 import AdminLayout from "./components/layout/AdminLayout";
 import { useEffect } from "react";
 import AdminDashboard from "./pages-admin/AdminDashboard";
-import {MusicPlayer,Track} from "@lijuu/musicplayerwidget";
+import { MusicPlayer, Track } from "@lijuu/musicplayerwidget";
 import MinimalChallenges from "./pages/MinimalChallenges";
+import CreateChallengeForm from "./components/challenges/CreateChallengeForm";
+import CreateChallenge from "./components/challenges/CreateChallengeForm";
 // import MusicPlayer,{Track} from "./components/music/MusicPlayer";
 
 // Create a client
@@ -120,6 +122,7 @@ const AppContent = () => {
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/profile/:userid" element={<Profile />} />
         <Route path="/challenges" element={<MinimalChallenges />} />
+        <Route path="create-challenges" element={<CreateChallenge />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/playground" element={<Compiler />} />
 
