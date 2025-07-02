@@ -277,7 +277,7 @@ const MainNavbar = () => {
               "bg-zinc-900"
           )}
           style={ {
-            backgroundImage: `linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.7)), url(${bgGradient})`,
+            backgroundImage: `linear-gradient(rgba(0,0,0,1), rgba(0,0,0,0.8)), url(${bgGradient})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',

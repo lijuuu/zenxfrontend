@@ -90,7 +90,7 @@ const RecentSubmissions: React.FC<RecentSubmissionsProps> = ({ userId }) => {
 
   const { data: submissions = [], isLoading, error } = useRecentSubmissions({
     userId,
-    limit: 50,
+    limit: 500,
   });
 
   const handleViewSubmission = (submission: Submission) => {

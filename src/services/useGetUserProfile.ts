@@ -18,3 +18,4 @@ export const useGetUserProfile = ({ userID, username }: Props = {}) => {
     enabled: true,
   });
 };
+
