@@ -123,7 +123,7 @@ const Leaderboard = () => {
 
   if (isLoading) {
     return (
-      <div className="pt-4 pb-16">
+      <div className="pt-4 pb-16 bg-black">
         <MainNavbar />
         <div className="container px-4 mx-auto max-w-6xl pt-20">
           <div className="mb-8">
@@ -166,7 +166,7 @@ const Leaderboard = () => {
 
   if (error) {
     return (
-      <div className="pt-4 pb-16">
+      <div className="pt-4 pb-16 bg-black">
         <MainNavbar />
         <div className="container px-4 mx-auto max-w-6xl pt-20">
           <div className="mb-8">
@@ -205,11 +205,11 @@ const Leaderboard = () => {
           </div>
         </div>
       </div>
-    );
+  );
   }
 
   return (
-    <div className="pt-4 pb-16">
+    <div className="pt-4 pb-16 bg-black min-h-screen">
       <MainNavbar />
       {!isLoading && <div className="container px-4 mx-auto max-w-6xl pt-20">
         <div className="mb-8">

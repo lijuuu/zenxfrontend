@@ -81,7 +81,7 @@ export const getActiveOpenChallenges = async (data: {
   }
 };
 
-export const useGetOwnersActiveChallenges = async (data: {
+export const getOwnersActiveChallenges = async (data: {
   page?: number;
   pageSize?: number;
   isPrivate?: boolean;
@@ -97,6 +97,22 @@ export const useGetOwnersActiveChallenges = async (data: {
     return response.data.payload;
   } catch (error) {
     console.error('Error fetching user challenge history:', error);
+    throw error;
+  }
+};
+
+
+export const abandonChallenge = async ({ creatorId, challengeId }: { creatorId: string; challengeId: string }) => {
+  try {
+    const response = await axiosInstance.post('/challenges/abandon', {
+      creatorId,
+      challengeId,
+    }, {
+      headers: { 'X-Requires-Auth': 'true' }
+    });
+    return response.data.payload;
+  } catch (error) {
+    console.error('Error abandoning challenge:', error);
     throw error;
   }
 };

@@ -118,15 +118,15 @@ const MainNavbar = () => {
 
 
   const headerStyle =  {
-        background: '#141416', // slightly darker
+        background: '#101012', // even darker
         backgroundImage: `
-          linear-gradient(rgba(0,0,0,0.60) 60%, rgba(0,0,0,0.92) 100%),
+          linear-gradient(rgba(0,0,0,0.80) 60%, rgba(0,0,0,0.98) 100%),
           url(${bgGradient}),
           repeating-linear-gradient(
             135deg,
-            rgba(0,0,0,0.15) 0px,
-            rgba(0,255,128,0.08) 2px,
-            rgba(0,0,0,0.15) 4px
+            rgba(0,0,0,0.25) 0px,
+            rgba(0,255,128,0.06) 2px,
+            rgba(0,0,0,0.25) 4px
           )
         `,
         backgroundSize: '100% 100%, cover, 80px 80px',

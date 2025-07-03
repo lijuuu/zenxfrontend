@@ -47,7 +47,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-black text-white">
       <MainNavbar />
       
       <div className="pt-16 pb-16 container mx-auto px-4">

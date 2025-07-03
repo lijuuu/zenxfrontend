@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 // import { getChallenges } from "@/api/challengeApi";
-import { Challenge } from "@/api/challengeTypes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import MonthlyActivityHeatmap from "@/components/activity/MonthlyActivityHeatmap";
@@ -23,7 +22,7 @@ import { useOwner } from "@/hooks/useOwner";
 const Profile = React.memo(() => {
   const { username } = useParams<{ username: string }>();
   const { toast } = useToast();
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -108,7 +107,7 @@ const Profile = React.memo(() => {
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white bg-black">
       <MainNavbar />
       <main className="pt-20 pb-8">
         <div className="page-container">

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Search, User, X, Loader2, ArrowUpRight } from "lucide-react";
+import { Search, User, Loader2, ArrowUpRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { searchUsers, SearchUsersResponse } from "@/api/userApi";
+import { searchUsers } from "@/api/userApi";
 import { UserProfile } from "@/store/slices/authSlice";
 
 export interface GlobalSearchProps {
@@ -19,7 +19,6 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onClose }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // setup input focus and click outside
   useEffect(() => {
     inputRef.current?.focus();
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,7 +30,6 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onClose }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  // search effect
   useEffect(() => {
     const handleSearch = async () => {
       if (query.trim().length < 2) {
@@ -55,7 +53,6 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onClose }) => {
     return () => clearTimeout(timeoutId);
   }, [query]);
 
-  // load more results
   const loadMoreResults = async () => {
     if (!nextPageToken || loading) return;
     setLoading(true);
@@ -70,7 +67,6 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onClose }) => {
     }
   };
 
-  // handle enter key
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && query.trim().length >= 2) {
       const handleSearch = async () => {
@@ -90,15 +86,13 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onClose }) => {
     }
   };
 
-  // Placeholder for AvatarFallback if not imported
-const AvatarFallback = ({ className, children }: { className?: string; children: React.ReactNode }) => (
-  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${className}`}>
-    {children}
-  </div>
-);
+  const AvatarFallback = ({ className, children }: { className?: string; children: React.ReactNode }) => (
+    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${className}`}>
+      {children}
+    </div>
+  );
 
-   // get initials for fallback
-   const getInitials = (user: UserProfile) => {
+  const getInitials = (user: UserProfile) => {
     if (user.firstName && user.lastName)
       return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
     if (user.userName)
@@ -106,23 +100,16 @@ const AvatarFallback = ({ className, children }: { className?: string; children:
     return "U";
   };
 
-  // clear input
-  const clearSearch = () => {
-    setQuery("");
-    setResults([]);
-    setNextPageToken(undefined);
-    inputRef.current?.focus();
-  };
-
   return (
     <div
       ref={searchContainerRef}
-      className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl p-4"
+      className="w-full max-w-2xl bg-black border border-zinc-800 rounded-lg shadow-xl p-4"
     >
       {/* search input */}
       <div className="relative mb-4">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
         <Input
+          type="text"
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -139,8 +126,6 @@ const AvatarFallback = ({ className, children }: { className?: string; children:
         </div>
       ) : results.length > 0 ? (
         <div className="space-y-4">
-          <div className="text-sm text-zinc-400">
-          </div>
           <div className="max-h-96 overflow-y-auto space-y-2">
             {results.map((user) => (
               <Link
@@ -165,7 +150,9 @@ const AvatarFallback = ({ className, children }: { className?: string; children:
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-white">
-                    {user.firstName || user.lastName ? `${user.firstName || ""} ${user.lastName || ""}` : user.userName}
+                    {user.firstName || user.lastName
+                      ? `${user.firstName || ""} ${user.lastName || ""}`
+                      : user.userName}
                   </div>
                   <div className="text-sm text-zinc-400 truncate">@{user.userName}</div>
                 </div>

@@ -178,7 +178,7 @@ const ProblemListing: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-black text-white">
       <MainNavbar />
 
       <main className="page-container py-8 pt-20">
