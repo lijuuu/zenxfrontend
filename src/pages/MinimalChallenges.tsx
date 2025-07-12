@@ -12,6 +12,7 @@ import {
   Loader2,
   History,
   ArrowRight,
+  Clipboard
 } from "lucide-react";
 import { toast } from "sonner";
 import MainNavbar from "@/components/common/MainNavbar";
@@ -91,13 +92,35 @@ const CurrentOngoingChallenge = ({
       className="bg-zinc-900/90 text-white border border-zinc-700 rounded-xl shadow-lg p-6 max-w-5xl mx-auto space-y-4"
     >
       <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <button
-            onClick={() => copyRoomInfo(challenge)}
-            className="text-blue-400 border border-blue-600 px-3 py-1 text-sm rounded hover:bg-blue-600/10 transition"
-          >
-            Copy Room Info
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1 text-sm bg-zinc-800 px-2 py-1 rounded">
+            <span className="text-gray-300 font-semibold">ID:</span>
+            <span className="text-white">{challenge?.challengeId}</span>
+            <button
+              onClick={() => navigator.clipboard.writeText(challenge.challengeId)}
+              className="text-gray-400 hover:text-white"
+            >
+              <Clipboard className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex items-center gap-1 text-sm bg-zinc-800 px-2 py-1 rounded">
+            <span className="text-gray-300 font-semibold">Password:</span>
+            <span className="text-white">{challenge?.password || "None"}</span>
+            <button
+              onClick={() => navigator.clipboard.writeText(challenge.password || "")}
+              className="text-gray-400 hover:text-white"
+            >
+              <Clipboard className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex items-center gap-1 text-sm p-1 rounded mt-1">
+            <button
+              onClick={() => copyRoomInfo(challenge)}
+              className="text-blue-400 text-sm hover:underline"
+            >
+              Copy Room Url
+            </button>
+          </div>
         </div>
         <motion.div
           onClick={() => setShowDetails((prev) => !prev)}
@@ -108,6 +131,7 @@ const CurrentOngoingChallenge = ({
           <ChevronRight className="h-5 w-5" />
         </motion.div>
       </div>
+
       <AnimatePresence>
         {showDetails && (
           <motion.div
@@ -122,7 +146,14 @@ const CurrentOngoingChallenge = ({
                 {challenge.title || "Untitled Challenge"}
               </h2>
               {challenge.isPrivate && <Lock className="h-5 w-5 text-yellow-400" />}
+              <h1 className="text-sm text-gray-300">
+                <span className="font-semibold text-white">Challenge ID:</span> {challenge?.challengeId}
+              </h1>
+              <h1 className="text-sm text-gray-300">
+                <span className="font-semibold text-white">Password:</span> {challenge?.password || "None"}
+              </h1>
             </div>
+
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 {isLoadingCreator ? (
@@ -161,6 +192,7 @@ const CurrentOngoingChallenge = ({
                 </p>
               </div>
             </div>
+
             <div className="max-h-[300px] overflow-y-auto space-y-3">
               {isLoadingMetadata ? (
                 <div className="flex justify-center">
@@ -352,7 +384,7 @@ const MinimalChallenges = () => {
       return;
     }
     toast.success(`Joined challenge "${challenge.title}" successfully!`, { duration: 1500 });
-    navigate(`/challenge/${challenge.challengeId}`);
+    navigate(`/join-challenge/${challenge.challengeId}`);
     setIsModalOpen(false);
   };
 
@@ -393,10 +425,10 @@ const MinimalChallenges = () => {
       toast.error("Invalid challenge", { duration: 1500 });
       return;
     }
-   
+
     const roomUrl =
       window.location.host +
-      "/challenge/" +
+      "/join-challenge/" +
       challenge.challengeId +
       (challenge.password ? "/" + challenge.password : "");
 

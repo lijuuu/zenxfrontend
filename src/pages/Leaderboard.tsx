@@ -205,7 +205,7 @@ const Leaderboard = () => {
           </div>
         </div>
       </div>
-  );
+    );
   }
 
   return (
@@ -258,12 +258,12 @@ const Leaderboard = () => {
                 </div> */}
                 <div className="flex justify-between items-center pb-3 border-b border-zinc-700/30">
                   <span className="text-zinc-400">Global Rank</span>
-                  <span className="font-medium">#{leaderboardData.GlobalRank + 1}</span>
+                  <span className="font-medium">#{leaderboardData.GlobalRank}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-400">Country Rank</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">#{leaderboardData.EntityRank + 1}</span>
+                    <span className="font-medium">#{leaderboardData.EntityRank}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-zinc-500">{leaderboardData.Entity.toUpperCase()}</span>
                       <img src={`https://flagcdn.com/24x18/${leaderboardData.Entity?.toLowerCase()}.png`}></img>

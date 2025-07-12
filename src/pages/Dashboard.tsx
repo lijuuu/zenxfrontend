@@ -93,7 +93,7 @@ const Dashboard = React.memo(() => {
                   title="Problems Done"
                   value={totalProblemsDone}
                   icon={<Code className="h-4 w-4 text-green-400" />}
-                />
+                />   
                 <StatsCard
                   className="hover:scale-105 transition-transform duration-200 ease-in-out"
                   title="Current Streak"

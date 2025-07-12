@@ -22,10 +22,10 @@ const Home = () => {
   };
 
   const handleChallengeAccept = () => {
-    toast({
-      title: "Challenge accepted",
-      description: "You've joined the coding battle",
-    });
+    // toast({
+    //   title: "Challenge accepted",
+    //   description: "You've joined the coding battle",
+    // });
     navigate('/challenges');
   };
 
