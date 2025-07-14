@@ -114,6 +114,7 @@ function LoginForm() {
     } else if (error) {
       if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
         Cookies.set("emailtobeverified", formEmail);
+        localStorage.setItem("state", "VERIFY_EMAIL_REQUEST_FORCE_SENT")
         navigate("/verify-info");
         handleInfo(error);
       } else if (error?.type === "ERR_LOGIN_METHOD_CONFLICT") {

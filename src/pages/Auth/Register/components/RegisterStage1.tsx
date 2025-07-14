@@ -137,10 +137,17 @@ function SignupForm({
             <div className="mt-4 space-y-2">
               <Button
                 type="button"
-                onClick={()=>handleGoogleLogin()}
+                onClick={() => handleGoogleLogin()}
                 className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-green-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
               >
                 Sign up with Google
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleGoogleLogin()}
+                className="w-full h-12 bg-zinc-800 text-md text-white hover:bg-blue-500 hover:text-black py-3 rounded-full flex items-center justify-center transition-all duration-200"
+              >
+                Already a user? Login
               </Button>
               {/* <Button
                 type="button"

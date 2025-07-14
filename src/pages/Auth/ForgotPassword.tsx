@@ -6,6 +6,7 @@ import Loader1 from "@/components/ui/loader1";
 import { toast } from "sonner";
 import emailIcon from "@/assets/email.png";
 import SimpleSpinLoader from "@/components/ui/simplespinloader";
+import MainNavbar from "@/components/common/MainNavbar";
 
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
@@ -70,6 +71,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen w-full bg-zinc-950 flex flex-col items-center justify-center relative">
+      <MainNavbar/>
       {loading && (
         <LoaderOverlay
           onCancel={() => {

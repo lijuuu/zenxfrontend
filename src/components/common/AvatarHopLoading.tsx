@@ -2,7 +2,7 @@ import React from 'react'
 import { motion } from 'framer-motion';
 import avatar from '@/assets/avatar.png';
 
-const AvatarHopLoading = () => (
+const AvatarHopLoading = ({ message }: { message?: string }) => (
   <div className="fixed inset-0 bg-zinc-900 flex items-center justify-center z-50">
     <div className="flex flex-col items-center gap-6">
       <motion.div
@@ -34,7 +34,7 @@ const AvatarHopLoading = () => (
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
       >
-        Loading...
+        {message || "Loading..."}
       </motion.p>
     </div>
   </div>

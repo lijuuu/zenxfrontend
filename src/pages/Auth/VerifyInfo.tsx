@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import Loader1 from "@/components/ui/loader1";
+import AvatarHopLoading from '@/components/common/AvatarHopLoading';
+
 
 const VerifyInfo = () => {
   const dispatch = useDispatch();
@@ -15,12 +16,31 @@ const VerifyInfo = () => {
 
   const { successMessage, error, expiryAt, loading } = useSelector((state: any) => state.auth);
 
+  const handleResendEmail = () => {
+    if (emailVerified) {
+      dispatch(resendEmail({ email: emailVerified }) as any);
+    }
+  };
+
   useEffect(() => {
     const email = Cookies.get("emailtobeverified");
+    const state = localStorage.getItem("state");
+
     if (!email) {
       navigate("/login");
-    } else {
-      setEmailVerified(email);
+      return;
+    }
+
+    setEmailVerified(email);
+
+    if (state === "VERIFY_EMAIL_REQUEST_FORCE_SENT") {
+      localStorage.removeItem("state");
+      // console.log("VERIFY_EMAIL_REQUEST_FORCE_SENT");
+
+      // ensure email is set before dispatch
+      setTimeout(() => {
+        dispatch(resendEmail({ email }) as any);
+      }, 0);
     }
   }, [dispatch, navigate]);
 
@@ -53,12 +73,6 @@ const VerifyInfo = () => {
     }
   }, [successMessage, error, loading]);
 
-  const handleResendEmail = () => {
-    if (emailVerified) {
-      dispatch(resendEmail({ email: emailVerified }) as any);
-    }
-  };
-
   useEffect(() => {
     if (Cookies.get("accessToken")) {
       navigate("/home");
@@ -66,8 +80,8 @@ const VerifyInfo = () => {
   }, []);
 
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50 font-roboto">
-      <Loader1 className="w-12 h-12 mr-10 text-green-400" />
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-95 z-50 ">
+      <AvatarHopLoading message ="Sending.." />
       <div className="text-green-400 text-xl opacity-80 mt-24">
         Sending verification email...
       </div>
@@ -81,7 +95,7 @@ const VerifyInfo = () => {
   );
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen relative font-roboto bg-gradient-to-br from-black via-green-950 to-black">
+    <div className="flex flex-col items-center justify-center h-screen relative  bg-gradient-to-br from-black via-green-950 to-black">
       {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
       <img
         src={image}

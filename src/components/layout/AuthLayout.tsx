@@ -24,7 +24,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   fullHeight = true,
 }) => {
   return (
-    <div className={`bg-[#121212] text-white ${fullHeight ? "min-h-screen" : ""} flex flex-col font-roboto`}>
+    <div className={`bg-[#121212] text-white ${fullHeight ? "min-h-screen" : ""} flex flex-col roboto`}>
       {/* Green accent bar at top */}
       <div className="bg-[#3CE7B2] h-2 w-full" />
       

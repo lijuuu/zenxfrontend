@@ -8,7 +8,7 @@ import SimpleSpinLoader from "@/components/ui/simplespinloader";
 
 // --- Loader Overlay Component ---
 const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-  <div className="absolute inset-0 flex items-center justify-center bg-[#121212] bg-opacity-95 z-50 font-roboto">
+  <div className="absolute inset-0 flex items-center justify-center bg-[#121212] bg-opacity-95 z-50 ">
     <div className="flex flex-col items-center justify-center space-y-4">
       <SimpleSpinLoader className="w-12 h-12 text-green-700" />
       <div className="text-white text-xl opacity-80">
@@ -80,7 +80,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#121212] flex flex-col items-center justify-center relative font-roboto">
+    <div className="min-h-screen w-full bg-[#121212] flex flex-col items-center justify-center relative ">
       {loading && (
         <LoaderOverlay
           onCancel={() => {

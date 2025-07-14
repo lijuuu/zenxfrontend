@@ -74,7 +74,7 @@ const MainNavbar = () => {
     { name: "Profile", path: "/profile", icon: <User className="h-4 w-4" />, requiresAuth: true },
     { name: "Problems", path: "/problems", icon: <Code className="h-4 w-4" />, requiresAuth: false },
     { name: "Compiler", path: "/playground", icon: <Terminal className="h-4 w-4" />, requiresAuth: false },
-    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true, requiresAuth: false },
+    { name: "Challenges", path: "/challenges", icon: <Zap className="h-4 w-4" />, isHighlighted: true, requiresAuth: true },
     { name: "Leaderboard", path: "/leaderboard", icon: <Award className="h-4 w-4" />, requiresAuth: false },
     { name: "Settings", path: "/settings", icon: <Settings className="h-4 w-4" />, requiresAuth: true },
   ];

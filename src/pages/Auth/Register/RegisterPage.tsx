@@ -3,16 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { registerUser, clearAuthState as clearAuthInitialState } from '@/store/slices/authSlice';
-import Loader1 from '@/components/ui/loader1';
 import SignupForm from './components/RegisterStage1';
 import RegisterStage2 from './components/RegisterStage2';
 import RegisterStage3 from './components/RegisterStage3';
 import RegisterStage4 from './components/RegisterStage4';
 import AuthHeader from '@/components/sub/AuthHeader';
-import Cookies from 'js-cookie';
 import { handleError } from '@/components/sub/ErrorToast';
-import { Loader2 } from 'lucide-react';
 import SimpleSpinLoader from '@/components/ui/simplespinloader';
+import MainNavbar from '@/components/common/MainNavbar';
 
 // Constants
 const STAGE_COUNT = 4;
@@ -36,14 +34,14 @@ function RegisterPage() {
     return storedData
       ? JSON.parse(storedData)
       : {
-          email: '',
-          firstName: '',
-          lastName: '',
-          country: '',
-          profession: '',
-          password: '',
-          confirmPassword: '',
-        };
+        email: '',
+        firstName: '',
+        lastName: '',
+        country: '',
+        profession: '',
+        password: '',
+        confirmPassword: '',
+      };
   });
 
   const dispatch = useDispatch();
@@ -64,7 +62,8 @@ function RegisterPage() {
         style: { background: '#1D1D1D', color: '#3CE7B2' },
       });
       dispatch(clearAuthInitialState());
-      localStorage.removeItem(FORM_STORAGE_KEY); // Clear form data on success
+      localStorage.setItem("state","VERIFY_EMAIL_REQUEST_FORCE_SENT")
+      localStorage.removeItem(FORM_STORAGE_KEY);
       localStorage.removeItem('registerStage');
     }
   }, [userId, error, successMessage, navigate, dispatch]);
@@ -101,7 +100,7 @@ function RegisterPage() {
 
   // Loader Overlay Component
   const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50 font-roboto">
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50 ">
       <SimpleSpinLoader className="w-12 h-12 text-[#3CE7B2]" />
       <div className="text-white text-xl opacity-80 mt-24">Creating your account</div>
       <button
@@ -121,16 +120,17 @@ function RegisterPage() {
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-white relative font-roboto">
-      {loading && <LoaderOverlay onCancel={() => {}} />}
+    <div className="flex flex-col min-h-screen bg-zinc-950 text-white relative ">
+      {loading && <LoaderOverlay onCancel={() => { }} />}
       <div className="w-full bg-zinc-800 h-2">
         <div
           className="bg-green-500 h-2 transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <AuthHeader page="/login" name="Login" />
-      <div className="flex flex-col flex-1">
+      {/* <AuthHeader page="/login" name="Login" /> */}
+      <MainNavbar />
+      <div className="flex flex-col flex-1 items-center justify-center">
         {stage === 1 && (
           <SignupForm
             onNext={handleStage1Submit}

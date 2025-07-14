@@ -48,7 +48,7 @@ function RegisterStage4({ email, onBack, onSubmit, className, ...props }: Regist
 
   return (
     <div className="flex flex-col bg-zinc-950 text-white">
-      <div className="flex justify-center items-center flex-1 pt-16">
+      <div className="flex justify-center items-center flex-1">
         <div
           className={cn(
             'w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg hover:border-zinc-700 transition-all duration-300',

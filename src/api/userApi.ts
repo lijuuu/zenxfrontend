@@ -23,10 +23,9 @@ export const getUserProfile = async ({
       if (userID) params.userid = userID
     } else if (!Cookies.get("accessToken") && !Cookies.get("refreshToken")) {
       // no auth tokens at all - return early
-      console.log("return back")
       return {}
     }
-    
+
 
     const res = await axiosInstance.get(url, {
       params,

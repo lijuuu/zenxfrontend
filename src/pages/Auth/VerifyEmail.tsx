@@ -43,7 +43,7 @@ const VerifyEmail = () => {
 
   if (!location.search.includes("email=") || !location.search.includes("token=")) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-[#121212] font-roboto">
+      <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-[#121212] ">
         <h1 className="text-4xl font-bold text-white">No Verification Data Provided</h1>
         <p className="text-base text-gray-400 mt-2">Please use a valid verification link.</p>
         <button
@@ -57,7 +57,7 @@ const VerifyEmail = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-[#121212] font-roboto">
+    <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-[#121212] ">
       {/* Email Icon Animation */}
       <motion.img
         src={emailIcon}
