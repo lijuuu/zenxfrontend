@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { LeaderboardUser } from '@/api/leaderboardApi';
 import { useToast } from '@/hooks/use-toast';
 import MainNavbar from '@/components/common/MainNavbar';
@@ -264,10 +263,10 @@ const Leaderboard = () => {
                   <span className="text-zinc-400">Country Rank</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">#{leaderboardData.EntityRank}</span>
-                    <div className="flex items-center gap-1">
+                    {leaderboardData?.Entity && <div className="flex items-center gap-1">
                       <span className="text-xs text-zinc-500">{leaderboardData.Entity.toUpperCase()}</span>
                       <img src={`https://flagcdn.com/24x18/${leaderboardData.Entity?.toLowerCase()}.png`}></img>
-                    </div>
+                    </div>}
                   </div>
                 </div>
               </div>

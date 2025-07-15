@@ -13,7 +13,6 @@ import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 import Problems from "./pages/Problems";
 import Profile from "./pages/Profile";
-import ChallengeMain from "./pages/Challenge";
 import Settings from "./pages/Settings";
 import Compiler from "./pages/Compiler";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -124,8 +123,8 @@ const AppContent = () => {
         <Route path="/profile/:userid" element={<Profile />} />
 
         <Route path="/challenges" element={<MinimalChallenges />} />
-        <Route path="/join-challenge/:challengeid" element={<JoinChallenge />} />
         <Route path="/join-challenge/:challengeid/:password" element={<JoinChallenge />} />
+        <Route path="/join-challenge/:challengeid" element={<JoinChallenge />} />
 
         <Route path="create-challenges" element={<CreateChallenge />} />
         <Route path="/settings" element={<Settings />} />

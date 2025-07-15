@@ -42,6 +42,7 @@ const eventCallbacks: Record<string, (response: WSResponse, context: any) => voi
 
   // server replied to our join request
   [JOIN_CHALLENGE]: (response, { setChallenge, setError, setOutgoingEvents }) => {
+    console.log(response)
     setOutgoingEvents((prev: string[]) => [
       JSON.stringify({ type: JOIN_CHALLENGE, payload: response }, null, 2),
       ...prev.slice(0, 50),
@@ -90,6 +91,8 @@ const JoinChallenge: React.FC = () => {
     visible: false,
     countdown: 5, // 5 seconds countdown for redirect
   });
+
+
 
   useEffect(() => {
     if (!userProfile) {
@@ -267,6 +270,7 @@ const JoinChallenge: React.FC = () => {
     <div className="p-4 space-y-4 text-sm">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Join Challenge</h1>
+        { }
         <div className="space-x-2">
           <button
             onClick={sendRefetchChallenge}

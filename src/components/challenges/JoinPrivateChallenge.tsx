@@ -11,20 +11,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { joinChallenge } from "@/api/challengeApi";
-import { Challenge } from "@/api/challengeTypes";
 import { useNavigate } from "react-router";
 
 interface JoinPrivateChallengeProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (challenge: Challenge) => void;
 }
 
 const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
   isOpen,
   onClose,
-  onSuccess,
 }) => {
   const { toast } = useToast();
   const [accessCode, setAccessCode] = useState("");
@@ -43,8 +39,9 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     try {
       const result = {
         success: true,
-        gameRoomLink: "https://google.com",
+        gameRoomLink: `/join-challenge/${challengeId}/${accessCode}`,
       };
+
 
       if (result.success) {
         setCodeFound(true);
@@ -59,56 +56,6 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
         toast({
           title: "Invalid Code",
           description: "Could not find a challenge with that access code.",
-          variant: "destructive",
-          className: "bg-red-50 text-red-800",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to join challenge:", error);
-      toast({
-        title: "Error",
-        description: "Failed to join challenge. Please try again.",
-        variant: "destructive",
-        className: "bg-red-50 text-red-800",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleJoin = async () => {
-    setLoading(true);
-    try {
-      const result = await joinChallenge(challengeId, accessCode.trim());
-
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: "You've joined the challenge successfully!",
-          className: "bg-green-50 text-green-800",
-        });
-
-        if (onSuccess) {
-          const challenge: Challenge = {
-            id: challengeId,
-            title: challengeName,
-            creatorId: "",
-            difficulty: "Medium",
-            isPrivate: true,
-            status: "active",
-            problemIds: [],
-            timeLimit: 3600,
-            createdAt: Date.now() / 1000,
-            isActive: true,
-            participantIds: [],
-          };
-          onSuccess(challenge);
-        }
-        onClose();
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to join challenge.",
           variant: "destructive",
           className: "bg-red-50 text-red-800",
         });
@@ -179,7 +126,6 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
                     placeholder="Enter challenge ID"
                     className="pl-10 h-10 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     autoComplete="off"
-                    maxLength={10}
                   />
                 </div>
               </div>
@@ -235,10 +181,10 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
               </div>
               <div>
                 <h4 className="font-medium text-green-800 dark:text-green-300">
-                  Challenge Found!
+                  Challenge Link Constructed
                 </h4>
                 <p className="text-sm text-green-600 dark:text-green-400">
-                  {challengeName}
+                  {window.origin + gameRoomLink}
                 </p>
               </div>
             </div>
@@ -264,7 +210,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
               >
                 Back
               </Button>
-             
+
             </DialogFooter>
           </div>
         )}

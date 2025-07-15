@@ -39,6 +39,8 @@ import bgGradient from "@/assets/challengegradient.png";
 import avatarIcon from "@/assets/avatar.png";
 import { useFetchCreatorProfiles } from "@/hooks/useUserProfiles";
 
+import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
+
 const CurrentOngoingChallenge = ({
   challenge,
   setActiveChallengeId,
@@ -53,6 +55,8 @@ const CurrentOngoingChallenge = ({
   const [metadataError, setMetadataError] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -311,8 +315,10 @@ const MinimalChallenges = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHoverModalVisible, setIsHoverModalVisible] = useState(false);
-  const [hasShownToast, setHasShownToast] = useState(false);
   const navigate = useNavigate();
+
+  //ui
+  const [openModal, setOpenModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (activeChallengeId) {
@@ -384,7 +390,7 @@ const MinimalChallenges = () => {
       return;
     }
     toast.success(`Joined challenge "${challenge.title}" successfully!`, { duration: 1500 });
-    navigate(`/join-challenge/${challenge.challengeId}`);
+    navigate(`/join-challenge/${challenge.challengeId}${challenge?.password ? `/${challenge.password}` : ""}`);
     setIsModalOpen(false);
   };
 
@@ -399,7 +405,6 @@ const MinimalChallenges = () => {
         onSuccess: () => {
           setIsModalOpen(false);
           setActiveChallengeId(null);
-          setHasShownToast(false);
         },
       }
     );
@@ -647,6 +652,7 @@ const MinimalChallenges = () => {
       }}
     >
       <MainNavbar />
+      {<JoinPrivateChallenge isOpen={openModal} onClose={() => setOpenModal(false)} />}
       <AnimatePresence>
         {yourChallenges?.challenges?.length > 0 && !isModalOpen && (
           <motion.div
@@ -746,6 +752,7 @@ const MinimalChallenges = () => {
                     variant="outline"
                     className="border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-gray-100 text-sm px-4 py-2 rounded-md"
                     aria-label="Join private challenge"
+                    onClick={() => setOpenModal(true)}
                   >
                     <Lock className="h-4 w-4 mr-2" />
                     Join Private
