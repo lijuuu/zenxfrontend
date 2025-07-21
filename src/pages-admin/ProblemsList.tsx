@@ -8,7 +8,7 @@ import { Filter, Plus, Loader2, FileCode, Search, Server } from "lucide-react";
 
 // Define Problem interface (assuming this is what's imported from AdminDashboard)
 interface Problem {
-  problem_id: string;
+  problemId: string;
   title: string;
   description: string;
   tags: string[];
@@ -249,7 +249,7 @@ const ProblemListView: React.FC<ProblemListViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredProblems.map((problem) => (
             <Card
-              key={problem.problem_id}
+              key={problem.problemId}
               className="bg-white dark:bg-[#151515] hover:dark:bg-[#181717] border-gray-200 dark:border-[#373738] hover:shadow-lg hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 transition-all duration-200"
             >
               <CardHeader className="pb-2">
@@ -289,7 +289,7 @@ const ProblemListView: React.FC<ProblemListViewProps> = ({
                   size="sm"
                   variant="secondary"
                   onClick={() => {
-                    fetchProblemDetails(problem.problem_id);
+                    fetchProblemDetails(problem.problemId);
                     setView("details");
                   }}
                   className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
@@ -300,7 +300,7 @@ const ProblemListView: React.FC<ProblemListViewProps> = ({
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    fetchProblemDetails(problem.problem_id);
+                    fetchProblemDetails(problem.problemId);
                     setView("testcases");
                   }}
                   className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
@@ -311,7 +311,7 @@ const ProblemListView: React.FC<ProblemListViewProps> = ({
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    fetchProblemDetails(problem.problem_id);
+                    fetchProblemDetails(problem.problemId);
                     setView("languages");
                   }}
                   className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"
@@ -322,7 +322,7 @@ const ProblemListView: React.FC<ProblemListViewProps> = ({
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    fetchProblemDetails(problem.problem_id);
+                    fetchProblemDetails(problem.problemId);
                     setView("validation");
                   }}
                   className="bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-[#2B2B30]"

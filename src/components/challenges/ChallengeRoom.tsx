@@ -151,14 +151,14 @@ const ChallengeRoom = () => {
               {participants && participants.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                   {participants.map((participant) => (
-                    <div key={participant.userID} className="flex items-center gap-2 p-2 rounded-md border">
+                    <div key={participant.userId} className="flex items-center gap-2 p-2 rounded-md border">
                       <Avatar className="h-6 w-6">
                         <AvatarFallback>
-                          {participant.firstName?.substring(0, 1) || participant.userID.substring(0, 1)}
+                          {participant.firstName?.substring(0, 1) || participant.userId.substring(0, 1)}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm truncate">
-                        {participant.firstName || participant.userID.substring(0, 8)}
+                        {participant.firstName || participant.userId.substring(0, 8)}
                       </span>
                     </div>
                   ))}

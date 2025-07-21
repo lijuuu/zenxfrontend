@@ -19,12 +19,12 @@ export const useSearchUsers = (query: string, options: UseSearchUsersOptions = {
         headers: { 'X-Requires-Auth': 'true' }
       });
       
-      // Ensure consistent naming convention with userID
+      // Ensure consistent naming convention with userId
       const users = response.data?.payload?.users || [];
       return users.map((user: any) => ({
         ...user,
-        // Make sure userID exists and is not undefined
-        userID: user.userID || user.userId || user.user_id || '',
+        // Make sure userId exists and is not undefined
+        userId: user.userId || user.userId || user.userId || '',
       }));
     },
     enabled: !!query && query.length >= 2 && options.enabled !== false

@@ -28,7 +28,6 @@ import { ChallengeConfig, ChallengeDocument } from "@/api/challengeTypes";
 import { useProblemList } from "@/services/useProblemList";
 import { useCreateChallenge } from "@/services/useChallenges";
 import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "@/hooks/useAppSelector";
 import { useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/utils/axiosInstance";
 import MainNavbar from "@/components/common/MainNavbar";
@@ -41,7 +40,7 @@ interface ProblemCountMetadata {
 }
 
 interface SelectedProblem {
-  id: string;
+  problemId: string;
   title: string;
   difficulty: string;
 }
@@ -83,7 +82,6 @@ const CreateChallenge: React.FC = () => {
   const createChallengeMutation = useCreateChallenge();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const user = useAppSelector(state => state.auth.userProfile);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,6 +98,8 @@ const CreateChallenge: React.FC = () => {
       },
     },
   });
+
+  console.log("problems ",problems)
 
   // Fetch problem count metadata
   useEffect(() => {
@@ -148,12 +148,15 @@ const CreateChallenge: React.FC = () => {
   }, [form]);
 
   const handleProblemSelect = (problem: SelectedProblem) => {
-    const isSelected = selectedProblems.find(p => p.id === problem.id);
+
+
+    const isSelected = selectedProblems.find(p => p.problemId === problem.problemId);
     const difficulty = problem.difficulty.toLowerCase() as keyof ProblemCountMetadata;
     const currentCount = selectedProblems.filter(p => p.difficulty.toLowerCase() === difficulty).length;
 
+
     if (isSelected) {
-      setSelectedProblems(selectedProblems.filter(p => p.id !== problem.id));
+      setSelectedProblems(selectedProblems.filter(p => p.problemId !== problem.problemId));
     } else {
       if (selectedProblems.length >= 10) {
         toast.warning("Maximum 10 problems allowed", {
@@ -261,7 +264,7 @@ const CreateChallenge: React.FC = () => {
     try {
       const newChallenge = await createChallengeMutation.mutateAsync({
         title: formData.title,
-        processedProblemIds: useRandomProblems ? [] : selectedProblems.map(p => p.id),
+        processedProblemIds: useRandomProblems ? [] : selectedProblems.map(p => p.problemId),
         isPrivate: formData.isPrivate,
         timeLimit: formData.timeLimit,
         config: { ...config } as ChallengeConfig,
@@ -617,33 +620,36 @@ const CreateChallenge: React.FC = () => {
                           <div className="space-y-2">
                             {filteredProblems.map((problem) => (
                               <div
-                                key={problem.problem_id}
-                                className={`flex items-center justify-between rounded-md p-3 cursor-pointer transition-all hover:bg-gray-700/50 border border-gray-600 hover:border-green-400 hover:shadow-sm ${selectedProblems.find(p => p.id === problem.problem_id)
-                                    ? 'bg-green-900/30 border-green-400'
-                                    : ''
+                                key={problem.problemId}
+                                className={`flex items-center justify-between rounded-md p-3 transition-all border border-gray-600 hover:shadow-sm ${selectedProblems.find(p => p.problemId === problem.problemId)
+                                  ? 'bg-green-900/30 border-green-400'
+                                  : 'hover:bg-gray-700/50 hover:border-green-400'
                                   }`}
-                                onClick={() => handleProblemSelect({
-                                  id: problem.problem_id,
-                                  title: problem.title,
-                                  difficulty: problem.difficulty,
-                                })}
                               >
-                                <div className="flex items-center gap-3 flex-1">
-                                  {getDifficultyIcon(problem.difficulty)}
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-100 line-clamp-1">{problem.title}</p>
+                                <div className="flex items-center gap-3 flex-1 pointer-events-none">
+                                  <div className="pointer-events-none">
+                                    {getDifficultyIcon(problem.difficulty)}
+                                  </div>
+                                  <div className="flex-1 pointer-events-none">
+                                    <p className="text-sm font-medium text-gray-100 line-clamp-1 select-text cursor-text pointer-events-auto">{problem.title}</p>
                                     <Badge
-                                      variant="outline"
-                                      className={`text-xs mt-1 font-medium ${getColorsByDifficulty(problem.difficulty)}`}
+                                    variant="outline"
+                                      className={`text-xs mt-1 font-medium ${getColorsByDifficulty(problem.difficulty)} pointer-events-none`}
                                     >
                                       {problem.difficulty}
                                     </Badge>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-600 bg-gray-800/50">
-                                  {selectedProblems.find(p => p.id === problem.problem_id) && (
-                                    <Check className="h-4 w-4 text-green-400" />
-                                  )}
+                                <div className="pointer-events-auto">
+                                  <Checkbox
+                                    checked={!!selectedProblems.find(p => p.problemId === problem.problemId)}
+                                    onCheckedChange={() => handleProblemSelect({
+                                      problemId: problem.problemId,
+                                      title: problem.title,
+                                      difficulty: problem.difficulty,
+                                    })}
+                                    className="border-gray-600 text-green-400 focus:ring-green-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                                  />
                                 </div>
                               </div>
                             ))}
@@ -666,7 +672,7 @@ const CreateChallenge: React.FC = () => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                             {selectedProblems.map((problem) => (
                               <div
-                                key={problem.id}
+                                key={problem.problemId}
                                 className={`flex items-center gap-2 p-2 rounded-md bg-gray-800/50 border border-gray-600 hover:bg-gray-700/50 transition-all ${getColorsByDifficulty(problem.difficulty)}`}
                               >
                                 {getDifficultyIcon(problem.difficulty)}

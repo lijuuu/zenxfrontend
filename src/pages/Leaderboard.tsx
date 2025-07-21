@@ -30,7 +30,7 @@ const Leaderboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('global');
   const authState = useSelector((state: any) => state.auth);
-  const userId = authState?.userProfile?.userID || authState?.userID;
+  const userId = authState?.userProfile?.userId || authState?.userId;
 
   // Fetch leaderboard data using React Query
   const {

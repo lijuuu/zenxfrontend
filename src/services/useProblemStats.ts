@@ -18,22 +18,22 @@ interface GenericResponse {
   error: any;
 }
 
-export const useProblemStats = (userID?: string) => {
+export const useProblemStats = (userId?: string) => {
   return useQuery({
-    queryKey: ['problemStats', userID],
+    queryKey: ['problemStats', userId],
     queryFn: async () => {
-      if (!userID) {
+      if (!userId) {
         throw new Error('User ID is required');
       }
       
       const response = await axiosInstance.get<GenericResponse>('/problems/stats', {
-        params: { userID },
+        params: { userId },
         headers: { 'X-Requires-Auth': 'false' }, // Auth not required for public profiles
       });
       
       return response.data.payload;
     },
-    enabled: !!userID, // Only run the query if userID is provided
+    enabled: !!userId, // Only run the query if userId is provided
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
   });

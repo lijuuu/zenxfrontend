@@ -3,7 +3,7 @@
 export type Submission = {
   submissionId: string;
   timeTaken: number; // milliseconds
-  points: number;
+  score: number;
   userCode: string;
 };
 
@@ -52,9 +52,3 @@ export type ChallengeDocument = {
   processedProblemIds: string[];
 };
 
-export type Session = {
-  userId: string;
-  challengeId: string;
-  lastActive: number; // unix timestamp
-  sessionHash: string;
-};

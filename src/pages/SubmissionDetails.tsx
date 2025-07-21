@@ -108,7 +108,7 @@ const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   };
 
   const handleShareX = () => {
-    const problemLink = `https://zenxbattle.space/playground?problem_id=${problemId}`;
+    const problemLink = `https://zenxbattle.space/playground?problemId=${problemId}`;
     const shareText = `Check out this ZenxBattle problem: ${problemLink} 🚀 #Coding #ZenxBattle`;
     const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(
       shareText

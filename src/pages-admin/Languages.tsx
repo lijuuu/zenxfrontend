@@ -144,7 +144,7 @@ const LanguagesView: React.FC<LanguagesViewProps> = ({ selectedProblem, handleAp
     try {
       setLoading(true);
       await handleApiCall("post", "/language", {
-        problem_id: selectedProblem.problem_id,
+        problemId: selectedProblem.problemId,
         language: data.language,
         validation_code: {
           placeholder: data.placeholder || langDefaults.placeholder,
@@ -176,7 +176,7 @@ const LanguagesView: React.FC<LanguagesViewProps> = ({ selectedProblem, handleAp
     try {
       setLoading(true);
       await handleApiCall("put", "/language", {
-        problem_id: selectedProblem.problem_id,
+        problemId: selectedProblem.problemId,
         language: data.language,
         validation_code: {
           placeholder: data.placeholder,
@@ -204,7 +204,7 @@ const LanguagesView: React.FC<LanguagesViewProps> = ({ selectedProblem, handleAp
     if (!selectedProblem || !window.confirm(`Are you sure you want to remove ${formatLanguageName(language)} support?`)) return;
     try {
       setLoading(true);
-      await handleApiCall("delete", "/language", { problem_id: selectedProblem.problem_id, language });
+      await handleApiCall("delete", "/language", { problemId: selectedProblem.problemId, language });
       setLanguages(languages.filter((lang) => lang.language !== language));
       if (selectedLanguage?.language === language) {
         reset();

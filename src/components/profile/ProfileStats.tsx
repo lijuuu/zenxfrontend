@@ -10,7 +10,7 @@ interface ProfileStatsProps {
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
   // Use our new hook with React Query
-  const { data: problemStats, isLoading } = useProblemStats(profile.userID);
+  const { data: problemStats, isLoading } = useProblemStats(profile.userId);
 
   // Calculate total problems
   let totalSolved = 0;

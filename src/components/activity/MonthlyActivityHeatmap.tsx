@@ -18,17 +18,17 @@ interface MonthlyActivityHeatmapProps {
   className?: string;
   showTitle?: boolean;
   compact?: boolean;
-  userID?: string;
+  userId?: string;
   staticMode?: boolean;
   variant?: 'default' | 'dashboard' | 'profile';
 }
 
-const useFetchMonthData = (userID = '', initialDate: Date) => {
+const useFetchMonthData = (userId = '', initialDate: Date) => {
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [activityData, setActivityData] = useState<ActivityDay[]>([]);
 
   // Get fallback user ID from localStorage if needed
-  const effectiveUserID = userID || localStorage.getItem('userid') || '';
+  const effectiveUserID = userId || localStorage.getItem('userid') || '';
   
   const currentMonth = useMonthlyActivity(
     effectiveUserID,
@@ -84,7 +84,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   className = "",
   showTitle = true,
   compact = false,
-  userID = "",
+  userId = "",
   staticMode = false,
   variant = 'default'
 }) => {
@@ -99,7 +99,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
     isLoading, 
     isError, 
     error 
-  } = useFetchMonthData(userID, new Date());
+  } = useFetchMonthData(userId, new Date());
 
   const createDynamicGrid = () => {
     const start = startOfMonth(selectedDate);

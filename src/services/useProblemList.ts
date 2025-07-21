@@ -5,18 +5,18 @@ import { mockProblems } from '@/api/mockData';
 
 // Define the Problem interface based on the provided structure
 export interface Problem {
-  problem_id: string;
+  problemId: string;
   title: string;
   description: string;
   tags: string[];
   difficulty: string;
-  testcase_run: { run: { input: string; expected: string; id?: string }[] };
-  supported_languages: string[];
+  testcaseRun: { run: { input: string; expected: string; id?: string }[] };
+  supportedLanguages: string[];
   validated: boolean;
-  placeholder_maps: { [key: string]: string };
+  placeholderMaps: { [key: string]: string };
 }
 export interface ProblemMetadata {
-  problem_id: string;
+  problemId: string;
   title: string;
   tags: string[];
   difficulty: string;
@@ -44,15 +44,15 @@ const fetchProblems = async (filters?: ProblemFilters) => {
     if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
 
     const mappedProblems: Problem[] = problemList.map((item: any) => ({
-      problem_id: item.problem_id || '',
+      problemId: item.problemId || item.problemId || "NaN",
       title: item.title || 'Untitled',
       description: item.description || '',
       tags: item.tags || [],
       difficulty: item.difficulty || '',
-      testcase_run: item.testcase_run || { run: [] },
-      supported_languages: item.supported_languages || [],
+      testcaseRun: item.testcaseRun || { run: [] },
+      supportedLanguages: item.supportedLanguages || [],
       validated: item.validated || false,
-      placeholder_maps: item.placeholder_maps || {},
+      placeholderMaps: item.placeholderMaps || {},
     }));
 
     return mappedProblems;
@@ -61,20 +61,20 @@ const fetchProblems = async (filters?: ProblemFilters) => {
 
     // Map the mock data to match the Problem interface
     return mockProblems.map(p => ({
-      problem_id: p.id,
+      problemId: p.id,
       title: p.title,
       description: p.description,
       tags: p.tags,
       difficulty: p.difficulty,
-      testcase_run: {
+      testcaseRun: {
         run: p.examples.map(ex => ({
           input: ex.input,
           expected: ex.output
         }))
       },
-      supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
+      supportedLanguages: ['javascript', 'python', 'java', 'cpp', 'go'],
       validated: true,
-      placeholder_maps: {
+      placeholderMaps: {
         javascript: '// Write your solution here',
         python: '# Write your solution here'
       }
@@ -96,7 +96,7 @@ export const useProblemList = (filters?: ProblemFilters) => {
 
 export const fetchBulkProblemMetadata = async (problemIds: string[]): Promise<any[]> => {
   try {
-    const queryString = problemIds.map(id => `problem_ids=${id}`).join('&');
+    const queryString = problemIds.map(id => `problemIds=${id}`).join('&');
     const url = `${BASE_URL}/bulk/metadata?${queryString}`;
 
     const res = await axios.get(url);
@@ -104,8 +104,9 @@ export const fetchBulkProblemMetadata = async (problemIds: string[]): Promise<an
 
     if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
 
+
     const mappedProblems: ProblemMetadata[] = problemList.map((item: any) => ({
-      problem_id: item.problem_id || '',
+      problemId: item.problemId || '',
       title: item.title || 'Untitled',
       difficulty: item.difficulty || '',
       tags: item.tags || [],

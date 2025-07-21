@@ -73,7 +73,7 @@ interface TestCasesViewProps {
 
 // Example problem type (adjust based on your actual Problem type)
 interface Problem {
-  problem_id: string;
+  problemId: string;
   title: string;
   testcases: {
     run: Array<{ id?: string; testcase_id?: string; input: string; expected: string }>;
@@ -122,7 +122,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
   const onAddRun = async (data: TestCaseFormData) => {
     if (!selectedProblem) return setError("Please select or create a problem first.");
     const response = await handleApiCall("post", "/testcases", {
-      problem_id: selectedProblem.problem_id,
+      problemId: selectedProblem.problemId,
       testcases: { run: [{ input: data.input, expected: data.expected }], submit: [] },
     });
   
@@ -138,7 +138,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
   const onAddSubmit = async (data: TestCaseFormData) => {
     if (!selectedProblem) return setError("Please select or create a problem first.");
     const response = await handleApiCall("post", "/testcases", {
-      problem_id: selectedProblem.problem_id,
+      problemId: selectedProblem.problemId,
       testcases: { run: [], submit: [{ input: data.input, expected: data.expected }] },
     });
   
@@ -154,9 +154,9 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
   const onRemove = async (testcaseId: string, isRun: boolean) => {
     if (!selectedProblem || !window.confirm("Are you sure you want to delete this test case?")) return;
     const response = await handleApiCall("delete", "/testcases/single", {
-      problem_id: selectedProblem.problem_id,
+      problemId: selectedProblem.problemId,
       testcase_id: testcaseId,
-      is_run_testcase: isRun,
+      isRunTestcase: isRun,
     });
   
     if (response?.success) {
@@ -179,9 +179,9 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
         (tc: any) => (tc.id || tc.testcase_id) === testcaseId
       );
       return handleApiCall("delete", "/testcases/single", {
-        problem_id: selectedProblem.problem_id,
+        problemId: selectedProblem.problemId,
         testcase_id: testcaseId,
-        is_run_testcase: isRun,
+        isRunTestcase: isRun,
       });
     });
   
@@ -204,7 +204,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
     if (!selectedProblem) return setError("Please select or create a problem first.");
     const parsedJson = JSON.parse(data.bulkJson);
     const response = await handleApiCall("post", "/testcases", {
-      problem_id: selectedProblem.problem_id,
+      problemId: selectedProblem.problemId,
       testcases: parsedJson,
     });
   
@@ -248,7 +248,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
 
   // Example problem data based on your input
   const exampleProblem: Problem = {
-    problem_id: "67d96452d3fe6af39801337b",
+    problemId: "67d96452d3fe6af39801337b",
     title: "Two Sum",
     testcases: {
       run: [
@@ -290,7 +290,7 @@ const TestCasesView: React.FC<TestCasesViewProps> = ({ selectedProblem, setError
               {successMessage}
             </pre>
             <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-              Problem ID: {selectedProblem?.problem_id || exampleProblem.problem_id} | Language: go | Run Test Cases: true
+              Problem ID: {selectedProblem?.problemId || exampleProblem.problemId} | Language: go | Run Test Cases: true
             </p>
           </CardContent>
         </Card>

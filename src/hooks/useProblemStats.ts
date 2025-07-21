@@ -18,20 +18,20 @@ interface GenericResponse {
   error: any;
 }
 
-export const useProblemStats = (userID?: string) => {
+export const useProblemStats = (userId?: string) => {
   const [problemStats, setProblemStats] = useState<ProblemsDoneStatistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!userID) return;
+      if (!userId) return;
       
       setIsLoading(true);
       setError(null);
       try {
         const response = await axiosInstance.get<GenericResponse>('/problems/stats', {
-          params: { userID },
+          params: { userId },
           headers: { 'X-Requires-Auth': 'false' }, // Auth not required
         });
         setProblemStats(response.data.payload);
@@ -43,7 +43,7 @@ export const useProblemStats = (userID?: string) => {
     };
 
     fetchStats();
-  }, [userID]);
+  }, [userId]);
 
   return { problemStats, isLoading, error };
 };

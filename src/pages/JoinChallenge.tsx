@@ -7,7 +7,7 @@ import {
   JOIN_CHALLENGE,
   USER_JOINED,
   PING_SERVER,
-  REFETCH_CHALLENGE,
+  RETRIEVE_CHALLENGE,
   USER_LEFT,
   OWNER_LEFT,
   OWNER_JOINED,
@@ -57,9 +57,9 @@ const eventCallbacks: Record<string, (response: WSResponse, context: any) => voi
   },
 
   // server sent us updated challenge data
-  [REFETCH_CHALLENGE]: (response, { setChallenge, setError, setOutgoingEvents }) => {
+  [RETRIEVE_CHALLENGE]: (response, { setChallenge, setError, setOutgoingEvents }) => {
     setOutgoingEvents((prev: string[]) => [
-      JSON.stringify({ type: REFETCH_CHALLENGE, payload: response?.payload }, null, 2),
+      JSON.stringify({ type: RETRIEVE_CHALLENGE, payload: response?.payload }, null, 2),
       ...prev.slice(0, 50),
     ]);
     if (response.status === "error" && response.error) {
@@ -121,7 +121,7 @@ const JoinChallenge: React.FC = () => {
     const handleOpen = () => {
       setWsStatus("Open");
       const payload: WSPayload = {
-        userId: userProfile.userID,
+        userId: userProfile.userId,
         challengeId: challengeid,
         password: password || "",
         token: `Bearer ${accessToken}`,
@@ -214,13 +214,13 @@ const JoinChallenge: React.FC = () => {
   const sendRefetchChallenge = () => {
     if (!userProfile) return;
     const payload: WSPayload = {
-      userId: userProfile.userID,
+      userId: userProfile.userId,
       challengeId: challengeid,
       password: password || "",
       token: `Bearer ${accessToken}`,
     };
-    sendWSEvent(REFETCH_CHALLENGE, payload, (response) =>
-      eventCallbacks[REFETCH_CHALLENGE](response, { setChallenge, setError, setOutgoingEvents })
+    sendWSEvent(RETRIEVE_CHALLENGE, payload, (response) =>
+      eventCallbacks[RETRIEVE_CHALLENGE](response, { setChallenge, setError, setOutgoingEvents })
     );
   };
 

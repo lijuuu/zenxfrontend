@@ -36,14 +36,14 @@ const Profile = React.memo(() => {
   const { ownerUserID } = useOwner();
 
   // Check if the current user is the profile owner
-  const isOwner = profile?.userID && ownerUserID ? profile.userID === ownerUserID : false;
+  const isOwner = profile?.userId && ownerUserID ? profile.userId === ownerUserID : false;
 
   if (profileError) {
     toast({ title: "Failed to load profile", description: error.message });
   }
 
   // Fetch leaderboard data for this user on component mount
-  const { data: leaderboardData } = useLeaderboard(profile?.userID);
+  const { data: leaderboardData } = useLeaderboard(profile?.userId);
 
   // Count private and public challenges
   const privateChallenges = Array.isArray(challenges)
@@ -117,7 +117,7 @@ const Profile = React.memo(() => {
               <CardContent className="p-6">
                 <ProfileHeader
                   profile={profile}
-                  userID={profile?.userID}
+                  userId={profile?.userId}
                   showStats={true}
                 // isOwner={isOwner}
                 />
@@ -150,7 +150,7 @@ const Profile = React.memo(() => {
                     <CardDescription>Latest coding activity</CardDescription>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <RecentSubmissions userId={profile.userID} />
+                    <RecentSubmissions userId={profile.userId} />
                   </CardContent>
                 </Card>
 
@@ -168,7 +168,7 @@ const Profile = React.memo(() => {
                   </CardHeader>
                   <CardContent className="p-4">
                     <MonthlyActivityHeatmap
-                      userID={profile.userID}
+                      userId={profile.userId}
                       showTitle={false}
                       staticMode={false}
                       variant="profile"

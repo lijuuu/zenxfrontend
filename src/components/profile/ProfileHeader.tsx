@@ -30,11 +30,11 @@ import { calculateStreak } from "@/utils/streakcalcUtils";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
-  userID?: string;
+  userId?: string;
   showStats?: boolean;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userID, showStats = true }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userId, showStats = true }) => {
   const { toast } = useToast();
   const [dayStreak, setDayStreak] = useState(0);
   const navigate = useNavigate();
@@ -43,10 +43,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userI
   const { ownerUserID } = useOwner();
 
   // Get leaderboard data
-  const { data: leaderboardData } = useLeaderboard(profile.userID);
+  const { data: leaderboardData } = useLeaderboard(profile.userId);
 
   // Get problem stats data
-  const { problemStats } = useProblemStats(profile.userID);
+  const { problemStats } = useProblemStats(profile.userId);
 
   const now = new Date();
   const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -55,7 +55,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userI
 
   // Fetch monthly activity data to calculate streak
   const { data: monthlyActivityData, isLoading: activityLoading } = useMonthlyActivity(
-    profile.userID || "",
+    profile.userId || "",
     currentMonth,
     currentYear
   );
@@ -78,7 +78,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userI
   }, [monthlyActivityData, activityLoading, currentDate]);
 
   // Use ownership from useOwner hook
-  const isOwnProfile = ownerUserID === profile.userID;
+  const isOwnProfile = ownerUserID === profile.userId;
 
   const handleCopyUsername = () => {
     navigator.clipboard.writeText(profile.userName);

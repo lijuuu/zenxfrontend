@@ -28,7 +28,7 @@ const ValidationView: React.FC<LanguagesViewProps> = ({ handleApiCall, selectedP
           "content-type": "multipart/form-data",
         },
         params: {
-          problem_id: selectedProblem.problem_id
+          problemId: selectedProblem.problemId
         }
       });
       console.log(JSON.stringify(res.data))

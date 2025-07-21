@@ -26,7 +26,7 @@ const Dashboard = React.memo(() => {
   const currentYear = currentDate.getFullYear();
 
   const { data: userProfile, isLoading: profileLoading, isError: profileError, error: profileErrorDetail } = useGetUserProfile();
-  const userId = userProfile?.userID || localStorage.getItem('userid');
+  const userId = userProfile?.userId || localStorage.getItem('userid');
   const { data: leaderboardData, isLoading: leaderboardLoading } = useLeaderboard(userId);
   const { data: problemStats, isLoading: statsLoading } = useProblemStats(userId);
   const { data: monthlyActivityData, isLoading: activityLoading } = useMonthlyActivity(userId || '', currentMonth, currentYear);
@@ -186,7 +186,7 @@ const Dashboard = React.memo(() => {
                 </CardContent>
               </Card>
               <MonthlyActivityHeatmap
-                userID={userProfile?.userID}
+                userId={userProfile?.userId}
                 showTitle={true}
                 staticMode={true}
                 variant="dashboard"

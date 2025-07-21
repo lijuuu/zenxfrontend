@@ -10,9 +10,9 @@ export const useIsFollowing = (targetUserID?: string) => {
   const user = useAppSelector(state => state.auth.userProfile);
 
   return useQuery({
-    queryKey: ["isFollowing", user?.userID, targetUserID],
-    queryFn: () => (user?.userID && targetUserID ? checkFollow(targetUserID) : false),
-    enabled: !!user?.userID && !!targetUserID,
+    queryKey: ["isFollowing", user?.userId, targetUserID],
+    queryFn: () => (user?.userId && targetUserID ? checkFollow(targetUserID) : false),
+    enabled: !!user?.userId && !!targetUserID,
     refetchOnWindowFocus: false,
   });
 };
@@ -51,39 +51,39 @@ export const useFollowAction = (targetUserID: string) => {
 };
 
 /** Fetch followers for a user */
-export const useFollowers = (userID?: string, enabled: boolean = true) => {
+export const useFollowers = (userId?: string, enabled: boolean = true) => {
   return useQuery({
-    queryKey: ["followers", userID],
+    queryKey: ["followers", userId],
     queryFn: async () => {
-      if (!userID) return [];
-      const result = await getFollowers(userID);
+      if (!userId) return [];
+      const result = await getFollowers(userId);
       return result;
     },
-    enabled: !!userID && enabled,
+    enabled: !!userId && enabled,
   });
 };
 
 /** Fetch users the given user is following */
-export const useFollowing = (userID?: string, enabled: boolean = true) => {
+export const useFollowing = (userId?: string, enabled: boolean = true) => {
   return useQuery({
-    queryKey: ["following", userID],
+    queryKey: ["following", userId],
     queryFn: async () => {
-      if (!userID) return [];
-      const result = await getFollowing(userID);
+      if (!userId) return [];
+      const result = await getFollowing(userId);
       return result;
     },
-    enabled: !!userID && enabled,
+    enabled: !!userId && enabled,
   });
 };
 
 /** Check if the current user follows a specific user */
-export const useCheckFollow = (userID?: string) => {
+export const useCheckFollow = (userId?: string) => {
   return useQuery({
-    queryKey: ["checkFollow", userID],
+    queryKey: ["checkFollow", userId],
     queryFn: async () => {
-      if (!userID) return false;
-      return await checkFollow(userID);
+      if (!userId) return false;
+      return await checkFollow(userId);
     },
-    enabled: !!userID,
+    enabled: !!userId,
   });
 };

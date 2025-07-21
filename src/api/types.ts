@@ -1,6 +1,6 @@
 export interface UserProfile {
   //core identification fields
-  userID?: string;
+  userId?: string;
   userName?: string;
   firstName?: string;
   lastName?: string;
@@ -62,7 +62,7 @@ export interface LoginUserResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
-  userID: string;
+  userId: string;
   userProfile: UserProfile;
   message: string;
 }
@@ -273,7 +273,7 @@ export interface CompileResponse {
 
 export interface BanHistory {
   id: string;
-  userID: string;
+  userId: string;
   bannedAt: number;
   banType: string;
   banReason: string;
@@ -296,7 +296,7 @@ export interface AdminState {
   users: UserProfile[];
   totalUsers: number;
   nextPageToken: string;
-  banHistories: { [userID: string]: BanHistory[] };
+  banHistories: { [userId: string]: BanHistory[] };
   loading: boolean;
   error: string | null;
   message: string;
@@ -355,15 +355,15 @@ export type TestCaseRunOnly = {
 };
 
 export type ProblemMetadata = {
-  problem_id: string;
+  problemId: string;
   title: string;
   description: string;
   tags: string[];
-  testcase_run: TestCaseRunOnly;
+  testcaseRun: TestCaseRunOnly;
   difficulty: string;
-  supported_languages: string[];
+  supportedLanguages: string[];
   validated?: boolean;
-  placeholder_maps: { [key: string]: string };
+  placeholderMaps: { [key: string]: string };
 };
 
 export type TestResult = {
@@ -385,15 +385,15 @@ export type ExecutionResult = {
 };
 
 export type ApiResponsePayload = {
-  problem_id: string;
+  problemId: string;
   language: string;
-  is_run_testcase: boolean;
+  isRunTestcase: boolean;
   rawoutput: ExecutionResult;
 };
 
 
 export const twoSumProblem: ProblemMetadata = {
-  problem_id: "67d96452d3fe6af39801337b",
+  problemId: "67d96452d3fe6af39801337b",
   title: "Two Sum",
   description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to the target.
 
@@ -421,7 +421,7 @@ You can return the answer in any order.
 ## Follow-up
 Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`,
   tags: ["Array", "Hash Table", "String", "Linked List"],
-  testcase_run: {
+  testcaseRun: {
     run: [
       {
         id: "67e16a5a48ec539e82f1622c",
@@ -436,9 +436,9 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
     ],
   },
   difficulty: "Easy",
-  supported_languages: ["go", "python", "javascript"],
+  supportedLanguages: ["go", "python", "javascript"],
   validated: true,
-  placeholder_maps: {
+  placeholderMaps: {
     go: `func twoSum(nums []int, target int) []int {
     // Type your code
     return []int{}
@@ -475,8 +475,8 @@ export interface CompilerResponse {
 export interface SubmissionStatus {
   submission_id: string;
   challenge_id: string;
-  problem_id: string;
-  user_id: string;
+  problemId: string;
+  userId: string;
   status: 'pending' | 'completed' | 'failed';
   code: string;
   language: string;

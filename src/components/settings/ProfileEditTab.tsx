@@ -129,7 +129,7 @@ function useDebounce<T>(value: T, delay: number): T {
 const ProfileEditTab: React.FC = () => {
   const { data: userProfile, isLoading, error } = useGetUserProfile();
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUserProfile();
-  const { mutate: updateProfileImage, isPending: isUpdatingImage } = useUpdateProfileImage(userProfile?.userID);
+  const { mutate: updateProfileImage, isPending: isUpdatingImage } = useUpdateProfileImage(userProfile?.userId);
   const queryClient = useQueryClient();
 
   const { control, register, handleSubmit, formState: { errors }, setValue } = useForm<{
@@ -284,7 +284,7 @@ const ProfileEditTab: React.FC = () => {
     };
   }) => {
     const profileData = {
-      userID: userProfile?.userID,
+      userId: userProfile?.userId,
       userName: formData.userName,
       firstName: formData.firstName || "",
       lastName: formData.lastName || "",
@@ -334,7 +334,7 @@ const ProfileEditTab: React.FC = () => {
 
   // Crop and upload image
   const handleCropAndUpload = useCallback(async () => {
-    if (!imageSrc || !croppedAreaPixels || !userProfile?.userID) return;
+    if (!imageSrc || !croppedAreaPixels || !userProfile?.userId) return;
 
     const image = new Image();
     image.src = imageSrc;
@@ -374,7 +374,7 @@ const ProfileEditTab: React.FC = () => {
         });
       }
     }, "image/jpeg", 0.9);
-  }, [imageSrc, croppedAreaPixels, updateProfileImage, userProfile?.userID, queryClient]);
+  }, [imageSrc, croppedAreaPixels, updateProfileImage, userProfile?.userId, queryClient]);
 
   // Get avatar initials
   const getInitials = () => {

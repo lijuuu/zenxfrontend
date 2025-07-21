@@ -39,7 +39,7 @@ const FollowersPage: React.FC = () => {
             <ul className="space-y-4 transition-all">
               {users.map((u) => (
                 <li
-                  key={u.userID}
+                  key={u.userId}
                   className="flex items-center gap-4 bg-zinc-800/80 border border-zinc-700 hover:scale-[1.02] hover:shadow-lg transition rounded-xl p-4 group"
                 >
                   <Avatar className="h-12 w-12 flex-shrink-0 shadow ring-2 ring-green-500/20">

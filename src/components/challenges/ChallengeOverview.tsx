@@ -99,7 +99,7 @@ const ChallengeOverview: React.FC<ChallengeOverviewProps> = ({
       <div className="space-y-6">
         <LeaderboardCard 
           entries={challenge.leaderboard || []} 
-          currentUserId={user?.userID}
+          currentUserId={user?.userId}
           className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950"
         />
 
@@ -110,7 +110,7 @@ const ChallengeOverview: React.FC<ChallengeOverviewProps> = ({
           <CardContent className="p-6">
             <ChallengeActions 
               challenge={challenge} 
-              currentUserId={user?.userID}
+              currentUserId={user?.userId}
               onStartChallenge={onStartChallenge}
               onForfeitChallenge={onForfeitChallenge}
             />

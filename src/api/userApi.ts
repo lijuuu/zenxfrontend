@@ -5,10 +5,10 @@ import Cookies from 'js-cookie';
 
 
 export const getUserProfile = async ({
-  userID,
+  userId,
   username,
 }: {
-  userID?: string
+  userId?: string
   username?: string
 } = {}): Promise<UserProfile> => {
   try {
@@ -16,11 +16,11 @@ export const getUserProfile = async ({
     const params: Record<string, string> = {}
     let requiresAuth = true
 
-    if (userID || username) {
+    if (userId || username) {
       url = '/users/public/profile'
       requiresAuth = false
       if (username) params.username = username
-      if (userID) params.userid = userID
+      if (userId) params.userid = userId
     } else if (!Cookies.get("accessToken") && !Cookies.get("refreshToken")) {
       // no auth tokens at all - return early
       return {}
@@ -34,8 +34,8 @@ export const getUserProfile = async ({
       },
     })
 
-    if (requiresAuth && res.data.payload.userProfile?.userID) {
-      localStorage.setItem('userid', res.data.payload.userProfile.userID)
+    if (requiresAuth && res.data.payload.userProfile?.userId) {
+      localStorage.setItem('userid', res.data.payload.userProfile.userId)
     }
 
     return res.data.payload.userProfile
@@ -119,9 +119,9 @@ export const unfollowUser = async (followeeID: string): Promise<{ success: boole
 
 
 /** Get followers (GET) */
-export const getFollowers = async (userID: string, pageToken?: string, limit: number = 10) => {
+export const getFollowers = async (userId: string, pageToken?: string, limit: number = 10) => {
   const res = await axiosInstance.get("/users/follow/followers", {
-    params: { userID, pageToken, limit },
+    params: { userId, pageToken, limit },
     headers: { "X-Requires-Auth": "true" }
   });
 
@@ -130,9 +130,9 @@ export const getFollowers = async (userID: string, pageToken?: string, limit: nu
 };
 
 /** Get following (GET) */
-export const getFollowing = async (userID: string, pageToken?: string, limit: number = 10) => {
+export const getFollowing = async (userId: string, pageToken?: string, limit: number = 10) => {
   const res = await axiosInstance.get("/users/follow/following", {
-    params: { userID, pageToken, limit },
+    params: { userId, pageToken, limit },
     headers: { "X-Requires-Auth": "true" }
   });
 
@@ -141,9 +141,9 @@ export const getFollowing = async (userID: string, pageToken?: string, limit: nu
 };
 
 /** Check if following (GET) */
-export const checkFollow = async (userID: string) => {
+export const checkFollow = async (userId: string) => {
   const res = await axiosInstance.get("/users/follow/check", {
-    params: { userID },
+    params: { userId },
     headers: { "X-Requires-Auth": "true" }
   });
   return res.data.payload?.isFollowing || false;

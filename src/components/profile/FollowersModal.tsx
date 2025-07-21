@@ -35,7 +35,7 @@ const FollowersModal: React.FC<FollowersModalProps> = ({ open, onOpenChange, use
           <ul className="divide-y divide-border">
             {usersList.map((u) => (
               <li
-                key={u.userID}
+                key={u.userId}
                 className="flex items-center gap-3 p-3 group hover:bg-accent/70 transition rounded-md"
               >
                 <Avatar className="h-9 w-9 flex-shrink-0 shadow">

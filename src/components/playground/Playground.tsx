@@ -36,20 +36,20 @@ const mapDifficulty = (difficulty: string): string => {
 };
 
 const fetchProblemById = async (problemId: string): Promise<ProblemMetadata> => {
-  const response = await fetch(`${API_BASE_URL}/problems/metadata?problem_id=${problemId}`);
+  const response = await fetch(`${API_BASE_URL}/problems/metadata?problemId=${problemId}`);
   if (!response.ok) throw new Error('Failed to fetch problem');
   const data = await response.json();
   const problemData = data.payload || data;
   return {
-    problem_id: problemData.problem_id || '',
+    problemId: problemData.problemId || '',
     title: problemData.title || 'Untitled',
     description: problemData.description || '',
     tags: problemData.tags || [],
-    testcase_run: problemData.testcase_run || { run: [] },
+    testcaseRun: problemData.testcaseRun || { run: [] },
     difficulty: mapDifficulty(problemData.difficulty || ''),
-    supported_languages: problemData.supported_languages || [],
+    supportedLanguages: problemData.supportedLanguages || [],
     validated: problemData.validated || false,
-    placeholder_maps: problemData.placeholder_maps || {},
+    placeholderMaps: problemData.placeholderMaps || {},
   };
 };
 
@@ -87,7 +87,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const urlProblemId = propsProblemID || queryParams.get('problem_id') || '';
+    const urlProblemId = propsProblemID || queryParams.get('problemId') || '';
     setProblemId(urlProblemId);
 
     if (!urlProblemId) {
@@ -101,15 +101,15 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
     fetchProblemById(urlProblemId)
       .then(data => {
         setProblem(data);
-        const firstLang = storedLanguage && data.supported_languages.includes(storedLanguage)
+        const firstLang = storedLanguage && data.supportedLanguages.includes(storedLanguage)
           ? storedLanguage
-          : data.supported_languages[0] || 'javascript';
+          : data.supportedLanguages[0] || 'javascript';
         setLanguage(firstLang);
         localStorage.setItem('language', firstLang);
 
         const codeKey = `${urlProblemId}_${firstLang}`;
         const storedCode = localStorage.getItem(codeKey);
-        setCode(storedCode || data.placeholder_maps[firstLang] || '');
+        setCode(storedCode || data.placeholderMaps[firstLang] || '');
         setIsLoading(false);
       })
       .catch(error => {
@@ -122,9 +122,9 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
 
   useEffect(() => {
     if (problem && language) {
-      const codeKey = `${problem.problem_id}_${language}`;
+      const codeKey = `${problem.problemId}_${language}`;
       const storedCode = localStorage.getItem(codeKey);
-      setCode(storedCode || problem.placeholder_maps[language] || '');
+      setCode(storedCode || problem.placeholderMaps[language] || '');
       setOutput([]);
       setExecutionResult(null);
       localStorage.setItem('language', language);
@@ -146,9 +146,9 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
 
   const confirmResetCode = () => {
     if (problem && language) {
-      const codeKey = `${problem.problem_id}_${language}`;
+      const codeKey = `${problem.problemId}_${language}`;
       localStorage.removeItem(codeKey);
-      setCode(problem.placeholder_maps[language] || '');
+      setCode(problem.placeholderMaps[language] || '');
       setOutput([]);
       setExecutionResult(null);
       setCustomTestCases([]);
@@ -181,11 +181,11 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
       const response = await axiosInstance.post(
         "/problems/execute",
         {
-          problem_id: problem.problem_id,
+          problemId: problem.problemId,
           language: language,
-          user_code: code,
-          is_run_testcase: type === "run",
-          user_id: userProfile?.userID
+          userCode: code,
+          isRunTestcase: type === "run",
+          userId: userProfile?.userId
         },
         {
           headers: {
@@ -226,9 +226,9 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
         });
       } else {
         setOutput([
-          `problemID: ${payload.problem_id}`,
+          `problemId: ${payload.problemId}`,
           `language: ${payload.language}`,
-          `isRunTestcase: ${payload.is_run_testcase}`,
+          `isRunTestcase: ${payload.isRunTestcase}`,
           `executionResult: ${JSON.stringify(executionResult, null, 2)}`,
         ]);
         setExecutionResult(executionResult);
@@ -346,7 +346,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
             onChange={e => setLanguage(e.target.value)}
             className="text-xs rounded-md bg-zinc-800 border-zinc-700 text-zinc-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500/30"
           >
-            {problem.supported_languages.map(lang => (
+            {problem.supportedLanguages.map(lang => (
               <option key={lang} value={lang}>
                 {lang.charAt(0).toUpperCase() + lang.slice(1)}
               </option>
@@ -420,7 +420,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
                   executionResult={executionResult}
                   isMobile={isMobile}
                   onResetOutput={handleResetOutput}
-                  testCases={problem.testcase_run?.run || []}
+                  testCases={problem.testcaseRun?.run || []}
                   customTestCases={customTestCases}
                   onAddCustomTestCase={handleAddCustomTestCase}
                   activeTab={consoleTab}

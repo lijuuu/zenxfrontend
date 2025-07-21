@@ -26,22 +26,22 @@ interface GenericResponse {
 }
 
 interface MonthlyActivityRequest {
-  userID: string;
+  userId: string;
   month: number;
   year: number;
 }
 
 const fetchMonthlyActivity = async (request: MonthlyActivityRequest) => {
-  const { userID, month, year } = request;
+  const { userId, month, year } = request;
   
-  // Handle case when userID is missing
-  if (!userID) {
+  // Handle case when userId is missing
+  if (!userId) {
     throw new Error('User ID is required for fetching activity data');
   }
   
   try {
     const response = await axiosInstance.get<GenericResponse>(
-      `/problems/activity?userID=${userID}&month=${month}&year=${year}`,
+      `/problems/activity?userId=${userId}&month=${month}&year=${year}`,
       {
         headers: {
           'X-Requires-Auth': 'false', // Public endpoint doesn't require auth
@@ -60,15 +60,15 @@ const fetchMonthlyActivity = async (request: MonthlyActivityRequest) => {
   }
 };
 
-export const useMonthlyActivity = (userID: string, month: number, year: number) => {
-  // Try to get userID from localStorage as fallback
-  const effectiveUserID = userID || localStorage.getItem('userid') || '';
+export const useMonthlyActivity = (userId: string, month: number, year: number) => {
+  // Try to get userId from localStorage as fallback
+  const effectiveUserID = userId || localStorage.getItem('userid') || '';
   
   const queryKey = ['monthlyActivity', effectiveUserID, month, year];
   
   return useQuery({
     queryKey,
-    queryFn: () => fetchMonthlyActivity({ userID: effectiveUserID, month, year }),
+    queryFn: () => fetchMonthlyActivity({ userId: effectiveUserID, month, year }),
     enabled: !!effectiveUserID && month >= 1 && month <= 12 && year >= 1970 && year <= 9999,
     retry: 1,
     refetchOnWindowFocus: true,

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/utils/axiosInstance";
 
-export const useUpdateProfileImage = (userID: string) => {
+export const useUpdateProfileImage = (userId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -17,7 +17,7 @@ export const useUpdateProfileImage = (userID: string) => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userProfile", userID] });
+      queryClient.invalidateQueries({ queryKey: ["userProfile", userId] });
     },
   });
 };

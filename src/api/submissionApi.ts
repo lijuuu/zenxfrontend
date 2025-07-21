@@ -12,8 +12,8 @@ export const getUserSubmissions = async (
       "/problems/submission/history",
       {
         params: {
-          userID: userId,
-          problemID: problemId || "", 
+          userId: userId,
+          problemId: problemId || "", 
           page,
           limit,
         },

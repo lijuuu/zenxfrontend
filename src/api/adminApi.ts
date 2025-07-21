@@ -69,7 +69,7 @@ export const getAllUsers = async (
 //     const response = await adminAxiosInstance.post<GenericResponse<any>>(`/admin/users`, userData);
 //     const payload = response.data.payload;
 //     return {
-//       userId: payload.user_id,
+//       userId: payload.userId,
 //       message: payload.message,
 //     };
 //   } catch (error: any) {
@@ -82,7 +82,7 @@ export const getAllUsers = async (
 //     const response = await adminAxiosInstance.put<GenericResponse<any>>(`/admin/users/update`, userData);
 //     const payload = response.data.payload;
 //     return {
-//       userId: payload.user_id,
+//       userId: payload.userId,
 //       message: payload.message,
 //     };
 //   } catch (error: any) {
@@ -93,11 +93,11 @@ export const getAllUsers = async (
 export const softDeleteUser = async (userId: string): Promise<{ userId: string; message: string }> => {
   try {
     const response = await adminAxiosInstance.delete<GenericResponse<any>>(`/admin/users/soft-delete`, {
-      params: { userID: userId }
+      params: { userId: userId }
     });
     const payload = response.data.payload;
     return {
-      userId: payload.user_id,
+      userId: payload.userId,
       message: payload.message,
     };
   } catch (error: any) {
@@ -108,11 +108,11 @@ export const softDeleteUser = async (userId: string): Promise<{ userId: string; 
 export const verifyUser = async (userId: string): Promise<{ userId: string; message: string }> => {
   try {
     const response = await adminAxiosInstance.post<GenericResponse<any>>(`/admin/users/verify`, null, {
-      params: { userID: userId }
+      params: { userId: userId }
     });
     const payload = response.data.payload;
     return {
-      userId: payload.user_id,
+      userId: payload.userId,
       message: payload.message,
     };
   } catch (error: any) {
@@ -123,11 +123,11 @@ export const verifyUser = async (userId: string): Promise<{ userId: string; mess
 export const unverifyUser = async (userId: string): Promise<{ userId: string; message: string }> => {
   try {
     const response = await adminAxiosInstance.post<GenericResponse<any>>(`/admin/users/unverify`, null, {
-      params: { userID: userId }
+      params: { userId: userId }
     });
     const payload = response.data.payload;
     return {
-      userId: payload.user_id,
+      userId: payload.userId,
       message: payload.message,
     };
   } catch (error: any) {
@@ -140,7 +140,7 @@ export const banUser = async (banData: any): Promise<{ userId: string; banId: st
     const response = await adminAxiosInstance.post<GenericResponse<any>>(`/admin/users/ban`, banData);
     const payload = response.data.payload;
     return {
-      userId: payload.user_id,
+      userId: payload.userId,
       banId: payload.ban_id,
       message: payload.message,
     };
@@ -152,11 +152,11 @@ export const banUser = async (banData: any): Promise<{ userId: string; banId: st
 export const unbanUser = async (userId: string): Promise<{ userId: string; message: string }> => {
   try {
     const response = await adminAxiosInstance.post<GenericResponse<any>>(`/admin/users/unban`, null, {
-      params: { userID: userId }
+      params: { userId: userId }
     });
     const payload = response.data.payload;
     return {
-      userId: payload.user_id,
+      userId: payload.userId,
       message: payload.message,
     };
   } catch (error: any) {
@@ -167,7 +167,7 @@ export const unbanUser = async (userId: string): Promise<{ userId: string; messa
 export const getBanHistory = async (userId: string): Promise<{ bans: Array<any>; message: string }> => {
   try {
     const response = await adminAxiosInstance.get<GenericResponse<any>>(`/admin/users/ban-history`, {
-      params: { userID: userId }
+      params: { userId: userId }
     });
     const payload = response.data.payload;
     return {

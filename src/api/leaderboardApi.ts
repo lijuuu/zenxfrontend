@@ -33,7 +33,7 @@ export const getUserLeaderboardData = async (userId?: string): Promise<Leaderboa
       }
     }
     
-    const response = await axiosInstance.get(`/problems/leaderboard/data?userID=${userId}`, {
+    const response = await axiosInstance.get(`/problems/leaderboard/data?userId=${userId}`, {
       headers: {
         'X-Requires-Auth': 'false', // Public endpoint doesn't require auth
       },

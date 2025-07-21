@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
@@ -52,6 +52,7 @@ const MainNavbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const menuRef = useRef<HTMLDivElement>(null); // Ref for mobile menu
 
   const {
     data: userProfile,
@@ -64,7 +65,7 @@ const MainNavbar = () => {
   // Determine authentication status
   const isUserAuthenticated = !!Cookies.get("accessToken");
 
-  if (!isUserAuthenticated || !userProfile?.userID) {
+  if (!isUserAuthenticated || !userProfile?.userId) {
     refetch();
   }
 
@@ -88,6 +89,20 @@ const MainNavbar = () => {
     setMobileMenuOpen(false);
   }, [location]);
 
+  // Handle click outside to close mobile menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
+
   const isActive = (path: string) => {
     if (path === "/") {
       return location.pathname === "/";
@@ -96,7 +111,7 @@ const MainNavbar = () => {
   };
 
   const HandleLogout = () => {
-    queryClient.invalidateQueries({ queryKey: ['userProfile', userProfile?.userID] });
+    queryClient.invalidateQueries({ queryKey: ['userProfile', userProfile?.userId] });
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     localStorage.removeItem("auth");
@@ -116,23 +131,22 @@ const MainNavbar = () => {
     setSearchDialogOpen(true);
   };
 
-
-  const headerStyle =  {
-        background: '#101012', // even darker
-        backgroundImage: `
-          linear-gradient(rgba(0,0,0,0.80) 60%, rgba(0,0,0,0.98) 100%),
-          url(${bgGradient}),
-          repeating-linear-gradient(
-            135deg,
-            rgba(0,0,0,0.25) 0px,
-            rgba(0,255,128,0.06) 2px,
-            rgba(0,0,0,0.25) 4px
-          )
-        `,
-        backgroundSize: '100% 100%, cover, 80px 80px',
-        backgroundPosition: 'top',
-        backgroundRepeat: 'no-repeat, no-repeat, repeat',
-      }
+  const headerStyle = {
+    background: '#101012',
+    backgroundImage: `
+      linear-gradient(rgba(0,0,0,0.80) 60%, rgba(0,0,0,0.98) 100%),
+      url(${bgGradient}),
+      repeating-linear-gradient(
+        135deg,
+        rgba(0,0,0,0.25) 0px,
+        rgba(0,255,128,0.06) 2px,
+        rgba(0,0,0,0.25) 4px
+      )
+    `,
+    backgroundSize: '100% 100%, cover, 80px 80px',
+    backgroundPosition: 'top',
+    backgroundRepeat: 'no-repeat',
+  };
 
   return (
     <>
@@ -271,17 +285,18 @@ const MainNavbar = () => {
 
         {/* Mobile Navigation */}
         <div
+          ref={menuRef}
           className={cn(
             "xl:hidden fixed inset-y-0 right-0 z-40 transition-transform duration-300 ease-in-out",
             mobileMenuOpen ? "translate-x-0 w-[85%]" : "translate-x-full w-[85%]",
-              "bg-zinc-900"
+            "bg-zinc-900"
           )}
-          style={ {
+          style={{
             backgroundImage: `linear-gradient(rgba(0,0,0,1), rgba(0,0,0,0.8)), url(${bgGradient})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-          } }
+          }}
         >
           <nav className="py-6 px-4 space-y-1 min-h-screen overflow-y-auto">
             {isUserAuthenticated && userProfile && (

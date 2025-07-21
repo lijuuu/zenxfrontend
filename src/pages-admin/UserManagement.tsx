@@ -219,10 +219,10 @@ const UserManagement = () => {
   const handleBanUser = async () => {
     if (!selectedUser) return;
 
-    setActionLoading((prev) => ({ ...prev, [selectedUser.userID]: true }));
+    setActionLoading((prev) => ({ ...prev, [selectedUser.userId]: true }));
     try {
       await banUser({
-        userId: selectedUser.userID,
+        userId: selectedUser.userId,
         banType: banData.ban_type,
         banReason: banData.ban_reason,
       });
@@ -236,7 +236,7 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } finally {
-      setActionLoading((prev) => ({ ...prev, [selectedUser.userID]: false }));
+      setActionLoading((prev) => ({ ...prev, [selectedUser.userId]: false }));
     }
   };
 
@@ -387,7 +387,7 @@ const UserManagement = () => {
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.userID}>
+                <TableRow key={user.userId}>
                   <TableCell className="font-medium">
                     <div>
                       {(user.firstName || user.lastName)
@@ -435,7 +435,7 @@ const UserManagement = () => {
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" disabled={actionLoading[user.userID]}>
+                        <Button variant="ghost" size="icon" disabled={actionLoading[user.userId]}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -443,32 +443,32 @@ const UserManagement = () => {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         {!user.isVerified ? (
                           <DropdownMenuItem
-                            onClick={() => handleVerifyUser(user.userID)}
-                            disabled={actionLoading[user.userID]}
+                            onClick={() => handleVerifyUser(user.userId)}
+                            disabled={actionLoading[user.userId]}
                           >
                             <ShieldCheck className="mr-2 h-4 w-4" /> Verify User
-                            {actionLoading[user.userID] && (
+                            {actionLoading[user.userId] && (
                               <RefreshCw className="ml-2 h-4 w-4 animate-spin" />
                             )}
                           </DropdownMenuItem>
                         ) : (
                           <DropdownMenuItem
-                            onClick={() => handleUnverifyUser(user.userID)}
-                            disabled={actionLoading[user.userID]}
+                            onClick={() => handleUnverifyUser(user.userId)}
+                            disabled={actionLoading[user.userId]}
                           >
                             <ShieldX className="mr-2 h-4 w-4" /> Unverify User
-                            {actionLoading[user.userID] && (
+                            {actionLoading[user.userId] && (
                               <RefreshCw className="ml-2 h-4 w-4 animate-spin" />
                             )}
                           </DropdownMenuItem>
                         )}
                         {user.isBanned ? (
                           <DropdownMenuItem
-                            onClick={() => handleUnbanUser(user.userID)}
-                            disabled={actionLoading[user.userID]}
+                            onClick={() => handleUnbanUser(user.userId)}
+                            disabled={actionLoading[user.userId]}
                           >
                             <UserCheck className="mr-2 h-4 w-4" /> Unban User
-                            {actionLoading[user.userID] && (
+                            {actionLoading[user.userId] && (
                               <RefreshCw className="ml-2 h-4 w-4 animate-spin" />
                             )}
                           </DropdownMenuItem>
@@ -478,7 +478,7 @@ const UserManagement = () => {
                               setSelectedUser(user);
                               setShowBanDialog(true);
                             }}
-                            disabled={actionLoading[user.userID]}
+                            disabled={actionLoading[user.userId]}
                           >
                             <Ban className="mr-2 h-4 w-4" /> Ban User
                           </DropdownMenuItem>
@@ -489,7 +489,7 @@ const UserManagement = () => {
                             setShowDeleteDialog(true);
                           }}
                           className="text-red-600"
-                          disabled={actionLoading[user.userID]}
+                          disabled={actionLoading[user.userId]}
                         >
                           <UserX className="mr-2 h-4 w-4" /> Delete User
                         </DropdownMenuItem>
@@ -579,10 +579,10 @@ const UserManagement = () => {
             </Button>
             <Button
               onClick={handleBanUser}
-              disabled={!banData.ban_reason || actionLoading[selectedUser?.userID || ""]}
+              disabled={!banData.ban_reason || actionLoading[selectedUser?.userId || ""]}
               className="bg-red-600 hover:bg-red-700"
             >
-              {actionLoading[selectedUser?.userID || ""] ? (
+              {actionLoading[selectedUser?.userId || ""] ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />
               ) : (
                 "Ban User"
@@ -611,11 +611,11 @@ const UserManagement = () => {
               Cancel
             </Button>
             <Button
-              onClick={() => selectedUser && handleDeleteUser(selectedUser.userID)}
-              disabled={actionLoading[selectedUser?.userID || ""]}
+              onClick={() => selectedUser && handleDeleteUser(selectedUser.userId)}
+              disabled={actionLoading[selectedUser?.userId || ""]}
               className="bg-red-600 hover:bg-red-700"
             >
-              {actionLoading[selectedUser?.userID || ""] ? (
+              {actionLoading[selectedUser?.userId || ""] ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />
               ) : (
                 "Delete User"

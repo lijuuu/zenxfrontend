@@ -22,7 +22,7 @@ const initialState: AuthState = {
 };
 
 export const registerUser = createAsyncThunk<
-  { success: boolean; status: number; payload: { userID: string; message: string; email: string } },
+  { success: boolean; status: number; payload: { userId: string; message: string; email: string } },
   { firstName: string; lastName: string; email: string; password: string; confirmPassword: string },
   { rejectValue: { type: string; message: string; code?: number } }
 >("auth/registerUser", async (userData, { rejectWithValue }) => {
@@ -219,7 +219,7 @@ const authSlice = createSlice({
       state.loading = false;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
-      state.userId = action.payload.userID;
+      state.userId = action.payload.userId;
       state.userProfile = action.payload.userProfile;
       state.email = action.payload.userProfile.email;
       state.successMessage = action.payload.message;
@@ -244,10 +244,10 @@ const authSlice = createSlice({
         registerUser.fulfilled,
         (
           state,
-          action: PayloadAction<{ success: boolean; status: number; payload: { userID: string; message: string; email: string } }>
+          action: PayloadAction<{ success: boolean; status: number; payload: { userId: string; message: string; email: string } }>
         ) => {
           state.loading = false;
-          state.userId = action.payload.payload.userID;
+          state.userId = action.payload.payload.userId;
           state.email = action.payload.payload.email;
           state.successMessage = action.payload.payload.message;
 
@@ -303,7 +303,7 @@ const authSlice = createSlice({
         if (action.payload.success && action.payload.payload) {
           const userProfile = action.payload.payload as UserProfile;
           state.userProfile = userProfile;
-          state.userId = userProfile.userID;
+          state.userId = userProfile.userId;
           state.email = userProfile.email;
           state.successMessage = "User profile fetched successfully";
           state.error = null;

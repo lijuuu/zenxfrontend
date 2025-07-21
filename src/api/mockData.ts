@@ -3,7 +3,7 @@
 // User related mock data
 export const mockUsers = [
   {
-    userID: "1",
+    userId: "1",
     userName: "johndoe",
     firstName: "John",
     lastName: "Doe",
@@ -52,7 +52,7 @@ export const mockUsers = [
     isOnline: false,
   },
   {
-    userID: "2",
+    userId: "2",
     userName: "janedoe",
     firstName: "Jane",
     lastName: "Doe",
@@ -101,7 +101,7 @@ export const mockUsers = [
     isOnline: false,
   },
   {
-    userID: "3",
+    userId: "3",
     userName: "mchen",
     firstName: "Mike",
     lastName: "Chen",
@@ -150,7 +150,7 @@ export const mockUsers = [
     isOnline: true,
   },
   {
-    userID: "4",
+    userId: "4",
     userName: "sophie",
     firstName: "Sophie",
     lastName: "Williams",
@@ -199,7 +199,7 @@ export const mockUsers = [
     isOnline: true,
   },
   {
-    userID: "5",
+    userId: "5",
     userName: "taylor",
     firstName: "Taylor",
     lastName: "Smith",
@@ -1058,7 +1058,7 @@ export const mockMessages = {
 
 // Two-Sum Problem Data for ZenXPlayground
 export const twoSumProblem = {
-  problem_id: "67d96452d3fe6af39801337b",
+  problemId: "67d96452d3fe6af39801337b",
   title: "Two Sum",
   description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to the target.
 
@@ -1086,7 +1086,7 @@ You can return the answer in any order.
 ## Follow-up
 Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`,
   tags: ["Array", "Hash Table", "String", "Linked List"],
-  testcase_run: {
+  testcaseRun: {
     run: [
       {
         id: "67e16a5a48ec539e82f1622c",
@@ -1101,9 +1101,9 @@ Can you come up with an algorithm that is less than \`O(n²)\` time complexity?`
     ],
   },
   difficulty: "Easy",
-  supported_languages: ["go", "python", "javascript"],
+  supportedLanguages: ["go", "python", "javascript"],
   validated: true,
-  placeholder_maps: {
+  placeholderMaps: {
     go: `func twoSum(nums []int, target int) []int {
     // Type your code
     return []int{}

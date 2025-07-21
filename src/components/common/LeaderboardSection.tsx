@@ -9,7 +9,7 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 const LeaderboardSection = () => {
   const [activeTab, setActiveTab] = useState("global");
   const authState = useSelector((state: any) => state.auth);
-  const userId = authState?.userProfile?.userID || authState?.userID;
+  const userId = authState?.userProfile?.userId || authState?.userId;
 
   const { data, isLoading, error } = useLeaderboard(userId);
 

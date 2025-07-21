@@ -23,7 +23,7 @@ type ProblemFormData = z.infer<typeof problemSchema>;
 
 // Problem interface
 interface Problem {
-  problem_id: string | number;
+  problemId: string | number;
   title: string;
   description: string;
   tags: string[];
@@ -209,7 +209,7 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
       visible: data.visible,
     };
     if (selectedProblem) {
-      await handleApiCall("put", "/", { problem_id: selectedProblem.problem_id, ...payload });
+      await handleApiCall("put", "/", { problemId: selectedProblem.problemId, ...payload });
     } else {
       await handleApiCall("post", "/", payload);
     }
@@ -218,7 +218,7 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
 
   const onDelete = async () => {
     if (selectedProblem && window.confirm("Are you sure you want to delete this problem? This cannot be undone and will be deleted from the database as well.")) {
-      await handleApiCall("delete", "/", null, { problem_id: selectedProblem.problem_id });
+      await handleApiCall("delete", "/", null, { problemId: selectedProblem.problemId });
       setSelectedProblem(null);
       setView("list");
     }

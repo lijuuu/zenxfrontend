@@ -8,8 +8,8 @@ interface ProblemsSolvedChartProps {
 }
 
 const ProblemsSolvedChart: React.FC<ProblemsSolvedChartProps> = ({ profile }) => {
-  const { userID } = profile;
-  const { data: problemStats, isLoading, error } = useProblemStats(userID);
+  const { userId } = profile;
+  const { data: problemStats, isLoading, error } = useProblemStats(userId);
 
   if (isLoading) {
     return <div>Loading problem statistics...</div>; // loading state

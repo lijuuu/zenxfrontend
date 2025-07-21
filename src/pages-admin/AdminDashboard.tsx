@@ -18,7 +18,7 @@ const BASE_ADMIN_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost
 
 
 export interface Problem {
-  problem_id: string;
+  problemId: string;
   title: string;
   difficulty: string;
   validated: boolean;
@@ -104,11 +104,11 @@ export default function AdminDashboard() {
     try {
       const [problemRes, languagesRes] = await Promise.all([
         axiosInstance.get(`${BASE_ADMIN_URL}/`, {
-          params: { problem_id: problemId },
+          params: { problemId: problemId },
           headers: { 'X-Requires-Auth': 'true', 'X-Admin': 'true' }
         }),
         axiosInstance.get(`${BASE_ADMIN_URL}/languages`, {
-          params: { problem_id: problemId },
+          params: { problemId: problemId },
           headers: { 'X-Requires-Auth': 'true', 'X-Admin': 'true' }
         }),
       ])
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
         }
         setApiHistory((prev) => [historyEntry, ...prev])
         await fetchProblems()
-        if (selectedProblem?.problem_id) await fetchProblemDetails(selectedProblem.problem_id)
+        if (selectedProblem?.problemId) await fetchProblemDetails(selectedProblem.problemId)
         setSuccess("Action completed successfully!")
         toast.success(res.data.message || "Action completed successfully!", { duration: 3000 })
         setTimeout(() => setSuccess(null), 3000)

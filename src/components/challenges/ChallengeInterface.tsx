@@ -39,7 +39,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   const startChallengeMutation = useStartChallenge();
   const user = useAppSelector(state => state.auth.userProfile);
   const { data: userProfile } = useGetUserProfile();
-  const { data: problemStats } = useProblemStats(user?.userID);
+  const { data: problemStats } = useProblemStats(user?.userId);
 
   // For demo/development purposes
   initialChallenge = {
@@ -133,14 +133,14 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   };
 
   useEffect(() => {
-    if (initialChallenge && user?.userID) {
-      connectToSocket(initialChallenge.id, user.userID);
+    if (initialChallenge && user?.userId) {
+      connectToSocket(initialChallenge.id, user.userId);
     }
 
     return () => {
       socketService.disconnect();
     };
-  }, [initialChallenge, user?.userID]);
+  }, [initialChallenge, user?.userId]);
 
   // Prepare problem data for the interface
   useEffect(() => {
@@ -224,7 +224,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
     });
 
     socketService.on('userCodeFail', (data: { userId: string, problemId: string, error: string }) => {
-      if (data.userId === user?.userID) {
+      if (data.userId === user?.userId) {
         toast({
           title: "Code Failed",
           description: `Your solution failed: ${data.error}`,
@@ -251,7 +251,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
       });
       addEvent('timeUp', 'Time limit reached for the challenge');
     });
-  }, [user?.userID, toast, selectedProblemId]);
+  }, [user?.userId, toast, selectedProblemId]);
 
   const handleStartChallenge = async () => {
     if (!challenge) return;
@@ -265,7 +265,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
           description: "Challenge has been started successfully",
           variant: "default"
         });
-        addEvent('start', 'started the challenge', user?.userID);
+        addEvent('start', 'started the challenge', user?.userId);
       } else {
         toast({
           title: "Failed to Start",
@@ -317,7 +317,7 @@ const ChallengeInterface: React.FC<ChallengeInterfaceProps> = ({
   };
 
   const reconnectSocket = async () => {
-    if (!challenge || !user?.userID) return;
+    if (!challenge || !user?.userId) return;
 
     try {
       const result = await socketService.reconnect();

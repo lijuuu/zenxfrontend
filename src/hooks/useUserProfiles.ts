@@ -12,7 +12,7 @@ export const useUserProfiles = (userIds: string[] = []) => {
       if (!userIds.length) return [];
 
       const response = await axiosInstance.get('/users/batch', {
-        params: { user_ids: userIds.join(',') },
+        params: { userIds: userIds.join(',') },
         headers: {
           'X-Requires-Auth': 'true'
         }
@@ -50,8 +50,8 @@ export const useFetchCreatorProfiles = (creatorIds) => {
         const profilePromises = creatorIds.map((id) =>
           profiles[id]?.userName
             ? Promise.resolve(profiles[id])
-            : getUserProfile({ userID: id }).catch((err) => {
-              console.error(`Failed to fetch profile for userID ${id}:`, err);
+            : getUserProfile({ userId: id }).catch((err) => {
+              console.error(`Failed to fetch profile for userId ${id}:`, err);
               return { userName: null, avatarURL: null };
             })
         );

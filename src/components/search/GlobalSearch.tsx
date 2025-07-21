@@ -129,7 +129,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onClose }) => {
           <div className="max-h-96 overflow-y-auto space-y-2">
             {results.map((user) => (
               <Link
-                key={user.userID}
+                key={user.userId}
                 to={`/profile/${user.userName}`}
                 onClick={onClose}
                 className="group flex items-center gap-3 p-3 hover:bg-zinc-800 transition-colors"

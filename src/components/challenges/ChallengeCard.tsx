@@ -1,140 +1,172 @@
-
-import { Link } from "react-router-dom";
-import { format, fromUnixTime } from "date-fns";
-import { Users, FileCode, Clock, Lock, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Challenge } from "@/api/challengeTypes";
-import { useUserProfiles } from "@/hooks/useUserProfiles";
-import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { Clock, Copy, Users, Loader2, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/utils/formattedDate";
-
+import avatarIcon from "@/assets/avatar.png";
 
 interface ChallengeCardProps {
-  challenge: Challenge;
-  onJoin?: () => void;
-  variant?: "default" | "private";
-  isLoading?: boolean;
+  challenge: any;
+  creatorProfile: any;
+  isLoadingCreators: boolean;
+  creatorError: any;
+  loadChallenge: (id: string) => void;
+  copyRoomUrl: (challenge: any) => void;
+  actions?: React.ReactNode;
 }
 
-export const ChallengeCard = ({ challenge, onJoin, variant = "default", isLoading = false }: ChallengeCardProps) => {
-  const { data: userProfiles, isLoading: profilesLoading } = useUserProfiles([challenge.creatorId, ...(challenge.participantIds || [])]);
+const ChallengeCard: React.FC<ChallengeCardProps> = ({
+  challenge,
+  creatorProfile,
+  isLoadingCreators,
+  creatorError,
+  loadChallenge,
+  copyRoomUrl,
+  actions,
+}) => {
+  const navigate = useNavigate();
 
-  const creator = userProfiles?.find(profile => profile.userID === challenge.creatorId);
-
-
-  const formattedDate = formatDate(challenge.createdAt);
-  console.log(formattedDate)
-
-
-  if (isLoading) {
-    return (
-      <Card className="hover:shadow-md transition-shadow animate-pulse">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-5 w-16 rounded" />
-          </div>
-          <Skeleton className="h-4 w-1/2 mt-2" />
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Skeleton className="w-8 h-8 rounded-full" />
-              <div>
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-3 w-16 mt-2" />
-              </div>
-            </div>
-            <div className="text-right">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-3 w-20 mt-2" />
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Skeleton className="h-8 w-32" />
-        </CardFooter>
-      </Card>
-    );
+  if (!challenge?.challengeId || !challenge?.creatorId) {
+    return null;
   }
 
   return (
-    <Card className={cn(
-      "hover:shadow-md transition-shadow",
-      variant === "private" && "border-amber-200/30 dark:border-amber-800/30"
-    )}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            {challenge.title}
-            {challenge.isPrivate && <Lock className="h-4 w-4 text-amber-500" />}
-          </CardTitle>
-          <div className={cn(
-            "px-2 py-1 text-xs font-medium rounded",
-            variant === "private" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" :
-              "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-          )}>
-            {challenge.difficulty}
-          </div>
-        </div>
-        <CardDescription className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {challenge.createdAt ? `Created: ${formattedDate}` : "Recently created"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {profilesLoading ? (
-              <Skeleton className="w-8 h-8 rounded-full" />
-            ) : (
-              <img
-                src={creator?.avatarURL || "https://github.com/shadcn.png"}
-                alt={creator?.userName || "Unknown"}
-                className="w-8 h-8 rounded-full"
-              />
-            )}
-            <div>
-              {profilesLoading ? (
-                <>
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-3 w-16 mt-1" />
-                </>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, staggerChildren: 0.1 }}
+    >
+      <Card
+        key={challenge.challengeId}
+        className={cn(
+          "cursor-pointer backdrop-blur-lg bg-black/40 border border-gray-600/50 shadow-lg transition-colors duration-200 group rounded-xl hover:border-green-500"
+        )}
+        onClick={() => loadChallenge(challenge.challengeId)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && loadChallenge(challenge.challengeId)}
+      >
+        <CardHeader className="pb-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg font-bold text-gray-200">
+                {challenge.title || "Untitled Challenge"}
+                {challenge.isPrivate && (
+                  <Lock className="h-4 w-4 text-yellow-400" aria-label="Private challenge" />
+                )}
+              </CardTitle>
+            </div>
+            <CardDescription className="flex items-center gap-1 text-gray-400 text-sm">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              Created: {challenge.startTimeUnix ? formatDate(new Date(challenge.startTimeUnix * 1000)) : "Unknown"}
+            </CardDescription>
+          </motion.div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="flex items-center justify-between bg-gray-800/30 p-3 rounded-lg"
+          >
+            <div className="flex items-center gap-3">
+              {isLoadingCreators ? (
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-label="Loading creator profile" />
+              ) : creatorError || !creatorProfile?.userName ? (
+                <div className="w-8 h-8 rounded-full bg-green-900/40 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-green-400" aria-hidden="true" />
+                </div>
               ) : (
-                <>
-                  <p className="text-sm font-medium">{creator?.userName || "Unknown"}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Created by</p>
-                </>
+                <img
+                  src={creatorProfile.avatarURL || avatarIcon || "https://via.placeholder.com/32"}
+                  alt={`${creatorProfile.userName || "Creator"}'s avatar`}
+                  className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-green-500 transition-all duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (creatorProfile.userName) {
+                      navigate(`/profile/${creatorProfile.userName}`);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && creatorProfile.userName) {
+                      e.stopPropagation();
+                      navigate(`/profile/${creatorProfile.userName}`);
+                    }
+                  }}
+                  onError={() => console.error("Failed to load creator avatar")}
+                />
               )}
+              <div>
+                {isLoadingCreators ? (
+                  <p className="text-sm font-medium text-gray-200">Loading...</p>
+                ) : creatorError || !creatorProfile?.userName ? (
+                  <p className="text-sm font-medium text-gray-200">
+                    Creator ID: {challenge.creatorId.substring(0, 8)}...
+                  </p>
+                ) : (
+                  <p
+                    className="text-sm font-medium text-gray-200 cursor-pointer hover:underline hover:text-gray-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (creatorProfile.userName) {
+                        navigate(`/profile/${creatorProfile.userName}`);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && creatorProfile.userName) {
+                        e.stopPropagation();
+                        navigate(`/profile/${creatorProfile.userName}`);
+                      }
+                    }}
+                  >
+                    {creatorProfile.userName}
+                  </p>
+                )}
+                <p className="text-xs text-gray-400">Challenge Creator</p>
+              </div>
             </div>
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">{challenge.participantIds?.length || 0} participants</span>
-              <Users className="h-4 w-4 text-zinc-500" />
+            <div className="text-right space-y-1">
+              <p className="text-sm font-semibold text-gray-200">Problems: {challenge.problemCount || 0}</p>
+              <p className="text-sm font-semibold text-gray-200 flex items-center justify-end gap-1">
+                <Users className="h-4 w-4" aria-hidden="true" />
+                {Object.keys(challenge.participants || {}).length} participants
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">{challenge.problemIds?.length || 0} problems</span>
-              <FileCode className="h-4 w-4 text-zinc-500" />
-            </div>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button
-          size="sm"
-          onClick={onJoin}
-          className={cn(
-            variant === "private" ? "bg-amber-500 hover:bg-amber-600" : "bg-green-500 hover:bg-green-600"
-          )}
-        >
-          {challenge.isActive ? "Continue" : "Join"} Challenge
-          <ChevronRight className="ml-1 h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="text-xs text-gray-400 flex items-center justify-between"
+          >
+            <span>Room ID: {challenge.challengeId.substring(0, 8)}...</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 p-0 text-gray-300 hover:text-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                copyRoomUrl(challenge);
+              }}
+              aria-label="Copy room information"
+            >
+              <Copy className="h-3 w-3 mr-1" />
+            </Button>
+          </motion.div>
+        </CardContent>
+        {actions && <CardFooter className="flex justify-end">{actions}</CardFooter>}
+      </Card>
+    </motion.div>
   );
 };
 

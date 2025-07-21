@@ -18,21 +18,21 @@ const mapDifficulty = (difficulty: string): string => {
 
 const fetchProblemById = async (problemId: string): Promise<ProblemMetadata> => {
   try {
-    const response = await axiosInstance.get(`problems/metadata?problem_id=${problemId}`);
+    const response = await axiosInstance.get(`problems/metadata?problemId=${problemId}`);
     if (!response.data) throw new Error('Failed to fetch problem');
     
     const problemData = response.data.payload || response.data;
     
     return {
-      problem_id: problemData.problem_id || '',
+      problemId: problemData.problemId || problemData.problemId || '',
       title: problemData.title || 'Untitled',
       description: problemData.description || '',
       tags: problemData.tags || [],
-      testcase_run: problemData.testcase_run || { run: [] },
+      testcaseRun: problemData.testcaseRun || { run: [] },
       difficulty: mapDifficulty(problemData.difficulty || ''),
-      supported_languages: problemData.supported_languages || [],
+      supportedLanguages: problemData.supportedLanguages || [],
       validated: problemData.validated || false,
-      placeholder_maps: problemData.placeholder_maps || {},
+      placeholderMaps: problemData.placeholderMaps || {},
     };
   } catch (error) {
     console.error("Error fetching problem:", error);

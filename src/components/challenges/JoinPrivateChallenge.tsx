@@ -36,41 +36,17 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     if (!accessCode.trim() || !challengeId.trim()) return;
 
     setLoading(true);
-    try {
-      const result = {
-        success: true,
-        gameRoomLink: `/join-challenge/${challengeId}/${accessCode}`,
-      };
 
+    // fake verify code logic here
+    const result = {
+      success: true,
+      gameRoomLink: `/join-challenge/${challengeId}/${accessCode}`,
+    };
 
-      if (result.success) {
-        setCodeFound(true);
-        setChallengeName(`Challenge with code ${accessCode}`);
-        setGameRoomLink(result.gameRoomLink);
-        toast({
-          title: "Challenge Found",
-          description: `Found challenge with access code: ${accessCode}`,
-          className: "bg-green-50 text-green-800",
-        });
-      } else {
-        toast({
-          title: "Invalid Code",
-          description: "Could not find a challenge with that access code.",
-          variant: "destructive",
-          className: "bg-red-50 text-red-800",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to join challenge:", error);
-      toast({
-        title: "Error",
-        description: "Failed to join challenge. Please try again.",
-        variant: "destructive",
-        className: "bg-red-50 text-red-800",
-      });
-    } finally {
-      setLoading(false);
-    }
+    setCodeFound(true);
+    setChallengeName(`Challenge with code ${accessCode}`);
+    setGameRoomLink(result.gameRoomLink);
+    setLoading(false);
   };
 
   const handleJoinGameRoom = () => {
@@ -102,9 +78,9 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
           <DialogTitle className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
             Join Private Challenge
           </DialogTitle>
-          <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
+          {!codeFound && <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
             Enter the challenge ID and access code to join a private coding challenge.
-          </DialogDescription>
+          </DialogDescription>}
         </DialogHeader>
 
         {!codeFound ? (
@@ -183,7 +159,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
                 <h4 className="font-medium text-green-800 dark:text-green-300">
                   Challenge Link Constructed
                 </h4>
-                <p className="text-sm text-green-600 dark:text-green-400">
+                <p className="text-sm text-green-600 dark:text-green-400 break-all">
                   {window.origin + gameRoomLink}
                 </p>
               </div>
@@ -191,15 +167,13 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
             <p className="text-sm text-center text-zinc-600 dark:text-zinc-400">
               You can now join this private challenge.
             </p>
-            {gameRoomLink && (
-              <Button
-                onClick={handleJoinGameRoom}
-                disabled={loading}
-                className="w-full h-10 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white disabled:opacity-50"
-              >
-                Join Game Room
-              </Button>
-            )}
+            <Button
+              onClick={handleJoinGameRoom}
+              disabled={loading}
+              className="w-full h-10 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white disabled:opacity-50"
+            >
+              Join Game Room
+            </Button>
             <DialogFooter className="flex justify-end gap-2">
               <Button
                 type="button"
@@ -210,7 +184,6 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
               >
                 Back
               </Button>
-
             </DialogFooter>
           </div>
         )}

@@ -14,15 +14,15 @@ import { mockProblems } from "@/api/mockData";
 
 // Define the Problem interface based on ProblemMetadata
 interface Problem {
-  problem_id: string;
+  problemId: string;
   title: string;
   description: string;
   tags: string[];
   difficulty: string;
-  testcase_run: { run: { input: string; expected: string }[] };
-  supported_languages: string[];
+  testcaseRun: { run: { input: string; expected: string }[] };
+  supportedLanguages: string[];
   validated: boolean;
-  placeholder_maps: { [key: string]: string };
+  placeholderMaps: { [key: string]: string };
 }
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -67,15 +67,15 @@ const fetchProblems = async () => {
     if (!Array.isArray(problemList)) throw new Error("Expected an array of problems");
 
     const mappedProblems: Problem[] = problemList.map((item: any) => ({
-      problem_id: item.problem_id || '',
+      problemId: item.problemId || '',
       title: item.title || 'Untitled',
       description: item.description || '',
       tags: item.tags || [],
       difficulty: item.difficulty || '',
-      testcase_run: item.testcase_run || { run: [] },
-      supported_languages: item.supported_languages || [],
+      testcaseRun: item.testcaseRun || { run: [] },
+      supportedLanguages: item.supportedLanguages || [],
       validated: item.validated || false,
-      placeholder_maps: item.placeholder_maps || {},
+      placeholderMaps: item.placeholderMaps || {},
     }));
 
     return mappedProblems;
@@ -85,20 +85,20 @@ const fetchProblems = async () => {
 
     // Map the mock data to match the Problem interface
     return mockProblems.map(p => ({
-      problem_id: p.id,
+      problemId: p.id,  // Use problemId to match the interface
       title: p.title,
       description: p.description,
       tags: p.tags,
       difficulty: p.difficulty,
-      testcase_run: {
+      testcaseRun: {
         run: p.examples.map(ex => ({
           input: ex.input,
           expected: ex.output
         }))
       },
-      supported_languages: ['javascript', 'python', 'java', 'cpp', 'go'],
+      supportedLanguages: ['javascript', 'python', 'java', 'cpp', 'go'],
       validated: true,
-      placeholder_maps: {
+      placeholderMaps: {
         javascript: '// Write your solution here',
         python: '# Write your solution here'
       }
@@ -173,8 +173,8 @@ const ProblemListing: React.FC = () => {
     return true;
   });
 
-  const navigateToCompiler = (problem_id: string) => {
-    navigate(`/playground?problem_id=${problem_id}`);
+  const navigateToCompiler = (problemId: string) => {
+    navigate(`/playground?problemId=${problemId}`);
   };
 
   return (
@@ -304,9 +304,9 @@ const ProblemListing: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProblems.map((problem) => (
               <Card
-                key={problem.problem_id}
+                key={problem.problemId}
                 className="bg-zinc-800/40 border border-zinc-700/40 hover:border-green-500/50 transition-colors cursor-pointer"
-                onClick={() => navigateToCompiler(problem.problem_id)}
+                onClick={() => navigateToCompiler(problem.problemId)}
               >
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">

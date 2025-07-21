@@ -33,7 +33,7 @@ interface ErrorResponse {
 }
 
 interface UserProfile {
-  userID: string;
+  userId: string;
   userName: string;
   firstName: string;
   lastName: string;
