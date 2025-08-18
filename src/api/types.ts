@@ -16,16 +16,16 @@ export interface UserProfile {
     github: string;
     twitter: string;
     linkedin: string;
-    website?: string; 
+    website?: string;
   };
   createdAt?: number;
-  
+
   //additional UI fields
   joinedDate?: string;
   problemsSolved?: number;
   dayStreak?: number;
   ranking?: number;
-  profileImage?: string; 
+  profileImage?: string;
   is2FAEnabled?: boolean;
   followers?: number;
   following?: number;
@@ -33,20 +33,14 @@ export interface UserProfile {
   bio?: string;
 
   //refer
-  referralLink?:string;
-  
+  referralLink?: string;
+
   // Stats, achievements, and other data
   stats?: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };
     hard: { solved: number; total: number };
   };
-  achievements?: {
-    weeklyContests: number;
-    monthlyContests: number;
-    specialEvents: number;
-  };
-  badges?: Badge[];
   activityHeatmap?: HeatmapData;
   currentStreak?: number;
   longestStreak?: number;
@@ -75,7 +69,7 @@ export interface ApiResponse {
 
 export interface AuthState {
   userId: string | null;
-  isVerified?:boolean,
+  isVerified?: boolean,
   isAuthenticated?: boolean;
   email: string | null;
   loading: boolean;
@@ -127,22 +121,18 @@ export interface CompilerState {
   fileToRename: string | null;
 }
 
-// Problem related types
 export interface Problem {
-  id: string;
+  problemId: string;
   title: string;
-  slug: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  tags: string[];
-  acceptanceRate: number;
-  solved?: boolean;
   description: string;
-  examples: ProblemExample[];
-  constraints: string[];
-  hints?: string[];
-  similarProblems?: { id: string; title: string; difficulty: string }[];
-  solutions?: Solution[];
+  tags: string[];
+  difficulty: string;
+  testcaseRun: { run: { input: string; expected: string }[] };
+  supportedLanguages: string[];
+  validated: boolean;
+  placeholderMaps: { [key: string]: string };
 }
+
 
 export interface ProblemExample {
   input: string;
@@ -252,7 +242,7 @@ export interface Submission {
   userCode: string;
   language: string;
   score: number;
-  difficulty: "E" | "M" | "H" ;
+  difficulty: "E" | "M" | "H";
   isFirst: boolean;
   title: string;
 }
@@ -323,7 +313,7 @@ export interface AdminLoginResponse {
 export interface UsersResponse {
   users: UserProfile[];
   totalCount: number;
-  prevPageToken:string;
+  prevPageToken: string;
   nextPageToken: string;
 }
 

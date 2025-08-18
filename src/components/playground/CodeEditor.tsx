@@ -8,7 +8,26 @@ interface CodeEditorProps {
   language: string;
   loading?: boolean;
 }
-
+const defaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
+  minimap: { enabled: false },
+  scrollBeyondLastLine: false,
+  fontSize: 14,
+  lineHeight: 22,
+  fontFamily: 'JetBrains Mono, monospace, Consolas, "Courier New"',
+  tabSize: 2,
+  wordWrap: 'on',
+  autoIndent: 'full',
+  cursorBlinking: 'smooth',
+  cursorSmoothCaretAnimation: 'on',
+  smoothScrolling: true,
+  padding: { top: 12, bottom: 12 },
+  scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6 },
+  lineNumbers: 'on',
+  glyphMargin: false,
+  folding: true,
+  contextmenu: true,
+  suggest: { showMethods: true, showFunctions: true, showConstructors: true, showFields: true, showVariables: true, showClasses: true, showInterfaces: true },
+};
 export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, language, loading }) => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -40,26 +59,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, languag
         onChange={(v) => onChange(v || '')}
         onMount={handleEditorDidMount}
         theme={'vs-dark'}
-        options={{
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-          fontSize: 14,
-          lineHeight: 22,
-          fontFamily: 'JetBrains Mono, monospace, Consolas, "Courier New"',
-          tabSize: 2,
-          wordWrap: 'on',
-          autoIndent: 'full',
-          cursorBlinking: 'smooth',
-          cursorSmoothCaretAnimation: 'on',
-          smoothScrolling: true,
-          padding: { top: 12, bottom: 12 },
-          scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6 },
-          lineNumbers: 'on',
-          glyphMargin: false,
-          folding: true,
-          contextmenu: true,
-          suggest: { showMethods: true, showFunctions: true, showConstructors: true, showFields: true, showVariables: true, showClasses: true, showInterfaces: true },
-        }}
+        options={defaultOptions}
+        loading={loading}
       />
 
 

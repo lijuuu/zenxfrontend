@@ -305,7 +305,7 @@ const ZenXPlayground: React.FC<ZenXPlaygroundProps> = ({ propsProblemID, hideBac
           {!hideBackButton && (
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/problems'}
+              onClick={() => window.history.back()}
               className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 mt-4 text-sm px-4 py-2"
             >
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Problem List

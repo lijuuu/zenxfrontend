@@ -64,7 +64,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
             </div>
             <CardDescription className="flex items-center gap-1 text-gray-400 text-sm">
               <Clock className="h-3 w-3" aria-hidden="true" />
-              Created: {challenge.startTimeUnix ? formatDate(new Date(challenge.startTimeUnix * 1000)) : "Unknown"}
+              Created: {challenge.startTimeUnix ? formatDate((challenge.startTimeUnix * 1000)) : "Unknown"}
             </CardDescription>
           </motion.div>
         </CardHeader>

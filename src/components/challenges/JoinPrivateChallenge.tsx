@@ -40,7 +40,7 @@ const JoinPrivateChallenge: React.FC<JoinPrivateChallengeProps> = ({
     // fake verify code logic here
     const result = {
       success: true,
-      gameRoomLink: `/join-challenge/${challengeId}/${accessCode}`,
+      gameRoomLink: `/join-challenge/${challengeId.trim()}/${accessCode.trim()}`,
     };
 
     setCodeFound(true);

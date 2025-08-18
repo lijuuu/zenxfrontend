@@ -1,11 +1,12 @@
-export const formatDate = (timestamp) => {
+export const formatDate = (timestamp: number) => {
   if (!timestamp) return "Invalid date";
 
   try {
-    const date = new Date(timestamp * 1000); // UNIX seconds → ms
+    const ts = timestamp < 1e12 ? timestamp * 1000 : timestamp;
+    const date = new Date(ts);
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const day = date.getDate();
     const month = months[date.getMonth()];

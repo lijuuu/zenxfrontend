@@ -412,17 +412,65 @@ const CreateChallenge: React.FC = () => {
                     name="timeLimit"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-100">Time Limit (seconds)</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-100">Time Limit</FormLabel>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 flex items-center gap-2 bg-gray-800/50 border border-gray-600 rounded-md p-3">
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="Enter time limit in seconds"
-                            className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            min={300}
-                          />
-                        </FormControl>
+                                placeholder="Days"
+                                className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
+                                value={Math.floor(field.value / 86400)}
+                            onChange={(e) => {
+                                  const days = Number(e.target.value);
+                                  const hours = Math.floor((field.value % 86400) / 3600);
+                                  const minutes = Math.floor((field.value % 3600) / 60);
+                                  field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
+                            }}
+                                min={0}
+                                max={7}
+                              />
+                            </FormControl>
+                            <span className="text-gray-300 whitespace-nowrap">days</span>
+                            <div className="h-8 w-px bg-gray-600"></div>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Hours"
+                                className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
+                                value={Math.floor((field.value % 86400) / 3600)}
+                                onChange={(e) => {
+                                  const hours = Number(e.target.value);
+                                  const days = Math.floor(field.value / 86400);
+                                  const minutes = Math.floor((field.value % 3600) / 60);
+                                  field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
+                                }}
+                                min={0}
+                                max={23}
+                              />
+                            </FormControl>
+                            <span className="text-gray-300 whitespace-nowrap">hours</span>
+                            <div className="h-8 w-px bg-gray-600"></div>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Minutes"
+                                className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
+                                value={Math.floor((field.value % 3600) / 60)}
+                                onChange={(e) => {
+                                  const minutes = Number(e.target.value);
+                                  const days = Math.floor(field.value / 86400);
+                                  const hours = Math.floor((field.value % 86400) / 3600);
+                                  field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
+                                }}
+                                min={0}
+                                max={59}
+                  />
+                            </FormControl>
+                            <span className="text-gray-300 whitespace-nowrap">minutes</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Minimum time: 5 minutes, maximum: 7 days</p>
                         <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
@@ -601,8 +649,8 @@ const CreateChallenge: React.FC = () => {
 
                   {!useRandomProblems && (
                     <>
-                      <div className="flex items-center border border-gray-600 rounded-md px-3 py-2 bg-gray-800/50">
-                        <Search className="h-4 w-4 text-gray-300" />
+                      <div className="flex items-center border border-gray-600 rounded-md px-3 py-2 bg-gray-800/50 mb-4">
+                        <Search className="h-4 w-4 text-gray-300 mr-2" />
                         <Input
                           placeholder="Search problems by title..."
                           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-300"
@@ -611,84 +659,143 @@ const CreateChallenge: React.FC = () => {
                         />
                       </div>
 
-                      {problemsLoading || isLoadingCounts ? (
-                        <div className="flex justify-center p-4">
-                          <Loader2 className="h-6 w-6 animate-spin text-green-400" />
-                        </div>
-                      ) : (
-                        <ScrollArea className="h-[50vh] max-h-[500px] rounded-md border border-gray-600 p-2 bg-gray-800/50">
-                          <div className="space-y-2">
-                            {filteredProblems.map((problem) => (
-                              <div
-                                key={problem.problemId}
-                                className={`flex items-center justify-between rounded-md p-3 transition-all border border-gray-600 hover:shadow-sm ${selectedProblems.find(p => p.problemId === problem.problemId)
-                                  ? 'bg-green-900/30 border-green-400'
-                                  : 'hover:bg-gray-700/50 hover:border-green-400'
-                                  }`}
-                              >
-                                <div className="flex items-center gap-3 flex-1 pointer-events-none">
-                                  <div className="pointer-events-none">
-                                    {getDifficultyIcon(problem.difficulty)}
-                                  </div>
-                                  <div className="flex-1 pointer-events-none">
-                                    <p className="text-sm font-medium text-gray-100 line-clamp-1 select-text cursor-text pointer-events-auto">{problem.title}</p>
-                                    <Badge
-                                    variant="outline"
-                                      className={`text-xs mt-1 font-medium ${getColorsByDifficulty(problem.difficulty)} pointer-events-none`}
-                                    >
-                                      {problem.difficulty}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <div className="pointer-events-auto">
-                                  <Checkbox
-                                    checked={!!selectedProblems.find(p => p.problemId === problem.problemId)}
-                                    onCheckedChange={() => handleProblemSelect({
-                                      problemId: problem.problemId,
-                                      title: problem.title,
-                                      difficulty: problem.difficulty,
-                                    })}
-                                    className="border-gray-600 text-green-400 focus:ring-green-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                                  />
-                                </div>
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1">
+                          <h3 className="text-sm font-medium text-gray-100 mb-2 flex items-center">
+                            <Puzzle className="h-4 w-4 mr-2 text-green-400" />
+                            Available Problems
+                            {searchQuery && <span className="ml-2 text-xs text-gray-400">Filtered by: "{searchQuery}"</span>}
+                          </h3>
+                          
+                          {problemsLoading || isLoadingCounts ? (
+                            <div className="flex justify-center items-center h-[300px] border border-gray-600 rounded-md bg-gray-800/50">
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
+                                <p className="text-sm text-gray-300">Loading problems...</p>
                               </div>
-                            ))}
+                            </div>
+                          ) : (
+                            <ScrollArea className="h-[400px] rounded-md border border-gray-600 p-3 bg-gray-800/50">
+                              {filteredProblems.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-center text-gray-300">
+                                  <Search className="h-10 w-10 text-gray-500 mb-2" />
+                                  <p className="text-sm font-medium">No problems found</p>
+                                  {searchQuery && (
+                                    <p className="text-xs mt-1 text-gray-400">Try different search terms</p>
+                                  )}
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="mt-4 text-green-400 border-green-400/50 hover:bg-green-900/20"
+                                    onClick={() => setSearchQuery("")}
+                                  >
+                                    Clear Search
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 gap-2">
+                                  {filteredProblems.map((problem) => (
+                                    <div
+                                key={problem.problemId}
+                                      onClick={() => handleProblemSelect({
+                                        problemId: problem.problemId,
+                                        title: problem.title,
+                                        difficulty: problem.difficulty,
+                                      })}
+                                      className={`flex items-center justify-between rounded-md p-3 transition-all border cursor-pointer ${
+                                        selectedProblems.find(p => p.problemId === problem.problemId)
+                                          ? 'bg-green-900/30 border-green-400 shadow-sm shadow-green-400/20'
+                                          : 'border-gray-600 hover:bg-gray-700/50 hover:border-green-400/50'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <div>
+                                          {getDifficultyIcon(problem.difficulty)}
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium text-gray-100 line-clamp-1">{problem.title}</p>
+                                          <Badge
+                                            variant="outline"
+                                            className={`text-xs mt-1 font-medium ${getColorsByDifficulty(problem.difficulty)}`}
+                                          >
+                                            {problem.difficulty}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center">
+                                        {selectedProblems.find(p => p.problemId === problem.problemId) ? (
+                                          <Check className="h-5 w-5 text-green-400" />
+                                        ) : (
+                                          <PlusCircle className="h-5 w-5 text-gray-400 opacity-60 group-hover:opacity-100" />
+                      )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </ScrollArea>
+                          )}
+                        </div>
 
-                            {filteredProblems.length === 0 && (
-                              <div className="flex flex-col items-center justify-center py-8 text-center text-gray-300">
-                                <p className="text-sm">No problems found</p>
-                                {searchQuery && (
-                                  <p className="text-xs mt-1">Try different search terms</p>
-                                )}
+                        <div className="w-full md:w-[300px]">
+                          <h3 className="text-sm font-medium text-gray-100 mb-2 flex items-center">
+                            <Check className="h-4 w-4 mr-2 text-green-400" />
+                            Selected Problems ({selectedProblems.length}/10)
+                          </h3>
+                          
+                          <div className="border border-gray-600 rounded-md bg-gray-800/50 p-3 h-[400px] flex flex-col">
+                            {selectedProblems.length === 0 ? (
+                              <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
+                                <Trophy className="h-10 w-10 text-gray-500 mb-2" />
+                                <p className="text-sm">No problems selected yet</p>
+                                <p className="text-xs mt-1">Click on problems to select them</p>
+                              </div>
+                            ) : (
+                              <ScrollArea className="flex-1">
+                                <div className="grid grid-cols-1 gap-2">
+                                  {selectedProblems.map((problem) => (
+                                    <div
+                                      key={problem.problemId}
+                                      className={`flex items-center justify-between p-2 rounded-md transition-all ${getColorsByDifficulty(problem.difficulty)}`}
+                                    >
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        {getDifficultyIcon(problem.difficulty)}
+                                        <span className="text-sm truncate">{problem.title}</span>
+                                      </div>
+                                      <XCircle
+                                        className="h-5 w-5 cursor-pointer hover:text-red-400 flex-shrink-0 ml-2"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProblemSelect(problem);
+                                        }}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            )}
+                            
+                            {selectedProblems.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-600">
+                                <div className="flex justify-between text-xs text-gray-300 mb-2">
+                                  <span>Easy: {selectedProblems.filter(p => ["easy", "e"].includes(p.difficulty.toLowerCase())).length}</span>
+                                  <span>Medium: {selectedProblems.filter(p => ["medium", "m"].includes(p.difficulty.toLowerCase())).length}</span>
+                                  <span>Hard: {selectedProblems.filter(p => ["hard", "h"].includes(p.difficulty.toLowerCase())).length}</span>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full text-red-400 border-red-400/50 hover:bg-red-900/20"
+                                  onClick={() => setSelectedProblems([])}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Clear All
+                                </Button>
                               </div>
                             )}
                           </div>
-                        </ScrollArea>
-                      )}
-
-                      {selectedProblems.length > 0 && (
-                        <div>
-                          <div className="text-sm font-medium text-gray-100 mb-2">Selected Problems ({selectedProblems.length})</div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {selectedProblems.map((problem) => (
-                              <div
-                                key={problem.problemId}
-                                className={`flex items-center gap-2 p-2 rounded-md bg-gray-800/50 border border-gray-600 hover:bg-gray-700/50 transition-all ${getColorsByDifficulty(problem.difficulty)}`}
-                              >
-                                {getDifficultyIcon(problem.difficulty)}
-                                <span className="text-sm text-gray-300 truncate max-w-[120px]">{problem.title}</span>
-                                <XCircle
-                                  className="h-5 w-5 cursor-pointer hover:text-red-400"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleProblemSelect(problem);
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
                         </div>
-                      )}
+                      </div>
                     </>
                   )}
                 </div>

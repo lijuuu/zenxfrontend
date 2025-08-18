@@ -2,7 +2,7 @@
 import { UserProfile } from '@/store/slices/authSlice';
 import axiosInstance from '@/utils/axiosInstance';
 import Cookies from 'js-cookie';
-
+import qs from "qs"
 
 export const getUserProfile = async ({
   userId,
@@ -45,8 +45,27 @@ export const getUserProfile = async ({
   }
 }
 
+export const getUserProfileMetadataBulk = async (
+  userIds: string[]
+): Promise<UserProfile[]> => {
+  try {
+    if (!userIds.length) return []
 
+    const res = await axiosInstance.get('/users/metadata/bulk', {
+      params: { userIds },
+      paramsSerializer: params =>
+        qs.stringify(params, { arrayFormat: 'repeat' }), // userIds=a&userIds=b
+      headers: {
+        'X-Requires-Auth': 'false',
+      },
+    })
 
+    return res.data.payload.userProfileMetadata || []
+  } catch (error) {
+    console.error('Error fetching bulk user metadata:', error)
+    throw new Error('Failed to fetch bulk user metadata')
+  }
+}
 
 export const updateUserProfile = async (
   profileData: Partial<UserProfile>
@@ -86,7 +105,6 @@ export const searchUsers = async (
   return res.data.payload;
 };
 
-/** Follow a user (POST with query param) */
 export const followUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
   const res = await axiosInstance.post(
     "/users/follow",
@@ -102,7 +120,6 @@ export const followUser = async (followeeID: string): Promise<{ success: boolean
   };
 };
 
-/** Unfollow a user (DELETE with query param) */
 export const unfollowUser = async (followeeID: string): Promise<{ success: boolean; message: string }> => {
   const res = await axiosInstance.delete(
     "/users/follow",
@@ -117,8 +134,6 @@ export const unfollowUser = async (followeeID: string): Promise<{ success: boole
   };
 };
 
-
-/** Get followers (GET) */
 export const getFollowers = async (userId: string, pageToken?: string, limit: number = 10) => {
   const res = await axiosInstance.get("/users/follow/followers", {
     params: { userId, pageToken, limit },
@@ -129,7 +144,6 @@ export const getFollowers = async (userId: string, pageToken?: string, limit: nu
   return res.data.payload?.users || [];
 };
 
-/** Get following (GET) */
 export const getFollowing = async (userId: string, pageToken?: string, limit: number = 10) => {
   const res = await axiosInstance.get("/users/follow/following", {
     params: { userId, pageToken, limit },
@@ -140,7 +154,6 @@ export const getFollowing = async (userId: string, pageToken?: string, limit: nu
   return res.data.payload?.users || [];
 };
 
-/** Check if following (GET) */
 export const checkFollow = async (userId: string) => {
   const res = await axiosInstance.get("/users/follow/check", {
     params: { userId },

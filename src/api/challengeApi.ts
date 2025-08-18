@@ -6,7 +6,6 @@ import {
   Submission,
   ParticipantMetadata,
   ChallengeConfig,
-  Session,
 } from "./challengeTypes";
 import { UserProfile } from "./types";
 

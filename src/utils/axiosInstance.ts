@@ -75,17 +75,10 @@ const refreshAccessToken = async () => {
       sameSite: 'Strict',
     });
 
-    Cookies.set('refreshToken', newRefreshToken, {
-      expires: 7,
-      secure: true,
-      sameSite: 'Strict',
-    });
-
     return accessToken;
   }
   catch (error) {
     Cookies.remove('accessToken');
-    Cookies.remove('refreshToken');
     localStorage.removeItem("userid");
     throw error;
   }

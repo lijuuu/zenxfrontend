@@ -30,7 +30,7 @@ import { MusicPlayer, Track } from "@lijuu/musicplayerwidget";
 import MinimalChallenges from "./pages/MinimalChallenges";
 import CreateChallengeForm from "./components/challenges/CreateChallengeForm";
 import CreateChallenge from "./components/challenges/CreateChallengeForm";
-import JoinChallenge from "./pages/JoinChallenge";
+import JoinChallenge from "./pages/Challenge/JoinChallenge";
 // import MusicPlayer,{Track} from "./components/music/MusicPlayer";
 
 // Create a client
