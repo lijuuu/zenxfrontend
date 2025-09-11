@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router";
 import { useMonthlyActivity } from "@/services/useMonthlyActivityHeatmap";
 import { useLeaderboard } from "@/hooks";
-import { parseISO, startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
 import { useProblemStats } from "@/hooks/useProblemStats";
 import { useOwner } from "@/hooks/useOwner";
 import { formatDate } from "@/utils/formattedDate";
@@ -99,11 +98,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userI
     return "U";
   };
 
-  // Calculate contest participation
-  const contestsParticipated =
-    (profile.achievements?.weeklyContests || 0) +
-    (profile.achievements?.monthlyContests || 0) +
-    (profile.achievements?.specialEvents || 0);
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -210,15 +204,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = React.memo(({ profile, userI
             <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
               <Trophy className="h-4 w-4 text-amber-500 mb-1" />
               <span className="text-xl font-bold">
-                #{leaderboardData?.GlobalRank || "-"}
+                #{leaderboardData?.GlobalRank + 1 || "-"}
               </span>
               <span className="text-xs text-muted-foreground">Global Rank</span>
             </div>
 
             <div className="flex flex-col items-center p-3 border border-border/50 rounded-lg bg-zinc-800/30 min-w-[120px]">
-              <Award className="h-4 w-4 text-blue-400 mb-1" />
-              <span className="text-xl font-bold">{contestsParticipated}</span>
-              <span className="text-xs text-muted-foreground">Challenges</span>
+              <Trophy className="h-4 w-4 text-amber-500 mb-1" />
+              <span className="text-xl font-bold">
+                #{leaderboardData?.EntityRank + 1 || "-"}
+              </span>
+              <span className="text-xs text-muted-foreground">Country Rank</span>
             </div>
           </div>
         </div>
