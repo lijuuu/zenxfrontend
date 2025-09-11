@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { loginAdmin } from "@/api/adminApi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -170,7 +170,7 @@ const AdminLogin = () => {
                 "Login"
               )}
             </Button>
-           
+
           </CardFooter>
         </form>
       </Card>

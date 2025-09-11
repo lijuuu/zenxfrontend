@@ -52,7 +52,7 @@ const LanguagesView: React.FC<LanguagesViewProps> = ({ selectedProblem, handleAp
   const [isPlaceholderFullScreen, setIsPlaceholderFullScreen] = useState(false);
   const [isCodeFullScreen, setIsCodeFullScreen] = useState(false);
 
-  // Sync languages with selectedProblem.validate_code when it changes
+  //sync languages with selectedProblem.validate_code when it changes
   useEffect(() => {
     if (selectedProblem?.validate_code) {
       const languageSupports = Object.entries(selectedProblem.validate_code).map(([language, code]) => {

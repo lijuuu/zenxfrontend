@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { searchUsers, SearchUsersResponse } from '@/api/userApi';
 import { UserProfile } from '@/store/slices/authSlice';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 
 export interface UseUserSearchResult {
   query: string;

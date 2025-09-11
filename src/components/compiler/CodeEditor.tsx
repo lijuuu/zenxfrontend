@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { runCode } from '@/store/slices/compilerSlice';
 import { File } from '@/api/types';
 import * as monaco from 'monaco-editor';
-import { languages } from './CompilerLayout';
+import { languages } from './CompilerPlayground';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 
 interface CodeEditorProps {
@@ -164,7 +164,7 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
           onMount={handleEditorDidMount}
           theme="vs-dark"
           options={{
-            minimap: { enabled: !isMobile }, 
+            minimap: { enabled: !isMobile },
             scrollBeyondLastLine: false,
             fontSize: fontSize,
             lineHeight: 22,

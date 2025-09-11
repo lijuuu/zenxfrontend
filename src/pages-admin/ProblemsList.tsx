@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Filter, Plus, Loader2, FileCode, Search, Server } from "lucide-react";
 
-// Define Problem interface (assuming this is what's imported from AdminDashboard)
+// define Problem interface (assuming this is what's imported from AdminDashboard)
 interface Problem {
   problemId: string;
   title: string;
@@ -17,17 +17,7 @@ interface Problem {
   visible: boolean;
 }
 
-// Props interface for MultiSelect
-interface MultiSelectProps {
-  options: { value: string; label: string }[];
-  selected: { value: string; label: string }[];
-  onChange: (selected: { value: string; label: string }[]) => void;
-  placeholder: string;
-  className?: string;
-}
-
-
-// Props interface for ProblemListView
+//props interface for ProblemListView
 interface ProblemListViewProps {
   setFilters: React.Dispatch<React.SetStateAction<{ search: string; difficulty: string; tags: string }>>;
   filters: { search: string; difficulty: string; tags: string };
@@ -35,7 +25,7 @@ interface ProblemListViewProps {
   showFilters: boolean;
   loading: boolean;
   filteredProblems: Problem[];
-  setSelectedProblem: (problem: Problem | null) => void;  // Added missing prop
+  setSelectedProblem: (problem: Problem | null) => void;  //added missing prop
   getDifficultyColor: (difficulty: string) => string;
   fetchProblemDetails: (problemId: string) => void;
   setView: React.Dispatch<React.SetStateAction<"list" | "details" | "testcases" | "languages" | "validation" | "api">>;

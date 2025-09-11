@@ -42,9 +42,9 @@ export type ChallengeDocument = {
   title: string;
   isPrivate: boolean;
   password: string;
-  status: "pending" | "active" | "completed"; // match Go `ChallengeStatus` enum
-  timeLimit: number; // milliseconds
-  startTime: number; // unix timestamp
+  status: "pending" | "active" | "completed"; 
+  timeLimit: number; 
+  startTime: number; 
   participants: Record<string, ParticipantMetadata>;
   submissions: Record<string, Record<string, Submission>>;
   leaderboard: LeaderboardEntry[];

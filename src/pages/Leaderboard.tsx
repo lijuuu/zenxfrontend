@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeaderboardUser } from '@/api/leaderboardApi';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import MainNavbar from '@/components/common/MainNavbar';
 import { Link } from 'react-router-dom';
 import {

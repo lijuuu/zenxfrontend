@@ -3,10 +3,7 @@ import { toast } from 'sonner';
 import * as challengeApi from '@/api/challengeApi';
 import { ChallengeDocument, ChallengeConfig } from '@/api/challengeTypes';
 
-// Constants for stale times
-const REALTIME_STALE_TIME = 1000 * 10; // Always fresh for real-time data
-const HISTORY_STALE_TIME = 1000 * 60; // 1 minute for histories
-const STANDARD_STALE_TIME = 1000 * 30; // 30 seconds for general data
+const HISTORY_STALE_TIME = 1000 * 60; //1 minute for histories
 
 export const useCreateChallenge = () => {
   const queryClient = useQueryClient();
@@ -109,7 +106,7 @@ export const useAbandonChallenge = () => {
     mutationFn: ({ creatorId, challengeId }: AbandonPayload) =>
       challengeApi.abandonChallenge({ creatorId, challengeId }),
     onMutate: async ({ challengeId }) => {
-      // Optimistic update: Remove the abandoned challenge from the cache
+      //optimistic update: Remove the abandoned challenge from the cache
       await queryClient.cancelQueries({ queryKey: ['owners-active-challenges'], exact: false });
       const previousChallenges = queryClient.getQueryData(['owners-active-challenges', 1, 10]);
       queryClient.setQueryData(['owners-active-challenges', 1, 10], (old: any) => {
@@ -119,23 +116,23 @@ export const useAbandonChallenge = () => {
           challenges: old.challenges.filter((c: any) => c.challengeId !== challengeId),
         };
       });
-      return { previousChallenges }; // Store previous state for rollback
+      return { previousChallenges }; //store previous state for rollback
     },
     onSuccess: async () => {
-      // Invalidate queries to ensure fresh data
+      //invalidate queries to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['active-open-challenges'], exact: false });
       await queryClient.invalidateQueries({ queryKey: ['owners-active-challenges'], exact: false });
       toast.success('Challenge abandoned successfully');
     },
     onError: (error: Error, _variables, context) => {
-      // Rollback on error
+      //rollback on error
       queryClient.setQueryData(['owners-active-challenges', 1, 10], context?.previousChallenges);
       toast.error('Failed to abandon challenge', {
         description: error.message,
       });
     },
     onSettled: () => {
-      // Ensure queries are refetched after mutation
+      //ensure queries are refetched after mutation
       queryClient.invalidateQueries({ queryKey: ['owners-active-challenges'], exact: false });
     },
   });

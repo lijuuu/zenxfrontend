@@ -1,21 +1,22 @@
 
 import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import FileSystem from '@/components/compiler/FileSystem';
-import CompilerLayout from '@/components/compiler/CompilerLayout';
+import CompilerLayout from '@/components/compiler/CompilerPlayground';
 import ZenXPlayground from '@/components/playground/Playground';
 
 const Compiler = () => {
-  // Check if we're in playground mode by looking for problemId in URL
+  //check if we're in playground mode by looking for problemId in URL
   const isPlaygroundMode = window.location.search.includes('problemId');
+  const params = new URLSearchParams(window.location.search)
+  const challengeId = params.get("challengeId")
+
 
   return (
     <SidebarProvider>
       {isPlaygroundMode ? (
-        <ZenXPlayground />
+        <ZenXPlayground challengeId={challengeId} />
       ) : (
         <>
-          <FileSystem />
           <CompilerLayout />
         </>
       )}

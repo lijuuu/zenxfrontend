@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/api/types";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import {
   Edit,
   Copy,

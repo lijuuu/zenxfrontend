@@ -4,9 +4,9 @@ import { Puzzle, Trophy, Github, Globe, MapPin, Clock, BarChart3, Activity, User
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 // import { getChallenges } from "@/api/challengeApi";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/useMobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import MonthlyActivityHeatmap from "@/components/activity/MonthlyActivityHeatmap";
 import ProblemsSolvedChart from "@/components/profile/ProblemsSolvedChart";

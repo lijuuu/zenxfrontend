@@ -1,9 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from "react"
-import axios, { AxiosHeaders } from "axios"
+import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
-import Cookies from 'js-cookie'
-
-import { Button } from "@/components/ui/button"
 import ProblemListView from "@/pages-admin/ProblemsList"
 import ApiResponseHistory from "@/pages-admin/ApiResponseHistory"
 import TestCasesView from "@/pages-admin/TestCases"

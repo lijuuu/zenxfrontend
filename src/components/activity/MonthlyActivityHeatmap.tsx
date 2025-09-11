@@ -4,7 +4,7 @@ import { format, parseISO, startOfMonth, getDay, getDaysInMonth, addMonths, subM
 import { Activity } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMobile';
 import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
 
 type ActivityDay = {
@@ -29,7 +29,7 @@ const useFetchMonthData = (userId = '', initialDate: Date) => {
 
   // Get fallback user ID from localStorage if needed
   const effectiveUserID = userId || localStorage.getItem('userid') || '';
-  
+
   const currentMonth = useMonthlyActivity(
     effectiveUserID,
     selectedDate.getMonth() + 1,
@@ -52,13 +52,13 @@ const useFetchMonthData = (userId = '', initialDate: Date) => {
 
   const setNewDate = (date: Date) => setSelectedDate(date);
 
-  return { 
-    activityData, 
-    setNewDate, 
-    selectedDate, 
-    isLoading: currentMonth.isLoading, 
-    isError: currentMonth.isError, 
-    error: currentMonth.error 
+  return {
+    activityData,
+    setNewDate,
+    selectedDate,
+    isLoading: currentMonth.isLoading,
+    isError: currentMonth.isError,
+    error: currentMonth.error
   };
 };
 
@@ -90,15 +90,15 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
 }) => {
   const [hoveredDay, setHoveredDay] = useState<ActivityDay | null>(null);
   const isMobile = useIsMobile();
-  
+
   // Get a fallback user ID if none is provided
-  const { 
-    activityData, 
-    setNewDate, 
-    selectedDate, 
-    isLoading, 
-    isError, 
-    error 
+  const {
+    activityData,
+    setNewDate,
+    selectedDate,
+    isLoading,
+    isError,
+    error
   } = useFetchMonthData(userId, new Date());
 
   const createDynamicGrid = () => {
@@ -273,11 +273,10 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
                         <Tooltip key={`${weekIndex}-${dayIndex}`}>
                           <TooltipTrigger asChild>
                             <div
-                              className={`${circleSize} rounded-full cursor-pointer transition-all duration-200 transform hover:scale-125 hover:z-10 ${
-                                day.isActive
+                              className={`${circleSize} rounded-full cursor-pointer transition-all duration-200 transform hover:scale-125 hover:z-10 ${day.isActive
                                   ? 'bg-green-500 hover:bg-green-400'
                                   : 'bg-red-500 hover:bg-red-400'
-                              }`}
+                                }`}
                               onMouseEnter={() => setHoveredDay(day)}
                               onMouseLeave={() => setHoveredDay(null)}
                               style={{ transformOrigin: 'center' }}

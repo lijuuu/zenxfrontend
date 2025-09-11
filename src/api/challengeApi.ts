@@ -1,13 +1,8 @@
 import axiosInstance from "@/utils/axiosInstance";
 import {
   ChallengeDocument,
-  LeaderboardEntry,
-  ChallengeProblemMetadata,
-  Submission,
-  ParticipantMetadata,
   ChallengeConfig,
 } from "./challengeTypes";
-import { UserProfile } from "./types";
 
 export const createChallenge = async (data: {
   title: string;

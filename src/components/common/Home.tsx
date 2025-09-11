@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { Badge } from '@/components/ui/badge';
 import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star, Sparkles } from 'lucide-react';
 import Footer from './Footer';

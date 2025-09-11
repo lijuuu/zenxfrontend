@@ -21,14 +21,14 @@ import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { File } from './CompilerLayout';
+import { File } from './CompilerPlayground';
 
 const FileSystem: React.FC = () => {
   const dispatch = useDispatch();
-  const { language, file, files, currentFile } = useSelector((state: RootState) => 
+  const { language, file, files, currentFile } = useSelector((state: RootState) =>
     state.xCodeCompiler ? state.xCodeCompiler : { language: 'javascript', file: 'js', files: [], currentFile: null }
   );
-  
+
   const [isRenaming, setIsRenaming] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -78,7 +78,7 @@ const FileSystem: React.FC = () => {
   // Create a new file
   const createNewFile = () => {
     if (!dispatch) return;
-    
+
     const newId = Date.now().toString();
     const newFile: File = {
       id: newId,
@@ -88,7 +88,7 @@ const FileSystem: React.FC = () => {
       createdAt: new Date().toISOString(),
       lastModified: new Date().toISOString(),
     };
-    
+
     dispatch({ type: 'xCodeCompiler/setFiles', payload: [...files, newFile] });
     dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: newId });
   };
@@ -96,10 +96,10 @@ const FileSystem: React.FC = () => {
   // Delete a file
   const deleteFile = (id: string) => {
     if (!dispatch) return;
-    
+
     const updatedFiles = files.filter((f: File) => f.id !== id);
     dispatch({ type: 'xCodeCompiler/setFiles', payload: updatedFiles });
-    
+
     if (currentFile === id) {
       if (updatedFiles.length > 0) {
         dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: updatedFiles[0].id });
@@ -130,13 +130,13 @@ const FileSystem: React.FC = () => {
       }
       return;
     }
-    
+
     const updatedFiles = files.map((file: File) =>
       file.id === currentFile
         ? { ...file, name: newFileName, lastModified: new Date().toISOString() }
         : file
     );
-    
+
     dispatch({ type: 'xCodeCompiler/setFiles', payload: updatedFiles });
     setIsRenaming(false);
   };
@@ -152,7 +152,7 @@ const FileSystem: React.FC = () => {
   const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setNewFileName(value);
-    
+
     if (value.length > 15) {
       setErrorMessage('File name cannot be longer than 15 characters');
     } else {

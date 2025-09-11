@@ -12,7 +12,7 @@ interface LanguagesViewProps {
   loading: boolean
 }
 
-// Validation View
+//validation view
 const ValidationView: React.FC<LanguagesViewProps> = ({ handleApiCall, selectedProblem, setView, loading }) => {
   const [validationResult, setValidationResult] = useState<any>(null);
   const [isValidating, setIsValidating] = useState(false);

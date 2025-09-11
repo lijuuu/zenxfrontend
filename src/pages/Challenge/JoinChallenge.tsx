@@ -141,6 +141,8 @@ const JoinChallenge: React.FC = () => {
 
       <div className="space-y-1">
         <p><strong>Challenge ID:</strong> {challengeid || "N/A"}</p>
+        <p><strong>Challenge Name: </strong> {challenge?.title}</p>
+        <p><strong>Private: </strong> {challenge?.isPrivate?"true":"false"}</p>
         <p><strong>Password:</strong> {password || "None"}</p>
         <p><strong>Access Token:</strong> {accessToken || "Missing"}</p>
         <p><strong>WebSocket Status:</strong> {wsStatus}</p>
@@ -151,7 +153,7 @@ const JoinChallenge: React.FC = () => {
       </div>
 
       <ProblemListing problemsMetadata={problemsMetadata || []} />
-      <UserListing participants={participants} />
+      <UserListing participants={participants} challenge={challenge} />
 
 
       {challenge && (

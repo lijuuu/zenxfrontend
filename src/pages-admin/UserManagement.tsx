@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { getAllUsers, verifyUser, unverifyUser, softDeleteUser, banUser, unbanUser } from "@/api/adminApi";
 import { UserProfile } from "@/api/types";
 import { isAdminAuthenticated } from "@/utils/authUtils";
@@ -51,7 +51,7 @@ import { formatDate } from "@/utils/formattedDate";
 import { Textarea } from "@/components/ui/textarea";
 import { useDebounce } from "use-debounce";
 
-// Utility to handle API errors
+//utility to handle API errors
 const handleApiError = (error: any): string => {
   if (error.response) {
     switch (error.response.status) {
@@ -69,7 +69,7 @@ const handleApiError = (error: any): string => {
 };
 
 const UserManagement = () => {
-  // State declarations
+  //state declarations
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -104,7 +104,7 @@ const UserManagement = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Function to load users from the API
+  //Function to load users from the API
   const loadUsers = async (nextToken?: string, prevToken?: string, reset = false) => {
     if (isLoading) return;
     setIsLoading(true);
@@ -167,7 +167,7 @@ const UserManagement = () => {
   };
 
 
-  // Initial load and filter changes
+  //initial load and filter changes
   useEffect(() => {
     if (!isAdminAuthenticated()) {
       navigate("/admin/login");
@@ -176,12 +176,12 @@ const UserManagement = () => {
     loadUsers(undefined, undefined, true);
   }, []);
 
-  // Generic handler for user actions
+  //generic handler for user actions
   const handleAction = async (action: () => Promise<void>, userId: string) => {
     setActionLoading((prev) => ({ ...prev, [userId]: true }));
     try {
       await action();
-      await loadUsers(undefined, undefined, true); // Reset to first page after action
+      await loadUsers(undefined, undefined, true); //reset to first page after action
     } catch (error) {
       toast({
         title: "Error",
@@ -193,7 +193,7 @@ const UserManagement = () => {
     }
   };
 
-  // User action handlers
+  //user action handlers
   const handleVerifyUser = (userId: string) => {
     handleAction(async () => {
       await verifyUser(userId);
@@ -253,10 +253,10 @@ const UserManagement = () => {
     setSelectedUser(null);
   };
 
-  // Pagination handlers
+  //pagination handlers
   const handleNextPage = () => {
     const now = Date.now();
-    if (now - lastNavigation < 300) return; // Debounce navigation
+    if (now - lastNavigation < 300) return; //debounce navigation
     setLastNavigation(now);
 
     if (pagination.nextPageToken && !isLoading) {
@@ -266,7 +266,7 @@ const UserManagement = () => {
 
   const handlePreviousPage = () => {
     const now = Date.now();
-    if (now - lastNavigation < 300) return; // Debounce navigation
+    if (now - lastNavigation < 300) return; //debounce navigation
     setLastNavigation(now);
 
     if (pagination.prevPageToken && !isLoading) {
@@ -274,7 +274,7 @@ const UserManagement = () => {
     }
   };
 
-  // Skeleton row for loading state
+  //skeleton row for loading state
   const SkeletonRow = () => (
     <TableRow>
       {[...Array(7)].map((_, i) => (
@@ -287,7 +287,7 @@ const UserManagement = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
+      {/* header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">User Management</h1>
         <Button
@@ -300,7 +300,7 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* filters */}
       <div className="flex flex-col md:flex-row gap-4 items-end">
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -362,7 +362,6 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -503,7 +502,7 @@ const UserManagement = () => {
         </Table>
       </div>
 
-      {/* Pagination */}
+      {/* pagination */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           Showing {users.length} of {pagination.totalCount} users (Page {pagination.currentPage} of {pagination.totalPages})
@@ -528,7 +527,7 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* Ban Dialog */}
+      {/* ban dialog */}
       <Dialog open={showBanDialog} onOpenChange={closeBanDialog}>
         <DialogContent>
           <DialogHeader>
@@ -592,7 +591,7 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
+      {/* delete dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={() => setShowDeleteDialog(false)}>
         <DialogContent>
           <DialogHeader>
