@@ -194,13 +194,10 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
       }
     } catch (error) {
       const rawError = error as any;
-      let cliError =
+      const cliError =
         rawError?.response?.data?.payload?.rawoutput?.failedTestCase?.error ??
         rawError?.response?.data?.payload?.rawoutput?.error;
 
-      if (cliError) {
-        cliError = "SyntaxError";
-      }
 
       const fallbackMessage =
         rawError?.response?.data?.error?.message ??
