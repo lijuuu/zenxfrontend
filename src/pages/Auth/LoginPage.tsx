@@ -200,7 +200,8 @@ function LoginForm() {
 
       // Use setTimeout to ensure cookies are set before navigation
       setTimeout(() => {
-        navigate("/dashboard");
+        // navigate("/dashboard");
+      window.location.href= "/dashboard";
         toast.success('Logged in successfully!');
       }, 100);
     }
