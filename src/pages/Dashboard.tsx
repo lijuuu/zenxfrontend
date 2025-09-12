@@ -17,8 +17,6 @@ import AvatarHopLoading from '@/components/common/AvatarHopLoading';
 
 
 // Loading Screen Component
-
-
 const Dashboard = React.memo(() => {
   const navigate = useNavigate();
   const currentDate = new Date();

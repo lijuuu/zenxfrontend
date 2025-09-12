@@ -109,8 +109,8 @@ function LoginForm() {
     const accessToken = Cookies.get("accessToken");
 
     if (userProfile?.isVerified && accessToken) {
-      // window.location.href = "/dashboard";
-      navigate("/dashboard")
+      window.location.href = "/dashboard";
+      // navigate("/dashboard")
       toast.success(successMessage || "Login successful!");
     } else if (error) {
       if (error?.type === "ERR_LOGIN_NOT_VERIFIED") {
@@ -131,8 +131,8 @@ function LoginForm() {
   useEffect(() => {
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
-      // window.location.href= "/dashboard";
-      navigate("/dashboard")
+      window.location.href= "/dashboard";
+      // navigate("/dashboard")
 
       toast.success("Logged in!");
     }
