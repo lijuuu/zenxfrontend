@@ -6,7 +6,11 @@ type Props = {
   username?: string;
 };
 
-export const useGetUserProfile = ({ userId, username }: Props = {}) => {
+type Options = {
+  enabled?: boolean;
+};
+
+export const useGetUserProfile = ({ userId, username }: Props = {}, options: Options = {}) => {
   const queryKey = ['userProfile', userId || username];
 
   return useQuery({
@@ -15,7 +19,7 @@ export const useGetUserProfile = ({ userId, username }: Props = {}) => {
     staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false,
     retry: 1,
-    enabled: true,
+    enabled: options.enabled !== undefined ? options.enabled : true,
   });
 };
 

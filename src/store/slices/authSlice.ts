@@ -142,8 +142,6 @@ export const loginUser = (credentials: { email?: string; password?: string; code
       };
     }
 
-    console.log("data ,", data);
-
     // Set cookies for accessToken and refreshToken
     Cookies.set("accessToken", data.accessToken, {
       expires: data.expiresIn / (24 * 60 * 60),
@@ -215,7 +213,6 @@ const authSlice = createSlice({
       }
     },
     loginSuccess: (state, action: PayloadAction<LoginUserResponse>) => {
-      console.log("Login Success", action.payload);
       state.loading = false;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
@@ -227,7 +224,6 @@ const authSlice = createSlice({
 
     },
     loginFailure: (state, action: PayloadAction<{ message: string; code?: number; type?: string }>) => {
-      console.log("Login Failure", action.payload);
       state.loading = false;
       state.error = action.payload;
       state.successMessage = null;

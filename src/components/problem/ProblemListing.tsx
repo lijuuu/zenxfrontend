@@ -48,20 +48,12 @@ const ProblemListing: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
 
   const { data: problems = [], isLoading, error, refetch } = useQuery({
     queryKey: ["problems"],
     queryFn: fetchProblems,
   });
 
-  // Authentication check on page load
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("You must be logged in to view problems.");
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   const debounce = useCallback(
     (func: (...args: string[]) => void, wait: number) => {

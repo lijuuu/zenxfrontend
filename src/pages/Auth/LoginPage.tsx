@@ -18,7 +18,7 @@ import { z } from "zod";
 //TODO - forced to use href location instead of navigate, figure out y it fails to fetch getprofile as soon as login happens
 
 // loader overlay for loading state
-const LoaderOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => (
+const LoaderOverlay: React.FC = () => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#121212] bg-opacity-95 z-50">
     <SimpleSpinLoader className="w-12 h-12 text-green-500" />
   </div>
@@ -31,6 +31,7 @@ function LoginForm() {
   const dispatch = useDispatch();
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
 
   // login schema with zod validation
   const loginSchema = React.useMemo(
@@ -46,7 +47,7 @@ function LoginForm() {
           )
           .max(20, "Password must be less than 20 characters"),
         code: twoFactorEnabled
-          ? z.string().min(6, "Code must be 6 characters").nonempty("2FA code is required")
+          ? z.string().min(6, "Code must be 6 characters").min(1, "2FA code is required")
           : z.string().optional(),
       }),
     [twoFactorEnabled]
@@ -158,6 +159,8 @@ function LoginForm() {
 
   // handle URL params for OAuth
   useEffect(() => {
+    if (isProcessingOAuth) return;
+
     const urlParams = new URLSearchParams(location.search);
     const success = urlParams.get('success');
     const type = urlParams.get('type');
@@ -170,14 +173,17 @@ function LoginForm() {
           description: details || type,
           duration: 5000,
         });
-      }, 0); // Queue toast for next event loop
+      }, 0);
       window.history.replaceState({}, document.title, window.location.pathname);
+      return;
     }
 
     const accessToken = urlParams.get('accessToken');
     const refreshToken = urlParams.get('refreshToken');
 
-    if (accessToken && refreshToken) {
+    if (accessToken && refreshToken && !isProcessingOAuth) {
+      setIsProcessingOAuth(true);
+
       Cookies.set('accessToken', accessToken, {
         expires: 1,
         secure: true,
@@ -191,18 +197,20 @@ function LoginForm() {
       });
 
       window.history.replaceState({}, document.title, window.location.pathname);
-      // window.location.href= "/dashboard";
-      navigate("/dashboard")
 
-      toast.success('logged in successfully!');
+      // Use setTimeout to ensure cookies are set before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+        toast.success('Logged in successfully!');
+      }, 100);
     }
-  }, [navigate, location]);
+  }, [navigate, location, isProcessingOAuth]);
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
       <MainNavbar />
       <div className="flex justify-center items-center flex-1 pt-16">
-        {loading && <LoaderOverlay onCancel={() => dispatch(setAuthLoading(false))} />}
+        {loading && <LoaderOverlay />}
         <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-lg p-6 hover:border-zinc-700 transition-all duration-300">
           <div className="space-y-1">
             <h2 className="text-2xl text-center font-bold text-white">

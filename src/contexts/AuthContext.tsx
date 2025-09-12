@@ -3,8 +3,6 @@ import { createContext, ReactNode } from "react"
 import Cookies from "js-cookie"
 import { UserProfile } from "@/api/types"
 import { useGetUserProfile } from "@/services/useGetUserProfile"
-import { navigate } from "ionicons/icons"
-import { useNavigate } from "react-router"
 
 type AuthContextType = {
   isAuthenticated: boolean
@@ -17,20 +15,17 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const accessToken = Cookies.get("accessToken")
+  const isAuthenticated = !!accessToken
 
-  const { data: user, isLoading, error } = useGetUserProfile()
-  const navigate = useNavigate();
-
-  if (!user) {
-    navigate("/login")
-  }
+  // Only fetch user profile if authenticated
+  const { data: user } = useGetUserProfile({}, { enabled: isAuthenticated })
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!accessToken,
-        userId: user?.userId,
-        userProfile: user,
+        isAuthenticated,
+        userId: user?.userId || null,
+        userProfile: user || null,
         logout: () => {
           Cookies.remove("accessToken")
           Cookies.remove("refreshToken")
