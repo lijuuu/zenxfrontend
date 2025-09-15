@@ -51,15 +51,6 @@ interface LanguageSupport {
   template: string
 }
 
-// Define the custom Axios request config interface
-interface CustomAxiosRequestConfig {
-  headers: any;
-  method?: string;
-  url?: string;
-  data?: any;
-  params?: any;
-}
-
 export default function AdminDashboard() {
   const [problems, setProblems] = useState<any[]>([])
   const [filteredProblems, setFilteredProblems] = useState<any[]>([])

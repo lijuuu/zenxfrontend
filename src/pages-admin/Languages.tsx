@@ -52,10 +52,11 @@ const LanguagesView: React.FC<LanguagesViewProps> = ({ selectedProblem, handleAp
   const [isPlaceholderFullScreen, setIsPlaceholderFullScreen] = useState(false);
   const [isCodeFullScreen, setIsCodeFullScreen] = useState(false);
 
-  //sync languages with selectedProblem.validate_code when it changes
+
+  //sync languages with selectedProblem.validateCode when it changes
   useEffect(() => {
-    if (selectedProblem?.validate_code) {
-      const languageSupports = Object.entries(selectedProblem.validate_code).map(([language, code]) => {
+    if (selectedProblem?.validateCode) {
+      const languageSupports = Object.entries(selectedProblem.validateCode).map(([language, code]) => {
         const typedCode = code as { placeholder?: string; code?: string; template?: string };
         return {
           language,
@@ -64,6 +65,7 @@ const LanguagesView: React.FC<LanguagesViewProps> = ({ selectedProblem, handleAp
           template: typedCode.template || "",
         };
       });
+
       setLanguages(languageSupports);
     } else {
       setLanguages([]);
