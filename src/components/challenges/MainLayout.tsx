@@ -47,7 +47,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     <div
       className="min-h-screen text-foreground pt-16 pb-8 relative"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,1), rgba(0,0,0,0.5)), url(${bgGradient})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,1), rgba(0,0,0,0.2)), url(${bgGradient})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
