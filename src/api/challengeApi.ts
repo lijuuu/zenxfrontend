@@ -8,8 +8,8 @@ export const createChallenge = async (data: {
   title: string;
   processedProblemIds: string[];
   isPrivate?: boolean;
-  timeLimit?: number;
-  startTime?: number;
+  timeLimitMillis?: number; // milliseconds
+  startTimeUnix?: number; // seconds since epoch
   config: ChallengeConfig;
   password?: string;
   inviteUserIds?: string[];
@@ -19,8 +19,8 @@ export const createChallenge = async (data: {
       title: data.title,
       processedProblemIds: data.processedProblemIds,
       isPrivate: data.isPrivate,
-      timeLimit: data.timeLimit,
-      startTime: data.startTime,
+      timeLimitMillis: data.timeLimitMillis,
+      startTimeUnix: data.startTimeUnix,
       config: data.config,
       password: data.password,
     }, {

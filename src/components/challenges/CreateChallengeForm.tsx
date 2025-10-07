@@ -51,9 +51,14 @@ const formSchema = z.object({
   }),
   difficulty: z.enum(["Easy", "Medium", "Hard"]).default("Easy"),
   isPrivate: z.boolean().default(false),
-  timeLimit: z.number().min(300, {
-    message: "Time limit must be at least 5 minutes.",
+  // store timeLimit in SECONDS; enforce 1 minute min
+  timeLimitMillis: z.number().min(60, {
+    message: "Time limit must be at least 1 minute.",
+  }).max(604800, { // 7 days
+    message: "Time limit must be 7 days or less.",
   }).default(3600),
+  // lobby buffer in SECONDS before start time
+  lobbyBufferSeconds: z.number().min(0).max(86400).default(300),
   config: z.object({
     maxEasyQuestions: z.number().min(0).default(0),
     maxMediumQuestions: z.number().min(0).default(0),
@@ -89,7 +94,8 @@ const CreateChallenge: React.FC = () => {
       title: "",
       difficulty: "Easy",
       isPrivate: false,
-      timeLimit: 3600,
+      timeLimitMillis: 3600, // 1 hour default in seconds
+      lobbyBufferSeconds: 300, // 5 minutes default lobby
       config: {
         maxEasyQuestions: 0,
         maxMediumQuestions: 0,
@@ -99,7 +105,7 @@ const CreateChallenge: React.FC = () => {
     },
   });
 
-  console.log("problems ",problems)
+  console.log("problems ", problems)
 
   // Fetch problem count metadata
   useEffect(() => {
@@ -132,7 +138,8 @@ const CreateChallenge: React.FC = () => {
         title: "",
         difficulty: "Easy",
         isPrivate: false,
-        timeLimit: 3600,
+        timeLimitMillis: 3600,
+        lobbyBufferSeconds: 300,
         config: {
           maxEasyQuestions: 0,
           maxMediumQuestions: 0,
@@ -243,6 +250,8 @@ const CreateChallenge: React.FC = () => {
   };
 
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
+    // Clamp timeLimit on submit to ensure backend receives >=1 minute and <=7 days
+    const clampedTimeLimit = Math.max(60, Math.min(formData.timeLimitMillis, 7 * 24 * 60 * 60));
     if (!validateProblemSelection(useRandomProblems)) {
       toast.error("Invalid problem selection", {
         description: useRandomProblems
@@ -262,11 +271,14 @@ const CreateChallenge: React.FC = () => {
       };
 
     try {
+      const nowUnix = Math.floor(Date.now() / 1000);
+      const startTimeUnix = nowUnix + (formData.lobbyBufferSeconds || 0);
       const newChallenge = await createChallengeMutation.mutateAsync({
         title: formData.title,
         processedProblemIds: useRandomProblems ? [] : selectedProblems.map(p => p.problemId),
         isPrivate: formData.isPrivate,
-        timeLimit: formData.timeLimit,
+        timeLimitMillis: clampedTimeLimit * 1000,
+        startTimeUnix,
         config: { ...config } as ChallengeConfig,
       });
 
@@ -409,24 +421,25 @@ const CreateChallenge: React.FC = () => {
 
                   <FormField
                     control={form.control}
-                    name="timeLimit"
+                    name="timeLimitMillis"
                     render={({ field }) => (
                       <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-100">Time Limit</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-100">Time Limit</FormLabel>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 flex items-center gap-2 bg-gray-800/50 border border-gray-600 rounded-md p-3">
-                        <FormControl>
-                          <Input
-                            type="number"
+                            <FormControl>
+                              <Input
+                                type="number"
                                 placeholder="Days"
                                 className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
-                                value={Math.floor(field.value / 86400)}
-                            onChange={(e) => {
+                                value={Math.floor((field.value ?? 0) / 86400)}
+                                onChange={(e) => {
                                   const days = Number(e.target.value);
-                                  const hours = Math.floor((field.value % 86400) / 3600);
-                                  const minutes = Math.floor((field.value % 3600) / 60);
+                                  const current = Number.isFinite(field.value) ? field.value : 0;
+                                  const hours = Math.floor((current % 86400) / 3600);
+                                  const minutes = Math.floor((current % 3600) / 60);
                                   field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
-                            }}
+                                }}
                                 min={0}
                                 max={7}
                               />
@@ -438,11 +451,12 @@ const CreateChallenge: React.FC = () => {
                                 type="number"
                                 placeholder="Hours"
                                 className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
-                                value={Math.floor((field.value % 86400) / 3600)}
+                                value={Math.floor(((field.value ?? 0) % 86400) / 3600)}
                                 onChange={(e) => {
                                   const hours = Number(e.target.value);
-                                  const days = Math.floor(field.value / 86400);
-                                  const minutes = Math.floor((field.value % 3600) / 60);
+                                  const current = Number.isFinite(field.value) ? field.value : 0;
+                                  const days = Math.floor(current / 86400);
+                                  const minutes = Math.floor((current % 3600) / 60);
                                   field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
                                 }}
                                 min={0}
@@ -456,21 +470,43 @@ const CreateChallenge: React.FC = () => {
                                 type="number"
                                 placeholder="Minutes"
                                 className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
-                                value={Math.floor((field.value % 3600) / 60)}
+                                value={Math.floor(((field.value ?? 0) % 3600) / 60)}
                                 onChange={(e) => {
                                   const minutes = Number(e.target.value);
-                                  const days = Math.floor(field.value / 86400);
-                                  const hours = Math.floor((field.value % 86400) / 3600);
+                                  const current = Number.isFinite(field.value) ? field.value : 0;
+                                  const days = Math.floor(current / 86400);
+                                  const hours = Math.floor((current % 86400) / 3600);
                                   field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
                                 }}
                                 min={0}
                                 max={59}
-                  />
+                              />
                             </FormControl>
                             <span className="text-gray-300 whitespace-nowrap">minutes</span>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">Minimum time: 5 minutes, maximum: 7 days</p>
+                        <p className="text-xs text-gray-400 mt-1">Minimum time: 1 minute, maximum: 7 days</p>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lobbyBufferSeconds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-100">Lobby Buffer (seconds)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Lobby buffer in seconds"
+                            className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            min={0}
+                            max={86400}
+                          />
+                        </FormControl>
                         <FormMessage className="text-red-400" />
                       </FormItem>
                     )}
@@ -666,7 +702,7 @@ const CreateChallenge: React.FC = () => {
                             Available Problems
                             {searchQuery && <span className="ml-2 text-xs text-gray-400">Filtered by: "{searchQuery}"</span>}
                           </h3>
-                          
+
                           {problemsLoading || isLoadingCounts ? (
                             <div className="flex justify-center items-center h-[300px] border border-gray-600 rounded-md bg-gray-800/50">
                               <div className="flex flex-col items-center gap-2">
@@ -683,9 +719,9 @@ const CreateChallenge: React.FC = () => {
                                   {searchQuery && (
                                     <p className="text-xs mt-1 text-gray-400">Try different search terms</p>
                                   )}
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="mt-4 text-green-400 border-green-400/50 hover:bg-green-900/20"
                                     onClick={() => setSearchQuery("")}
                                   >
@@ -696,17 +732,16 @@ const CreateChallenge: React.FC = () => {
                                 <div className="grid grid-cols-1 gap-2">
                                   {filteredProblems.map((problem) => (
                                     <div
-                                key={problem.problemId}
+                                      key={problem.problemId}
                                       onClick={() => handleProblemSelect({
                                         problemId: problem.problemId,
                                         title: problem.title,
                                         difficulty: problem.difficulty,
                                       })}
-                                      className={`flex items-center justify-between rounded-md p-3 transition-all border cursor-pointer ${
-                                        selectedProblems.find(p => p.problemId === problem.problemId)
-                                          ? 'bg-green-900/30 border-green-400 shadow-sm shadow-green-400/20'
-                                          : 'border-gray-600 hover:bg-gray-700/50 hover:border-green-400/50'
-                                      }`}
+                                      className={`flex items-center justify-between rounded-md p-3 transition-all border cursor-pointer ${selectedProblems.find(p => p.problemId === problem.problemId)
+                                        ? 'bg-green-900/30 border-green-400 shadow-sm shadow-green-400/20'
+                                        : 'border-gray-600 hover:bg-gray-700/50 hover:border-green-400/50'
+                                        }`}
                                     >
                                       <div className="flex items-center gap-3 flex-1">
                                         <div>
@@ -727,7 +762,7 @@ const CreateChallenge: React.FC = () => {
                                           <Check className="h-5 w-5 text-green-400" />
                                         ) : (
                                           <PlusCircle className="h-5 w-5 text-gray-400 opacity-60 group-hover:opacity-100" />
-                      )}
+                                        )}
                                       </div>
                                     </div>
                                   ))}
@@ -742,7 +777,7 @@ const CreateChallenge: React.FC = () => {
                             <Check className="h-4 w-4 mr-2 text-green-400" />
                             Selected Problems ({selectedProblems.length}/10)
                           </h3>
-                          
+
                           <div className="border border-gray-600 rounded-md bg-gray-800/50 p-3 h-[400px] flex flex-col">
                             {selectedProblems.length === 0 ? (
                               <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
@@ -774,7 +809,7 @@ const CreateChallenge: React.FC = () => {
                                 </div>
                               </ScrollArea>
                             )}
-                            
+
                             {selectedProblems.length > 0 && (
                               <div className="mt-3 pt-3 border-t border-gray-600">
                                 <div className="flex justify-between text-xs text-gray-300 mb-2">
@@ -782,9 +817,9 @@ const CreateChallenge: React.FC = () => {
                                   <span>Medium: {selectedProblems.filter(p => ["medium", "m"].includes(p.difficulty.toLowerCase())).length}</span>
                                   <span>Hard: {selectedProblems.filter(p => ["hard", "h"].includes(p.difficulty.toLowerCase())).length}</span>
                                 </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="w-full text-red-400 border-red-400/50 hover:bg-red-900/20"
                                   onClick={() => setSelectedProblems([])}
                                 >

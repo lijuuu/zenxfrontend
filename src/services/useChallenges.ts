@@ -13,8 +13,8 @@ export const useCreateChallenge = () => {
       title: string;
       processedProblemIds: string[];
       isPrivate?: boolean;
-      timeLimit?: number;
-      startTime?: number;
+      timeLimitMillis?: number; // milliseconds
+      startTimeUnix?: number; // seconds
       config: ChallengeConfig;
       password?: string;
       inviteUserIds?: string[];

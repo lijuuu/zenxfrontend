@@ -6,10 +6,15 @@ import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useGetUserProfileMetadataBulk } from "@/services/useGetUserProfileMetadataBulk";
 import { useAuth } from "@/hooks/useAuth";
 import { useChallengeWebSocket } from "@/services/useChallengeWebsocket";
+import { sendWSEvent } from "@/lib/wsHandler";
+import { PUSH_NEW_CHAT, CHALLENGE_STARTED } from "@/lib/ws";
 import { useGetBulkProblemMetadata } from "@/services/useGetBulkProblemMetadata";
 
 import ProblemListing from "./BulkMetaDataProblemListing";
 import UserListing from "./BulkMetaDataUserListing";
+import ChatPanel from "@/components/challenges/ChatPanel";
+import ParticipantsPanel from "@/components/challenges/ParticipantsPanel";
+import LeaderboardPanel from "@/components/challenges/LeaderboardPanel";
 
 
 interface LogPanelProps {
@@ -17,14 +22,7 @@ interface LogPanelProps {
   items: string[];
 }
 
-const LogPanel: React.FC<LogPanelProps> = ({ title, items }) => (
-  <div>
-    <h2 className="text-sm font-semibold mb-1">{title}</h2>
-    <div className="bg-gray-900 text-white p-2 rounded max-h-64 overflow-y-auto text-xs whitespace-pre-wrap">
-      {items.length === 0 ? <p className="text-gray-400">None</p> : items.map((msg, i) => <pre key={i} className="mb-2">{msg}</pre>)}
-    </div>
-  </div>
-);
+const LogPanel: React.FC<LogPanelProps> = ({ title, items }) => null;
 
 const JoinChallenge: React.FC = () => {
   const { challengeid, password } = useParams<{ challengeid: string; password?: string }>();
@@ -35,13 +33,15 @@ const JoinChallenge: React.FC = () => {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [problemIds, setProblemIds] = useState<string[]>([])
   const [countdown, setCountdown] = useState<number>(0);
+  const [lobbyCountdown, setLobbyCountdown] = useState<number>(0);
   const [abandonOverlay, setAbandonOverlay] = useState<{ visible: boolean; countdown: number }>({
     visible: false,
     countdown: 5,
   });
+  const [chatInput, setChatInput] = useState<string>("");
 
   // WebSocket hook
-  const { wsStatus, outgoingEvents, subscribedEvents, challenge, err, latency, sendRefetchChallenge } = useChallengeWebSocket({
+  const { wsStatus, outgoingEvents, subscribedEvents, challenge, err, latency, sendRefetchChallenge, addLocalChatMessage } = useChallengeWebSocket({
     userProfile,
     challengeid,
     password,
@@ -82,16 +82,20 @@ const JoinChallenge: React.FC = () => {
     return () => clearInterval(timer);
   }, [abandonOverlay, navigate]);
 
-  // Challenge countdown timer
+  // Lobby countdown (to startTime) and challenge countdown (after start)
   useEffect(() => {
-    if (!challenge?.startTime || !challenge?.timeLimit) return;
-
-    const endTime = challenge.startTime * 1000 + challenge.timeLimit;
+    if (!challenge?.startTime) return;
+    const startMs = challenge.startTime * 1000;
+    const endMs = challenge.timeLimit ? startMs + challenge.timeLimit : undefined;
 
     const tick = () => {
       const now = Date.now();
-      const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
-      setCountdown(remaining);
+      const untilStart = Math.max(0, Math.floor((startMs - now) / 1000));
+      setLobbyCountdown(untilStart);
+      if (endMs && now >= startMs) {
+        const remaining = Math.max(0, Math.floor((endMs - now) / 1000));
+        setCountdown(remaining);
+      }
     };
 
     tick();
@@ -118,6 +122,53 @@ const JoinChallenge: React.FC = () => {
     return `${m}:${s}`;
   };
 
+  const handleSendChat = (text: string) => {
+    console.debug("handleSendChat called", { userProfile, challengeid, chatInput });
+    if (!userProfile) {
+      console.debug("handleSendChat: missing userProfile");
+      return;
+    }
+    if (!challengeid) {
+      console.debug("handleSendChat: missing challengeid");
+      return;
+    }
+    if (!text.trim()) {
+      console.debug("handleSendChat: chatInput is empty or whitespace", text);
+      return;
+    }
+    const payload: any = {
+      userId: userProfile.userId,
+      challengeId: challengeid,
+      profilePic: userProfile?.profileImage || "",
+      message: text.trim(),
+    };
+    console.log(userProfile, challengeid, text.trim())
+    // include challengeToken from JOIN_CHALLENGE if present on challenge
+    if (challenge?.challengeToken) {
+      payload.challengeToken = challenge.challengeToken;
+    }
+    console.debug('[UI] sending PUSHNEWCHAT payload', payload);
+    sendWSEvent(PUSH_NEW_CHAT, payload);
+    // optimistic append so sender sees the message immediately
+    addLocalChatMessage({
+      userId: payload.userId,
+      profilePic: payload.profilePic,
+      message: payload.message,
+      time: Math.floor(Date.now() / 1000),
+    });
+    setChatInput("");
+  };
+
+  const handleForceStart = () => {
+    if (!userProfile || !challengeid) return;
+    const payload: any = {
+      userId: userProfile.userId,
+      challengeId: challengeid,
+    };
+    if (challenge?.challengeToken) payload.challengeToken = challenge.challengeToken;
+    sendWSEvent(CHALLENGE_STARTED, payload);
+  };
+
   return (
     <div className="p-4 space-y-4 text-sm">
       <div className="flex justify-between items-center">
@@ -140,27 +191,41 @@ const JoinChallenge: React.FC = () => {
       </div>
 
       <div className="space-y-1">
-        <p><strong>Challenge ID:</strong> {challengeid || "N/A"}</p>
-        <p><strong>Challenge Name: </strong> {challenge?.title}</p>
-        <p><strong>Private: </strong> {challenge?.isPrivate?"true":"false"}</p>
-        <p><strong>Password:</strong> {password || "None"}</p>
-        <p><strong>Access Token:</strong> {accessToken || "Missing"}</p>
-        <p><strong>WebSocket Status:</strong> {wsStatus}</p>
-        <p>
-          <strong>Latency:</strong>{" "}
-          <span className={latencyColor}>{latency !== null ? `${latency} ms` : "N/A"}</span>
-        </p>
+        <p><strong>Challenge:</strong> {challenge?.title || challengeid || "N/A"}</p>
+        <p><strong>Privacy:</strong> {challenge?.isPrivate ? "Private" : "Public"}</p>
+        <p><strong>WebSocket:</strong> {wsStatus} <span className={latencyColor}>({latency !== null ? `${latency} ms` : "N/A"})</span></p>
       </div>
 
-      <ProblemListing problemsMetadata={problemsMetadata || []} />
+      {/* Lobby gating: show problems only after start */}
+      {challenge && Date.now() < (challenge.startTime * 1000) ? (
+        <div className="border border-zinc-800/50 rounded-lg p-4 bg-zinc-900/40">
+          <h2 className="text-lg font-semibold mb-2">Lobby</h2>
+          <p className="text-sm text-zinc-300 mb-2">Waiting for the challenge to start...</p>
+          <p className="text-2xl font-bold">{`Starts in ${Math.max(0, lobbyCountdown)}s`}</p>
+          {userProfile?.userId && userProfile?.userId === challenge?.creatorId && (
+            <button
+              onClick={handleForceStart}
+              className="mt-3 px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded"
+            >
+              Force Start (Owner)
+            </button>
+          )}
+        </div>
+      ) : (
+        <ProblemListing problemsMetadata={problemsMetadata || []} />
+      )}
       <UserListing participants={participants} challenge={challenge} />
 
 
       {challenge && (
         <div className="space-y-1">
           <p><strong>Start Time:</strong> {new Date(challenge.startTime * 1000).toLocaleString()}</p>
-          <p><strong>Time Limit:</strong> {formatSeconds(Math.floor(challenge.timeLimit / 1000))}</p>
-          <p><strong>Countdown:</strong> {formatSeconds(countdown)}</p>
+          <p><strong>Time Limit:</strong> {formatSeconds(Math.floor((challenge.timeLimit || 0) / 1000))}</p>
+          {Date.now() < (challenge.startTime * 1000) ? (
+            <p><strong>Lobby Countdown:</strong> {formatSeconds(lobbyCountdown)}</p>
+          ) : (
+            <p><strong>Match Countdown:</strong> {formatSeconds(countdown)}</p>
+          )}
         </div>
       )}
 
@@ -170,17 +235,47 @@ const JoinChallenge: React.FC = () => {
         </pre>
       )}
 
+      {/* Challenge Overview */}
       {challenge && (
-        <pre className="bg-gray-900 text-white p-2 rounded text-xs whitespace-pre-wrap">
-          {JSON.stringify(challenge, null, 2)}
-        </pre>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="xl:col-span-2 space-y-4">
+            <ChatPanel messages={Array.isArray(challenge?.chat) ? challenge.chat : []} onSend={handleSendChat} currentUserId={userProfile?.userId} />
+          </div>
+
+          {/* Notifications & Meta */}
+          <div className="space-y-4">
+            <ParticipantsPanel participants={participants || []} />
+            <LeaderboardPanel entries={challenge?.leaderboard || []} currentUserId={userProfile?.userId} />
+            {/* Notifications Panel */}
+            <div className="border border-zinc-800/50 rounded-lg bg-gradient-to-br from-zinc-900 to-zinc-950">
+              <div className="px-4 py-2 border-b border-zinc-800/60 flex items-center justify-between">
+                <h2 className="text-sm font-semibold">Notifications</h2>
+                <span className="text-xs text-zinc-400">{Array.isArray(challenge?.notifications) ? challenge.notifications.length : 0}</span>
+              </div>
+              <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
+                {Array.isArray(challenge?.notifications) && challenge.notifications.length > 0 ? (
+                  challenge.notifications.map((n: any, idx: number) => (
+                    <div key={idx} className="p-2 rounded border border-zinc-800/60">
+                      <div className="text-xs text-zinc-400 mb-1">{new Date((n.time || n.Time || 0) * 1000).toLocaleString()}</div>
+                      <div className="text-sm">
+                        <span className="text-amber-500 mr-1">[{n.type || n.Type}]</span>
+                        {n.message || n.Message}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-zinc-500">No notifications yet.</div>
+                )}
+              </div>
+            </div>
+
+            {/* Removed raw JSON debug block */}
+          </div>
+        </div>
       )}
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <LogPanel title="📤 Outgoing Events" items={outgoingEvents} />
-        <LogPanel title="📡 Subscribed Events" items={subscribedEvents} />
-      </div>
+      {/* Removed raw event logs from UI */}
 
       {abandonOverlay.visible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
