@@ -7,8 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfile } from "@/api/types";
-import { useMutation } from "@tanstack/react-query";
-import { setUpTwoFactorAuth } from "@/api/userApi";
 import { toast } from "sonner";
 
 interface AccountSettingsTabProps {
@@ -26,18 +24,6 @@ const AccountSettingsTab: React.FC<AccountSettingsTabProps> = ({ user }) => {
     confirmPassword: "",
   });
   
-  // 2FA setup query
-  const setup2FAMutation = useMutation({
-    mutationFn: setUpTwoFactorAuth,
-    onSuccess: (data) => {
-      toast.success("2FA setup initiated. Scan the QR code with your authenticator app.");
-      // In a real app, you would display the QR code here
-      console.log("2FA setup data:", data);
-    },
-    onError: () => {
-      toast.error("Failed to set up 2FA. Please try again.");
-    },
-  });
 
   const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,7 +50,7 @@ const AccountSettingsTab: React.FC<AccountSettingsTabProps> = ({ user }) => {
   };
   
   const handle2FASetup = () => {
-    setup2FAMutation.mutate();
+    toast.success("2FA setup will be available soon!");
   };
 
   return (
@@ -189,29 +175,6 @@ const AccountSettingsTab: React.FC<AccountSettingsTabProps> = ({ user }) => {
                 <Button variant="outline" size="sm" className="w-full">
                   Disable Two-Factor Authentication
                 </Button>
-              </div>
-            ) : setup2FAMutation.isSuccess ? (
-              <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">
-                <h4 className="font-medium mb-2">Scan QR Code</h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Scan this QR code with your authenticator app.
-                </p>
-                <div className="flex justify-center mb-3">
-                  <div className="w-48 h-48 bg-white p-2 rounded-md">
-                    {/* QR code would be displayed here */}
-                    <div className="w-full h-full border-2 border-dashed border-zinc-300 rounded flex items-center justify-center">
-                      QR Code Placeholder
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="verificationCode">Verification Code</Label>
-                  <Input
-                    id="verificationCode"
-                    placeholder="Enter 6-digit code"
-                  />
-                </div>
-                <Button className="w-full mt-3">Verify</Button>
               </div>
             ) : (
               <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">

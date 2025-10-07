@@ -90,16 +90,10 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         <div>
           <p className="text-sm text-muted-foreground">Contest Participation</p>
           <div className="mt-1 flex items-baseline">
-            <span className="text-xl font-bold">
-              {(profile?.achievements?.weeklyContests || 0) +
-                (profile?.achievements?.monthlyContests || 0) +
-                (profile?.achievements?.specialEvents || 0)}
-            </span>
+            <span className="text-xl font-bold">0</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span>Weekly: {profile?.achievements?.weeklyContests || 0}</span>
-            <span>Monthly: {profile?.achievements?.monthlyContests || 0}</span>
-            <span>Special: {profile?.achievements?.specialEvents || 0}</span>
+            <span>Coming Soon</span>
           </div>
         </div>
       </div>
@@ -134,12 +128,11 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile }) => {
         <div>
           <p className="text-sm text-muted-foreground">Challenge Stats</p>
           <div className="mt-1 flex items-baseline">
-            <span className="text-xl font-bold">{profile?.badges?.length || 0}</span>
-            <span className="ml-1 text-xs text-muted-foreground">badges earned</span>
+            <span className="text-xl font-bold">0</span>
+            <span className="ml-1 text-xs text-muted-foreground">challenges</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span>Public: {profile?.achievements?.weeklyContests || 0}</span>
-            <span>Private: {profile?.achievements?.monthlyContests || 0}</span>
+            <span>Coming Soon</span>
           </div>
         </div>
       </div>
