@@ -50,12 +50,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSend, currentUserId }
   };
 
   return (
-    <div className="border border-zinc-800/50 rounded-lg bg-gradient-to-br from-zinc-900 to-zinc-950">
-      <div className="px-4 py-2 border-b border-zinc-800/60 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Chat</h2>
-        <span className="text-xs text-zinc-400">{items.length} messages</span>
-      </div>
-      <div ref={listRef} className="p-3 space-y-2 max-h-64 overflow-y-auto">
+    <div className="h-full flex flex-col bg-zinc-950">
+      <div ref={listRef} className="flex-1 p-3 space-y-2 overflow-y-auto">
         {items.length > 0 ? (
           items.map((m, idx) => (
             <div key={idx} className={`flex items-start gap-2 ${m.userId === currentUserId ? 'justify-end' : ''}`}>
@@ -75,11 +71,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSend, currentUserId }
           <div className="text-xs text-zinc-500">No messages yet.</div>
         )}
       </div>
-      <div className="p-3 border-t border-zinc-800/60">
+      <div className="p-3 border-t border-zinc-800/60 bg-zinc-900">
+        {showEmojis && (
+          <div className="mb-2 p-2 border border-zinc-800 rounded bg-zinc-950 grid grid-cols-10 gap-1 max-h-32 overflow-y-auto">
+            {EMOJIS.map((e) => (
+              <button key={e} className="text-xl hover:scale-110 transition" onClick={() => appendEmoji(e)}>{e}</button>
+            ))}
+          </div>
+        )}
         <form className="flex gap-2 items-center" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
           <button
             type="button"
-            className="px-2 py-2 border border-zinc-700 rounded text-lg hover:bg-zinc-900"
+            className="px-2 py-2 border border-zinc-700 rounded text-lg hover:bg-zinc-800 shrink-0"
             onClick={() => setShowEmojis((s) => !s)}
             aria-label="Toggle emoji picker"
           >
@@ -88,25 +91,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSend, currentUserId }
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
-            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) handleSend(); }}
+            className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
             placeholder="Type a message..."
           />
           <button
             type="submit"
-            className="px-3 py-2 bg-primary  rounded text-sm hover:opacity-90 disabled:opacity-50"
+            className="px-3 py-2 bg-primary rounded text-sm hover:opacity-90 disabled:opacity-50 shrink-0"
             disabled={!input.trim()}
           >
             Send
           </button>
         </form>
-        {showEmojis && (
-          <div className="mt-2 p-2 border border-zinc-800 rounded bg-zinc-900 grid grid-cols-10 gap-1 max-h-40 overflow-y-auto">
-            {EMOJIS.map((e) => (
-              <button key={e} className="text-xl hover:scale-110 transition" onClick={() => appendEmoji(e)}>{e}</button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

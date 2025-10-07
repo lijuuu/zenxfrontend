@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { joinChallenge } from "@/api/challengeApi";
+// import { joinChallenge } from "@/api/challengeApi";
 
 interface ChatChallengeInviteProps {
   challengeId: string;
@@ -27,7 +27,8 @@ const ChatChallengeInvite: React.FC<ChatChallengeInviteProps> = ({
   const handleJoin = async () => {
     setLoading(true);
     try {
-      const result = await joinChallenge(challengeId, accessCode);
+      // TODO: Re-implement joinChallenge
+      const result = { success: false, message: "Not implemented" }; // await joinChallenge(challengeId, accessCode);
 
       if (result.success) {
         toast({

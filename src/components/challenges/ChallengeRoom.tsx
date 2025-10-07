@@ -7,36 +7,48 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Clock, Users, User, Play, Trophy, ArrowLeft } from "lucide-react";
-import { useCurrentChallengeInfo, useIsCreator } from "@/services/useCurrentChallengeInfo";
-import { useStartChallenge, useParticipantProfiles } from "@/services/useChallenges";
+// import { useCurrentChallengeInfo, useIsCreator } from "@/services/useCurrentChallengeInfo";
+// import { useStartChallenge, useParticipantProfiles } from "@/services/useChallenges";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
+// NOTE: This component is deprecated - use ActiveChallenge instead
 const ChallengeRoom = () => {
   const { challengeId } = useParams<{ challengeId: string }>();
   const navigate = useNavigate();
   
-  // Fetch challenge details with regular polling
+  // Redirect to new ActiveChallenge page
+  useEffect(() => {
+    if (challengeId) {
+      navigate(`/challenge/${challengeId}`);
+    }
+  }, [challengeId, navigate]);
+  
+  return null;
+  
+  /* OLD CODE - DEPRECATED
   const { 
     data: challengeData, 
     isLoading, 
     error, 
     refetch 
   } = useCurrentChallengeInfo(challengeId, true, 10000);
-  
-  // Check if current user is the creator
+  */
+};
+
+export default ChallengeRoom;
+
+/* DEPRECATED OLD CODE
   const { isCreator } = useIsCreator(
     challengeId, 
     challengeData?.challenge?.creatorId
   );
   
-  // Get participant profiles
   const { data: participants } = useParticipantProfiles(
     challengeId, 
     challengeData?.challenge?.participantIds
   );
   
-  // Start challenge mutation
   const startChallengeMutation = useStartChallenge();
   
   const handleStartChallenge = async () => {
@@ -197,6 +209,4 @@ const ChallengeRoom = () => {
       </div>
     </div>
   );
-};
-
-export default ChallengeRoom;
+*/

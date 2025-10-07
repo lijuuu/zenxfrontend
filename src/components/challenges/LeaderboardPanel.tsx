@@ -15,12 +15,8 @@ interface LeaderboardPanelProps {
 const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({ entries, currentUserId }) => {
   const list = Array.isArray(entries) ? entries : [];
   return (
-    <div className="border border-zinc-800/50 rounded-lg bg-gradient-to-br from-zinc-900 to-zinc-950">
-      <div className="px-4 py-2 border-b border-zinc-800/60 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Leaderboard</h2>
-        <span className="text-xs text-zinc-400">Top {list.length}</span>
-      </div>
-      <div className="p-3 space-y-2">
+    <div className="h-full flex flex-col bg-zinc-950">
+      <div className="flex-1 p-3 space-y-2 overflow-y-auto">
         {list.length > 0 ? (
           list.map((e, idx) => (
             <div

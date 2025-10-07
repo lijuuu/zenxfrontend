@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import { FileCode, Trophy } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { Challenge } from '@/api/challengeTypes';
+import { ChallengeDocument } from '@/api/challengeTypes';
 import EventFeed from './EventFeed';
 import ChallengeStatusCard from './ChallengeStatusCard';
-import ProblemsList from './ProblemsList';
+// import ProblemsList from './ProblemsList';
 import LeaderboardCard from './LeaderboardCard';
-import ChallengeActions from './ChallengeActions';
+// import ChallengeActions from './ChallengeActions';
 
 interface Event {
   type: string;
@@ -20,7 +20,7 @@ interface Event {
 }
 
 interface ChallengeOverviewProps {
-  challenge: Challenge;
+  challenge: ChallengeDocument;
   events: Event[];
   selectedProblemId: string | null;
   onRemoveEvent: (id: number) => void;
@@ -85,14 +85,14 @@ const ChallengeOverview: React.FC<ChallengeOverviewProps> = ({
           </Card>
         </div>
         
-        {/* Problems Card */}
-        <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+        {/* Problems Card - Commented out, use ActiveChallenge page instead */}
+        {/* <Card className="overflow-hidden border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
           <ProblemsList 
-            problemIds={challenge.problemIds}
+            problemIds={challenge.processedProblemIds}
             selectedProblemId={selectedProblemId}
             onProblemSelect={onProblemSelect}
           />
-        </Card>
+        </Card> */}
       </div>
 
       {/* Right column - Leaderboard and Actions */}
@@ -103,7 +103,8 @@ const ChallengeOverview: React.FC<ChallengeOverviewProps> = ({
           className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950"
         />
 
-        <Card className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
+        {/* Actions Card - Commented out, use ActiveChallenge page instead */}
+        {/* <Card className="border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-950">
           <CardHeader className="pb-2 border-b border-zinc-800/60">
             <CardTitle className="text-lg">Actions</CardTitle>
           </CardHeader>
@@ -115,7 +116,7 @@ const ChallengeOverview: React.FC<ChallengeOverviewProps> = ({
               onForfeitChallenge={onForfeitChallenge}
             />
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </motion.div>
   );
