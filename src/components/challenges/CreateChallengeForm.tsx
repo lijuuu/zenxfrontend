@@ -153,6 +153,7 @@ const CreateChallenge: React.FC = () => {
       setUseRandomProblems(true);
     }
   }, [form]);
+  
 
   const handleProblemSelect = (problem: SelectedProblem) => {
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, CheckCheck, PlayIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -12,162 +12,51 @@ import { File } from '@/api/types';
 import * as monaco from 'monaco-editor';
 import { languages } from './CompilerPlayground';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { loader } from '@monaco-editor/react';
+import { defineAllThemes } from '@/components/playground/EditorThemes';
+import { themes, ThemeInfo } from "@/components/playground/EditorThemes"
 
 interface CodeEditorProps {
   className?: string;
   isMobile: boolean;
+  // pass these from parent now
+  fontSize: number;
+  editorTheme: ThemeInfo;
+  language: string;
+  code: string;
+  onCodeChange: (value: string | undefined) => void;
+  onMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
 }
 
-const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
-  const dispatch = useAppDispatch();
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+function getLineHeight(fontSize: number): number {
+  // Monaco default is about 1.6x font size. We'll use 1.5x but ensure a minimum.
+  return Math.max(Math.round(fontSize * 1.5), fontSize + 6);
+}
 
-  // Get state from Redux store
-  const { code, language, files, currentFile } = useSelector((state: RootState) =>
-    state.xCodeCompiler ? state.xCodeCompiler : { code: '', language: 'javascript', files: [], currentFile: null }
-  );
-
-  const [fontSize, setFontSize] = useState(14);
-  const [copied, setCopied] = useState(false);
-
-  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
-    editor.focus();
-  };
-
-  const handleRun = () => {
-    if (dispatch) {
-      const reqLang = languages.find((lang) => lang.value === language)?.req || '';
-      dispatch(runCode({ code, reqLang }));
-    }
-  };
-
-  const handleCodeChange = (value: string | undefined) => {
-    if (dispatch) {
-      dispatch({ type: 'xCodeCompiler/setCode', payload: value || '' });
-    }
-  };
-
-  const handleDownload = () => {
-    const currentLang = languages.find(l => l.value === language);
-    const extension = currentLang?.file || 'txt';
-    const filename = `code.${extension}`;
-    const blob = new Blob([code], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      toast.success('Code copied to clipboard');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error('Failed to copy code');
-    }
-  };
-
+const CodeEditor = ({ className, isMobile, fontSize, editorTheme, language, code, onCodeChange, onMount }: CodeEditorProps) => {
+  useEffect(() => {
+    loader.init().then(monacoInstance => defineAllThemes(monacoInstance));
+  }, []);
   return (
-    <div className={cn("w-full h-full flex flex-col p-2 sm:p-4 bg-background", className)}>
-      <div
-        className={cn(
-          "flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2",
-          isMobile && "flex-col items-stretch"
-        )}
-      >
-        <div className="text-sm font-medium text-foreground w-full sm:w-auto">
-          {currentFile ? files.find((f: File) => f.id === currentFile)?.name || 'Editor' : 'Editor'}
-        </div>
-        <div
-          className={cn(
-            "flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto",
-            isMobile && "flex-col items-stretch"
-          )}
-        >
-          {!isMobile ? (
-            <div className="flex items-center gap-2 opacity-60 hover:opacity-85">
-              <label htmlFor="font-size-slider" className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                font size:
-              </label>
-              <input
-                id="font-size-slider"
-                type="range"
-                min="8"
-                max="30"
-                value={fontSize}
-                onChange={(e) => setFontSize(Number(e.target.value))}
-                className="w-40 h-2 bg-black dark:bg-white rounded-lg appearance-none cursor-pointer"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{fontSize}px</span>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setFontSize(fontSize === 14 ? 12 : 14)}
-              className="border-border/50 hover:bg-muted w-full"
-            >
-              Toggle Font {fontSize}px
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopy}
-            className="border-border/50 hover:bg-muted w-full sm:w-auto"
-          >
-            {copied ? (
-              <CheckCheck className="h-3.5 w-3.5 mr-1" />
-            ) : (
-              <Copy className="h-3.5 w-3.5 mr-1" />
-            )}
-            copy
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownload}
-            className="border-border/50 hover:bg-muted w-full sm:w-auto"
-          >
-            <Download className="h-3.5 w-3.5 mr-1" />
-            download
-          </Button>
-          <Button
-            onClick={handleRun}
-            disabled={!code.trim()}
-            size="sm"
-            className="gap-1 bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
-          >
-            <PlayIcon className="h-3.5 w-3.5" />
-            <span>run</span>
-          </Button>
-        </div>
-      </div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="flex-1 rounded-md overflow-hidden border border-border/50"
-      >
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className={cn("w-full h-full flex flex-col p-2 sm:p-4 bg-background", className)}
+    >
+      <div className="flex-1 rounded-md overflow-hidden border border-border/50">
         <Editor
           height="100%"
           language={language}
           value={code}
-          onChange={handleCodeChange}
-          onMount={handleEditorDidMount}
-          theme="vs-dark"
+          onChange={onCodeChange}
+          onMount={onMount}
+          theme={editorTheme.name}
           options={{
             minimap: { enabled: !isMobile },
             scrollBeyondLastLine: false,
             fontSize: fontSize,
-            lineHeight: 22,
+            lineHeight: getLineHeight(fontSize),
             fontFamily: '"JetBrains Mono", monospace, Consolas, "Courier New"',
             tabSize: 2,
             wordWrap: 'on',
@@ -190,16 +79,10 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
             folding: true,
             contextmenu: true,
             suggest: {
-              // showMethods: true,
-              // showFunctions: true,
-              // showConstructors: true,
-              // showFields: true,
               showVariables: true,
               showClasses: true,
               showInterfaces: true
             },
-            lineDecorationsWidth: 10,
-            renderLineHighlight: 'all',
             colorDecorators: true,
             guides: {
               indentation: true,
@@ -210,8 +93,8 @@ const CodeEditor = ({ className, isMobile }: CodeEditorProps) => {
             fixedOverflowWidgets: true
           }}
         />
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 };
 

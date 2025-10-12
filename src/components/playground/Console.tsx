@@ -57,7 +57,7 @@ export const Console: React.FC<ConsoleProps> = ({
   }, [output, activeTab]);
 
   return (
-    <motion.div className="h-full overflow-hidden flex flex-col bg-zinc-900 border-t border-zinc-800">
+    <motion.div className="h-full overflow-hidden flex flex-col bg-zinc-900/30 border-t border-zinc-800">
       <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2 bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-500/80"></div>
@@ -101,7 +101,7 @@ export const Console: React.FC<ConsoleProps> = ({
         </div>
       </div>
 
-      <div className="overflow-y-auto p-3 font-mono text-sm flex-grow bg-[#1A1D23]">
+      <div className="overflow-y-auto p-3 font-mono text-sm flex-grow bg-[#070809]">
         {activeTab === 'output' ? (
           output.length > 0 ? (
             <div className="space-y-1">

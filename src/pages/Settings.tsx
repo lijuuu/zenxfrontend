@@ -8,17 +8,18 @@ import PasswordChangeTab from '@/components/settings/PasswordChangeTab';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
 import { useGetUserProfile } from '@/services/useGetUserProfile';
+import ThemeColorTab from '@/components/settings/ThemeColorTab';
 
 const Settings = () => {
-    const {
-      data: userProfile,
-      isLoading: profileLoading,
-      isError: profileError,
-      error
-    } = useGetUserProfile();
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isError: profileError,
+    error
+  } = useGetUserProfile();
 
   const [activeTab, setActiveTab] = useState('profile');
-  
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-zinc-950 text-white">
@@ -49,7 +50,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <MainNavbar />
-      
+
       <div className="pt-16 pb-16 container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-8 mt-8">
           {/* Sidebar */}
@@ -60,10 +61,10 @@ const Settings = () => {
                 Manage your <span className="text-green-500">zenx</span> account preferences
               </p>
             </div>
-            
-            <Tabs 
-              defaultValue="profile" 
-              className="w-full" 
+
+            <Tabs
+              defaultValue="profile"
+              className="w-full"
               value={activeTab}
               onValueChange={setActiveTab}
             >
@@ -77,12 +78,15 @@ const Settings = () => {
                 <TabsTrigger value="password" className="justify-start">
                   Password
                 </TabsTrigger>
+                <TabsTrigger value="theme" className="justify-start">
+                  Theme & Color
+                </TabsTrigger>
                 {/* <TabsTrigger value="notifications" className="justify-start">
                   Notifications
                 </TabsTrigger> */}
               </TabsList>
             </Tabs>
-            
+
             <Card className="bg-zinc-900/40 border-zinc-800">
               <CardHeader className="p-4">
                 <CardTitle className="text-sm flex items-center">
@@ -94,12 +98,12 @@ const Settings = () => {
               </CardHeader>
             </Card>
           </div>
-          
+
           {/* Main Content */}
           <div className="flex-1">
-            <Tabs 
-              defaultValue="profile" 
-              className="w-full" 
+            <Tabs
+              defaultValue="profile"
+              className="w-full"
               value={activeTab}
               onValueChange={setActiveTab}
             >
@@ -107,15 +111,19 @@ const Settings = () => {
                 <TabsContent value="profile" className="space-y-6">
                   <ProfileEditTab />
                 </TabsContent>
-                
+
                 <TabsContent value="security" className="space-y-6">
                   <TwoFactorAuthTab userProfile={userProfile} />
                 </TabsContent>
-                
+
                 <TabsContent value="password" className="space-y-6">
                   <PasswordChangeTab email={userProfile?.email} />
                 </TabsContent>
-                
+
+                <TabsContent value="theme" className="space-y-6">
+                  <ThemeColorTab />
+                </TabsContent>
+
                 <TabsContent value="notifications" className="space-y-6">
                   <NotificationsSettingsTab userProfile={userProfile} />
                 </TabsContent>

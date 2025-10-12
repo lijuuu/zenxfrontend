@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Play, RefreshCw, ArrowLeft, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import Loader3 from '../ui/loader3';
 import CodeResetModal from '@/components/common/CodeResetModal';
-import { ProblemDescription } from './ProblemDescription';
+import { ProblemDescriptionLayout } from './ProblemDescription';
 import { CodeEditor } from './CodeEditor';
 import { Console } from './Console';
 import { Timer } from './Timer';
 import { ProblemMetadata, ExecutionResult, TestCase } from '@/api/types';
+import { themes, ThemeInfo } from "@/components/playground/EditorThemes"
+
 
 interface PlaygroundLayoutProps {
   problem: ProblemMetadata | null;
@@ -63,9 +65,35 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
   handleAddCustomTestCase,
   navigate,
 }) => {
+  //editorTheme state
+  const [editorTheme, setEditorTheme] = useState<ThemeInfo>({ name: 'vs-dark', backgroundColor: '#1e1e1e' });
+
+  useEffect(() => {
+    const localStorageTheme = localStorage.getItem("editorTheme");
+    if (localStorageTheme) {
+      try {
+        const parsedTheme = JSON.parse(localStorageTheme);
+        if (
+          parsedTheme &&
+          typeof parsedTheme.name === "string" &&
+          typeof parsedTheme?.backgroundColor === "string"
+        ) {
+          setEditorTheme(parsedTheme);
+        }
+      } catch (e) {
+        localStorage.removeItem("editorTheme");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("editorTheme", JSON.stringify(editorTheme));
+  }, [editorTheme]);
+
+
   if (isLoading) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-50">
+      <div className="absolute inset-0 flex items-center justify-center bg-black z-50">
         <Loader3 className="h-8 w-8 animate-spin text-zinc-300" />
       </div>
     );
@@ -73,7 +101,7 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
 
   if (!problem) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-zinc-300">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950/60 text-zinc-300">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-semibold text-red-500">Problem Not Found</h1>
           <p className="text-zinc-400">
@@ -93,8 +121,9 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
     );
   }
 
+
   return (
-    <div className="relative min-h-screen min-w-full bg-zinc-950 flex flex-col">
+    <div className="relative min-h-screen min-w-full bg-black flex flex-col">
       <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           {!hideBackButton && (
@@ -121,7 +150,8 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
           <select
             value={language}
             onChange={e => setLanguage(e.target.value)}
-            className="text-xs rounded-md bg-zinc-800 border-zinc-700 text-zinc-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500/30"
+            className="text-xs rounded-md border-black px-2 py-1 focus:ring-0 focus:outline-none"
+            style={{ backgroundColor: '#1e1e1e', outline: 'none', boxShadow: 'none' }}
           >
             {problem.supportedLanguages.map(lang => (
               <option key={lang} value={lang}>
@@ -129,6 +159,34 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
               </option>
             ))}
           </select>
+
+          <select
+            value={editorTheme.name}
+            onChange={e => {
+              const selectedTheme = themes.find(t => t.name === e.target.value);
+              if (selectedTheme) {
+                setEditorTheme({
+                  name: selectedTheme.name,
+                  backgroundColor: selectedTheme.data?.rules[0]?.background || '#1e1e1e',
+                });
+              }
+            }}
+            className="text-xs rounded-md border-black px-2 py-1 focus:ring-1"
+            style={{ backgroundColor: '#1e1e1e', outline: 'none', boxShadow: 'none' }}
+          >
+            {themes.map(theme => (
+              <option
+                key={theme.name}
+                value={theme.name}
+                style={{ backgroundColor: '#1e1e1e' }}
+              >
+                {theme.name[0].toUpperCase() + theme?.name.slice(1).toLowerCase()}
+              </option>
+
+            ))}
+          </select>
+
+
           <Button
             onClick={() => handleCodeExecution('run')}
             className="h-8 bg-yellow-700 hover:bg-yellow-800 text-zinc-300 border border-zinc-700 text-xs px-3"
@@ -161,9 +219,9 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
                 defaultSize={40}
                 minSize={30}
                 maxSize={60}
-                className="bg-zinc-900"
+                className="bg-zinc-900/60"
               >
-                <ProblemDescription problem={problem} hideBackButton={true} />
+                <ProblemDescriptionLayout problem={problem} hideBackButton={true} userCode={code} changeUserCode={setCode} handleCodeExecution={handleCodeExecution} isExecuting={isExecuting} />
               </ResizablePanel>
             )
           ) : (
@@ -172,11 +230,11 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
                 defaultSize={30}
                 minSize={25}
                 maxSize={50}
-                className="bg-zinc-900"
+                className="bg-zinc-900/60"
               >
-                <ProblemDescription problem={problem} hideBackButton={true} />
+                <ProblemDescriptionLayout problem={problem} hideBackButton={true} />
               </ResizablePanel>
-              <ResizableHandle className="w-1.5 bg-zinc-800" />
+              <ResizableHandle className="w-1.5 bg-zinc-900/60" />
             </>
           )}
 
@@ -188,9 +246,10 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
                   onChange={setCode}
                   language={language}
                   loading={isLoading}
+                  editorTheme={editorTheme}
                 />
               </ResizablePanel>
-              <ResizableHandle className="h-1.5 bg-zinc-800" />
+              <ResizableHandle className="h-1.5 bg-zinc-900/60" />
               <ResizablePanel defaultSize={isMobile ? 40 : 30} minSize={20}>
                 <Console
                   output={output}

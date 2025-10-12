@@ -68,7 +68,7 @@ export const getActiveOpenChallenges = async (data: {
       },
       headers: { 'X-Requires-Auth': 'false' }
     });
-    return response.data.payload;
+    return response.data.payload?.list;
   } catch (error) {
     console.error('Error fetching user challenge history:', error);
     throw error;
@@ -88,7 +88,7 @@ export const getOwnersActiveChallenges = async (data: {
       },
       headers: { 'X-Requires-Auth': 'true' }
     });
-    return response.data.payload;
+    return response.data.payload?.list;
   } catch (error) {
     console.error('Error fetching user challenge history:', error);
     throw error;

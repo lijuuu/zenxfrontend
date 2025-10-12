@@ -9,11 +9,8 @@ import { useChallengeWebSocket } from "@/services/useChallengeWebsocket";
 import { sendWSEvent } from "@/lib/wsHandler";
 import { PUSH_NEW_CHAT, CHALLENGE_STARTED } from "@/lib/ws";
 import { useGetBulkProblemMetadata } from "@/services/useGetBulkProblemMetadata";
-
 import ProblemListing from "./BulkMetaDataProblemListing";
-import UserListing from "./BulkMetaDataUserListing";
 import ChatPanel from "@/components/challenges/ChatPanel";
-import ParticipantsPanel from "@/components/challenges/ParticipantsPanel";
 import LeaderboardPanel from "@/components/challenges/LeaderboardPanel";
 
 
@@ -23,7 +20,6 @@ interface LogPanelProps {
 }
 
 const LogPanel: React.FC<LogPanelProps> = ({ title, items }) => null;
-
 const JoinChallenge: React.FC = () => {
   const { challengeid, password } = useParams<{ challengeid: string; password?: string }>();
   const accessToken = Cookies.get("accessToken");
@@ -39,6 +35,7 @@ const JoinChallenge: React.FC = () => {
     countdown: 5,
   });
   const [chatInput, setChatInput] = useState<string>("");
+
 
   // WebSocket hook
   const { wsStatus, outgoingEvents, subscribedEvents, challenge, err, latency, sendRefetchChallenge, addLocalChatMessage } = useChallengeWebSocket({
@@ -171,6 +168,7 @@ const JoinChallenge: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4 text-sm">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Join Challenge</h1>
         <div className="space-x-2">
@@ -190,11 +188,39 @@ const JoinChallenge: React.FC = () => {
         </div>
       </div>
 
+      {/* Participant Bar (Battle Royale Style) */}
+      <div className="w-full overflow-x-auto py-2 mb-2 border-b border-zinc-800/60 bg-zinc-900/60 rounded flex items-center gap-4">
+        {participants && participants.length > 0 ? (
+          participants.map((user) => (
+            <div key={user.userId} className="flex flex-col items-center min-w-[60px] mx-2">
+              <img
+                src={user.profileImage || user.avatarURL || "/avatar.png"}
+                alt={user.userName || user.firstName || user.userId?.slice(0, 8) || "-"}
+                className="h-10 w-10 rounded-full border-2 border-zinc-700 shadow"
+              />
+              <span className="text-xs mt-1 truncate max-w-[56px] text-center text-zinc-200">
+                {user.userName || user.firstName || user.userId?.slice(0, 8) || "-"}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="text-xs text-zinc-500 px-4">No participants yet.</div>
+        )}
+      </div>
+
+      {/* Challenge Info */}
       <div className="space-y-1">
         <p><strong>Challenge:</strong> {challenge?.title || challengeid || "N/A"}</p>
         <p><strong>Privacy:</strong> {challenge?.isPrivate ? "Private" : "Public"}</p>
         <p><strong>WebSocket:</strong> {wsStatus} <span className={latencyColor}>({latency !== null ? `${latency} ms` : "N/A"})</span></p>
       </div>
+
+      {/* Error Display */}
+      {err && (
+        <pre className="bg-gray-900 text-white p-2 rounded text-xs whitespace-pre-wrap">
+          {JSON.stringify(err, null, 2)}
+        </pre>
+      )}
 
       {/* Lobby gating: show problems only after start */}
       {challenge && Date.now() < (challenge.startTime * 1000) ? (
@@ -214,37 +240,34 @@ const JoinChallenge: React.FC = () => {
       ) : (
         <ProblemListing problemsMetadata={problemsMetadata || []} />
       )}
-      <UserListing participants={participants} challenge={challenge} />
 
-
+      {/* Timers and Challenge Meta */}
       {challenge && (
-        <div className="space-y-1">
-          <p><strong>Start Time:</strong> {new Date(challenge.startTime * 1000).toLocaleString()}</p>
-          <p><strong>Time Limit:</strong> {formatSeconds(Math.floor((challenge.timeLimit || 0) / 1000))}</p>
-          {Date.now() < (challenge.startTime * 1000) ? (
-            <p><strong>Lobby Countdown:</strong> {formatSeconds(lobbyCountdown)}</p>
-          ) : (
-            <p><strong>Match Countdown:</strong> {formatSeconds(countdown)}</p>
-          )}
+        <div className="flex flex-wrap gap-4 items-center border border-zinc-800/50 rounded-lg p-3 bg-zinc-900/40">
+          <div>
+            <p><strong>Start Time:</strong> {new Date(challenge.startTime * 1000).toLocaleString()}</p>
+            <p><strong>Time Limit:</strong> {formatSeconds(Math.floor((challenge.timeLimit || 0) / 1000))}</p>
+          </div>
+          <div>
+            {Date.now() < (challenge.startTime * 1000) ? (
+              <p><strong>Lobby Countdown:</strong> {formatSeconds(lobbyCountdown)}</p>
+            ) : (
+              <p><strong>Match Countdown:</strong> {formatSeconds(countdown)}</p>
+            )}
+          </div>
         </div>
       )}
 
-      {err && (
-        <pre className="bg-gray-900 text-white p-2 rounded text-xs whitespace-pre-wrap">
-          {JSON.stringify(err, null, 2)}
-        </pre>
-      )}
-
-      {/* Challenge Overview */}
+      {/* Main Panels: Chat, Leaderboard, Notifications */}
       {challenge && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          {/* Chat Panel */}
           <div className="xl:col-span-2 space-y-4">
             <ChatPanel messages={Array.isArray(challenge?.chat) ? challenge.chat : []} onSend={handleSendChat} currentUserId={userProfile?.userId} />
           </div>
 
-          {/* Notifications & Meta */}
+          {/* Leaderboard & Notifications */}
           <div className="space-y-4">
-            <ParticipantsPanel participants={participants || []} />
             <LeaderboardPanel entries={challenge?.leaderboard || []} currentUserId={userProfile?.userId} />
             {/* Notifications Panel */}
             <div className="border border-zinc-800/50 rounded-lg bg-gradient-to-br from-zinc-900 to-zinc-950">
@@ -268,15 +291,11 @@ const JoinChallenge: React.FC = () => {
                 )}
               </div>
             </div>
-
-            {/* Removed raw JSON debug block */}
           </div>
         </div>
       )}
 
-
-      {/* Removed raw event logs from UI */}
-
+      {/* Abandon Overlay Modal */}
       {abandonOverlay.visible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-black p-6 rounded-lg shadow-lg text-center">
