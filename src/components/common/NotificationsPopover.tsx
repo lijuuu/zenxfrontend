@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import ChatBattleNotification from '../challenges/ChatBattleNotification';
+import ChatChallengeNotification from '../challenges/ChatChallengeNotification';
 
 type NotificationType = 'message' | 'challenge' | 'follow' | 'contest' | 'achievement' | 'system' | 'battle';
 
@@ -140,7 +140,7 @@ const NotificationsPopover = () => {
   };
 
   const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
+    setNotifications(notifications.map(n =>
       n.id === id ? { ...n, read: true } : n
     ));
   };
@@ -197,29 +197,29 @@ const NotificationsPopover = () => {
           <ScrollArea className="h-[500px]">
             <div className="divide-y">
               {notifications.map((notification) => (
-                <div 
-                  key={notification.id} 
+                <div
+                  key={notification.id}
                   className={`p-4 relative ${notification.read ? '' : 'bg-accent/5'}`}
                 >
                   {notification.type === 'battle' && notification.battle ? (
                     <div className="mb-2">
-                      <ChatBattleNotification 
+                      <ChatChallengeNotification
                         challenge={notification.battle}
                       />
                       <div className="absolute top-2 right-2 flex space-x-1">
                         {!notification.read && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-6 w-6"
                             onClick={() => markAsRead(notification.id)}
                           >
                             <Check className="h-3 w-3" />
                           </Button>
                         )}
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-6 w-6"
                           onClick={() => deleteNotification(notification.id)}
                         >
@@ -238,10 +238,10 @@ const NotificationsPopover = () => {
                           <span className="text-xs text-muted-foreground">{notification.time}</span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
-                        
+
                         {notification.type === 'challenge' && notification.challenge && (
                           <div className="mt-2">
-                            <Button 
+                            <Button
                               variant="outline"
                               size="sm"
                               className="w-full justify-between accent-color border-accent-color/20"
@@ -255,21 +255,21 @@ const NotificationsPopover = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="absolute top-2 right-2 flex space-x-1">
                         {!notification.read && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-6 w-6"
                             onClick={() => markAsRead(notification.id)}
                           >
                             <Check className="h-3 w-3" />
                           </Button>
                         )}
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-6 w-6"
                           onClick={() => deleteNotification(notification.id)}
                         >

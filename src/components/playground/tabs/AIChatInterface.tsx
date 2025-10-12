@@ -127,9 +127,8 @@ export const AIChatInterface = forwardRef<AIChatInterfaceRef, AIChatInterfacePro
       await chatStorage.addMessage(conversation.id, aiMessage);
 
       //check if the ai response contains code that can be applied and if replacement is needed
-      const extractedCode = extractCodeFromMessage(response.message);
-      if (extractedCode && setCode && response.shouldReplaceCode) {
-        setPendingCodeUpdate(extractedCode);
+      if (response.replacementCode && setCode && response.shouldReplaceCode) {
+        setPendingCodeUpdate(response.replacementCode);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -192,31 +191,6 @@ export const AIChatInterface = forwardRef<AIChatInterfaceRef, AIChatInterfacePro
     setPendingCodeUpdate(null);
   };
 
-  const extractCodeFromMessage = (message: string): string | null => {
-    //look for code blocks in the message - prioritize complete code blocks
-    //updated regex to handle language identifiers on same line or separate line
-    const codeBlockRegex = /```(?:\w+)?\s*\n?([\s\S]*?)```/g;
-    const matches = [...message.matchAll(codeBlockRegex)];
-
-    if (matches.length > 0) {
-      //return the largest code block found (most likely to be complete)
-      const largestMatch = matches.reduce((largest, current) =>
-        current[1].length > largest[1].length ? current : largest
-      );
-      return largestMatch[1].trim();
-    }
-
-    //also check for inline code that might be a complete solution
-    const inlineCodeRegex = /`([^`\n]+)`/g;
-    const inlineMatches = [...message.matchAll(inlineCodeRegex)];
-
-    //if there is only one inline code and it looks like a complete solution
-    if (inlineMatches.length === 1 && inlineMatches[0][1].length > 50) {
-      return inlineMatches[0][1];
-    }
-
-    return null;
-  };
 
   return (
     <div className="h-full flex flex-col">

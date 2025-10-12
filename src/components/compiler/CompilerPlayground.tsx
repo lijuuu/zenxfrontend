@@ -188,6 +188,7 @@ const CompilerPlayground = () => {
     }
   };
 
+
   return (
     <>
       <FileSystem />
@@ -347,9 +348,11 @@ const CompilerPlayground = () => {
                   disabled={!code?.trim()}
                   size="sm"
                   className="gap-1 bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto ml-2"
+                  title="Run code (Ctrl+Enter)"
                 >
                   <PlayIcon className="h-3.5 w-3.5" />
                   <span>run</span>
+                  <span className="ml-1 text-xs opacity-70">⌃↵</span>
                 </Button>
                 {isMobile && (
                   <Button
@@ -384,6 +387,7 @@ const CompilerPlayground = () => {
                   code={code}
                   onCodeChange={handleCodeChange}
                   onMount={handleEditorDidMount}
+                  onRun={handleRun}
                 />
               </div>
               <div
@@ -405,6 +409,7 @@ const CompilerPlayground = () => {
                   code={code}
                   onCodeChange={handleCodeChange}
                   onMount={handleEditorDidMount}
+                  onRun={handleRun}
                 />
               </ResizablePanel>
               <ResizableHandle withHandle className="bg-border/50" />

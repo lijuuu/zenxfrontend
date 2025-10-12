@@ -27,17 +27,17 @@ import { useEffect } from "react";
 import AdminDashboard from "./pages-admin/AdminDashboard";
 import MinimalChallenges from "./pages/MinimalChallenges";
 import CreateChallenge from "./components/challenges/CreateChallengeForm";
-import JoinChallenge from "./pages/Challenge/JoinChallenge";
+import ChallengeLobby from "./pages/Challenge/ChallengeLobby";
 import ActiveChallenge from "./pages/Challenge/ActiveChallenge";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false, 
+      refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
       retry: 1,
-      staleTime: 5 * 60 * 1000, 
+      staleTime: 5 * 60 * 1000,
     },
   },
 })
@@ -62,8 +62,8 @@ const AppContent = () => {
 
         <Route path="/challenges" element={<MinimalChallenges />} />
         <Route path="/challenge/:challengeId" element={<ActiveChallenge />} />
-        <Route path="/join-challenge/:challengeid/:password" element={<JoinChallenge />} />
-        <Route path="/join-challenge/:challengeid" element={<JoinChallenge />} />
+        <Route path="/join-challenge/:challengeid/:password" element={<ChallengeLobby />} />
+        <Route path="/join-challenge/:challengeid" element={<ChallengeLobby />} />
 
         <Route path="create-challenges" element={<CreateChallenge />} />
         <Route path="/settings" element={<Settings />} />

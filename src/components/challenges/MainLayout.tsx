@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import MainNavbar from "@/components/common/MainNavbar";
 import HoverModal from "@/components/challenges/HoverModal";
-import ActiveChallengeModal from "@/components/challenges/ActiveChallengeModal";
+import ChallengeDetailsModal from "@/components/challenges/ChallengeDetailsModal";
 import bgGradient from "@/assets/challengegradient.png";
 
 interface MainLayoutProps {
@@ -82,7 +82,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         )}
       </AnimatePresence>
       {activeChallengeId && isModalOpen && yourChallenges?.challenges?.length > 0 ? (
-        <ActiveChallengeModal
+        <ChallengeDetailsModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           setIsModalOpen={setIsModalOpen}

@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/useToast';
 import { Badge } from '@/components/ui/badge';
 import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star, Sparkles } from 'lucide-react';
 import Footer from './Footer';
-import ChatBattleNotification from '@/components/challenges/ChatBattleNotification';
+import ChatChallengeNotification from '@/components/challenges/ChatChallengeNotification';
 import MainNavbar from './MainNavbar';
 
 
@@ -127,7 +127,7 @@ const Home = () => {
             </div>
 
             <div className="max-w-3xl mx-auto transform hover:scale-[1.01] transition-transform">
-              <ChatBattleNotification
+              <ChatChallengeNotification
                 challenge={mockBattleChallenge}
                 onAccept={handleChallengeAccept}
                 onDecline={() => toast({ description: "Challenge declined" })}

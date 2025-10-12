@@ -231,17 +231,21 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
             onClick={() => handleCodeExecution('run')}
             className="h-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
             disabled={isExecuting}
+            title="Run code (Ctrl+Enter)"
           >
             <Play className="h-3.5 w-3.5 mr-1.5" />
             {isExecuting ? 'Running...' : 'Run'}
+            <span className="ml-2 text-xs opacity-70">⌃↵</span>
           </Button>
           <Button
             onClick={() => handleCodeExecution('submit')}
             className="h-8 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
             disabled={isExecuting}
+            title="Submit code (Ctrl+Alt+Enter)"
           >
             <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isExecuting ? 'animate-spin' : ''}`} />
             {isExecuting ? 'Submitting...' : 'Submit'}
+            <span className="ml-2 text-xs opacity-70">⌃⌥↵</span>
           </Button>
           <Button
             onClick={handleResetCode}
@@ -304,6 +308,8 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
                 language={language}
                 loading={isLoading}
                 editorTheme={editorTheme}
+                onRun={() => handleCodeExecution('run')}
+                onSubmit={() => handleCodeExecution('submit')}
               />
             </div>
           </ResizablePanel>

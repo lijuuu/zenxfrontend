@@ -12,6 +12,8 @@ interface CodeEditorProps {
   language: string;
   loading?: boolean;
   editorTheme?: ThemeInfo;
+  onRun?: () => void;
+  onSubmit?: () => void;
 }
 
 const defaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -49,6 +51,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   language,
   loading,
   editorTheme,
+  onRun,
+  onSubmit,
 }) => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -59,6 +63,19 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
     editor.focus();
+
+    //add custom keybindings
+    if (onRun) {
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+        onRun();
+      });
+    }
+
+    if (onSubmit) {
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.Enter, () => {
+        onSubmit();
+      });
+    }
   };
 
   useEffect(() => {

@@ -26,6 +26,7 @@ interface CodeEditorProps {
   code: string;
   onCodeChange: (value: string | undefined) => void;
   onMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
+  onRun?: () => void;
 }
 
 function getLineHeight(fontSize: number): number {
@@ -33,10 +34,24 @@ function getLineHeight(fontSize: number): number {
   return Math.max(Math.round(fontSize * 1.5), fontSize + 6);
 }
 
-const CodeEditor = ({ className, isMobile, fontSize, editorTheme, language, code, onCodeChange, onMount }: CodeEditorProps) => {
+const CodeEditor = ({ className, isMobile, fontSize, editorTheme, language, code, onCodeChange, onMount, onRun }: CodeEditorProps) => {
   useEffect(() => {
     loader.init().then(monacoInstance => defineAllThemes(monacoInstance));
   }, []);
+
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    //add custom keybinding for run
+    if (onRun) {
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+        onRun();
+      });
+    }
+
+    //call the original onMount if provided
+    if (onMount) {
+      onMount(editor);
+    }
+  };
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -50,7 +65,7 @@ const CodeEditor = ({ className, isMobile, fontSize, editorTheme, language, code
           language={language}
           value={code}
           onChange={onCodeChange}
-          onMount={onMount}
+          onMount={handleEditorMount}
           theme={editorTheme.name}
           options={{
             minimap: { enabled: !isMobile },

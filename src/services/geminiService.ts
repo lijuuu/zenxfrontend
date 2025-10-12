@@ -25,6 +25,7 @@ export interface ChatResponse {
   analysis?: CodeAnalysis;
   hasCodeBlocks: boolean;
   shouldReplaceCode?: boolean;
+  replacementCode?: string;
 }
 
 class GeminiService {
@@ -191,6 +192,7 @@ IMPORTANT: Only suggest code replacement if:
 1. The current code has errors or fails test cases
 2. The user explicitly asks for code fixes or improvements
 3. The code has significant issues that prevent it from working correctly
+4. The ai generated code should not have any import statements, it should be a function; excpetional case you can also use helper function.
 
 Do NOT suggest code replacement if:
 1. The code is working correctly and passes all test cases
@@ -199,7 +201,14 @@ Do NOT suggest code replacement if:
 
 CRITICAL: When providing code replacement, ALWAYS provide the COMPLETE code solution, not partial code snippets or fragments. Include the entire working solution from start to finish.
 
-At the end of your response, add a line with: "SHOULD_REPLACE_CODE: true" or "SHOULD_REPLACE_CODE: false" based on whether code replacement is needed.`;
+You must respond in the following JSON format:
+{
+  "message": "Your helpful response message here with markdown formatting",
+  "shouldReplaceCode": true/false,
+  "replacementCode": "Complete code solution here (only if shouldReplaceCode is true, otherwise null)"
+}
+
+Return only valid JSON, no additional text.`;
 
     try {
       const response = await fetch(this.baseUrl, {
@@ -236,17 +245,19 @@ At the end of your response, add a line with: "SHOULD_REPLACE_CODE: true" or "SH
         throw new Error('No response from Gemini API');
       }
 
-      //parse shouldReplaceCode from response
-      const shouldReplaceMatch = text.match(/SHOULD_REPLACE_CODE:\s*(true|false)/i);
-      const shouldReplaceCode = shouldReplaceMatch ? shouldReplaceMatch[1].toLowerCase() === 'true' : false;
+      //parse structured json response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No valid JSON found in response');
+      }
 
-      //remove the shouldReplaceCode line from the message
-      const cleanMessage = text.replace(/\nSHOULD_REPLACE_CODE:\s*(true|false)/i, '').trim();
+      const responseData = JSON.parse(jsonMatch[0]);
 
       return {
-        message: cleanMessage,
-        hasCodeBlocks: cleanMessage.includes('```'),
-        shouldReplaceCode,
+        message: responseData.message || text,
+        hasCodeBlocks: (responseData.message || text).includes('```'),
+        shouldReplaceCode: responseData.shouldReplaceCode || false,
+        replacementCode: responseData.replacementCode || null,
       };
     } catch (error) {
       console.error('Error chatting with AI:', error);

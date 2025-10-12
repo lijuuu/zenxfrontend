@@ -8,7 +8,7 @@ import {
   useAbandonChallenge,
 } from "@/services/useChallenges";
 import { useFetchCreatorProfiles } from "@/hooks/useUserProfiles";
-import JoinPrivateChallenge from "@/components/challenges/JoinPrivateChallenge";
+import PrivateChallengeAccessModal from "@/components/challenges/PrivateChallengeAccessModal";
 import ChallengeList from "@/components/challenges/ChallengeList";
 import MainLayout from "@/components/challenges/MainLayout";
 import avatarIcon from "@/assets/avatar.png";
@@ -144,7 +144,7 @@ const MinimalChallenges = () => {
       setOpenModal={setOpenJoinPrivateModal}
       avatarIcon={avatarIcon}
     >
-      <JoinPrivateChallenge isOpen={openJoinPrivateModal} onClose={() => setOpenJoinPrivateModal(false)} />
+      <PrivateChallengeAccessModal isOpen={openJoinPrivateModal} onClose={() => setOpenJoinPrivateModal(false)} />
       {yourChallengesLoading ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-10 w-10 animate-spin text-green-400" aria-label="Loading challenges" />

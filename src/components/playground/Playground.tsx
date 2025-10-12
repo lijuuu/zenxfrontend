@@ -312,48 +312,49 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+
   return (
     <>
-    <PlaygroundLayout
-      problem={problem}
-      isLoading={isLoading}
-      isMobile={isMobile}
-      hideBackButton={hideBackButton}
-      showDescription={showDescription}
-      setShowDescription={setShowDescription}
-      language={language}
-      setLanguage={setLanguage}
-      code={code}
-      setCode={setCode}
-      output={output}
-      executionResult={executionResult}
-      isExecuting={isExecuting}
-      customTestCases={customTestCases}
-      isResetModalOpen={isResetModalOpen}
-      handleCodeExecution={handleCodeExecution}
-      handleResetCode={handleResetCode}
-      confirmResetCode={confirmResetCode}
-      cancelResetCode={cancelResetCode}
-      handleAddCustomTestCase={handleAddCustomTestCase}
-      navigate={navigate}
-      targetTime={targetTime}
-      timeRemaining={timeRemaining}
-      isTargetTimeActive={isTargetTimeActive}
-      hasAutoSubmitted={hasAutoSubmitted}
-      handleSetTargetTime={handleSetTargetTime}
-      handleStopTargetTime={handleStopTargetTime}
-      formatTime={formatTime}
-      handleOpenTargetTimeModal={handleOpenTargetTimeModal}
-    />
+      <PlaygroundLayout
+        problem={problem}
+        isLoading={isLoading}
+        isMobile={isMobile}
+        hideBackButton={hideBackButton}
+        showDescription={showDescription}
+        setShowDescription={setShowDescription}
+        language={language}
+        setLanguage={setLanguage}
+        code={code}
+        setCode={setCode}
+        output={output}
+        executionResult={executionResult}
+        isExecuting={isExecuting}
+        customTestCases={customTestCases}
+        isResetModalOpen={isResetModalOpen}
+        handleCodeExecution={handleCodeExecution}
+        handleResetCode={handleResetCode}
+        confirmResetCode={confirmResetCode}
+        cancelResetCode={cancelResetCode}
+        handleAddCustomTestCase={handleAddCustomTestCase}
+        navigate={navigate}
+        targetTime={targetTime}
+        timeRemaining={timeRemaining}
+        isTargetTimeActive={isTargetTimeActive}
+        hasAutoSubmitted={hasAutoSubmitted}
+        handleSetTargetTime={handleSetTargetTime}
+        handleStopTargetTime={handleStopTargetTime}
+        formatTime={formatTime}
+        handleOpenTargetTimeModal={handleOpenTargetTimeModal}
+      />
 
-    {/* Target Time Modal */ }
-  <TargetTimeModal
-    isOpen={isTargetTimeModalOpen}
-    onClose={handleCloseTargetTimeModal}
-    onSetTargetTime={handleSetTargetTime}
-    currentTargetTime={targetTime}
-  />
-  </>
+      {/* Target Time Modal */}
+      <TargetTimeModal
+        isOpen={isTargetTimeModalOpen}
+        onClose={handleCloseTargetTimeModal}
+        onSetTargetTime={handleSetTargetTime}
+        currentTargetTime={targetTime}
+      />
+    </>
   );
 };
 

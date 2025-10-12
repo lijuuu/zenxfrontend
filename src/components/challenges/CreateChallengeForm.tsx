@@ -54,8 +54,8 @@ const formSchema = z.object({
   // store timeLimit in SECONDS; enforce 1 minute min
   timeLimitMillis: z.number().min(60, {
     message: "Time limit must be at least 1 minute.",
-  }).max(604800, { // 7 days
-    message: "Time limit must be 7 days or less.",
+  }).max(86400, { // 24 hours
+    message: "Time limit must be 24 hours or less.",
   }).default(3600),
   // lobby buffer in SECONDS before start time
   lobbyBufferSeconds: z.number().min(0).max(86400).default(300),
@@ -79,7 +79,6 @@ const formSchema = z.object({
 const CreateChallenge: React.FC = () => {
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("metadata");
   const [problemCounts, setProblemCounts] = useState<ProblemCountMetadata>({ easy: 0, medium: 0, hard: 0 });
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
   const [useRandomProblems, setUseRandomProblems] = useState(true);
@@ -132,36 +131,10 @@ const CreateChallenge: React.FC = () => {
     fetchProblemCounts();
   }, []);
 
-  useEffect(() => {
-    if (form.getValues().title) {
-      form.reset({
-        title: "",
-        difficulty: "Easy",
-        isPrivate: false,
-        timeLimitMillis: 3600,
-        lobbyBufferSeconds: 300,
-        config: {
-          maxEasyQuestions: 0,
-          maxMediumQuestions: 0,
-          maxHardQuestions: 0,
-          maxUsers: 30,
-        },
-      });
-      setSelectedProblems([]);
-      setSearchQuery("");
-      setActiveTab("metadata");
-      setUseRandomProblems(true);
-    }
-  }, [form]);
-  
-
   const handleProblemSelect = (problem: SelectedProblem) => {
-
-
     const isSelected = selectedProblems.find(p => p.problemId === problem.problemId);
     const difficulty = problem.difficulty.toLowerCase() as keyof ProblemCountMetadata;
     const currentCount = selectedProblems.filter(p => p.difficulty.toLowerCase() === difficulty).length;
-
 
     if (isSelected) {
       setSelectedProblems(selectedProblems.filter(p => p.problemId !== problem.problemId));
@@ -210,10 +183,6 @@ const CreateChallenge: React.FC = () => {
     }
   };
 
-  const canAdvanceToProblems = () => {
-    return form.getValues().title.length >= 2;
-  };
-
   const validateProblemSelection = (useRandom: boolean) => {
     const { maxEasyQuestions, maxMediumQuestions, maxHardQuestions } = form.getValues().config;
     const totalConfigQuestions = maxEasyQuestions + maxMediumQuestions + maxHardQuestions;
@@ -241,18 +210,9 @@ const CreateChallenge: React.FC = () => {
     }
   };
 
-  const goToProblemsTab = () => {
-    if (canAdvanceToProblems()) {
-      setActiveTab("problems");
-    } else {
-      form.trigger("title");
-      toast.warning("Please complete the challenge details first");
-    }
-  };
-
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
-    // Clamp timeLimit on submit to ensure backend receives >=1 minute and <=7 days
-    const clampedTimeLimit = Math.max(60, Math.min(formData.timeLimitMillis, 7 * 24 * 60 * 60));
+    // Clamp timeLimit on submit to ensure backend receives >=1 minute and <=24 hours
+    const clampedTimeLimit = Math.max(60, Math.min(formData.timeLimitMillis, 24 * 60 * 60));
     if (!validateProblemSelection(useRandomProblems)) {
       toast.error("Invalid problem selection", {
         description: useRandomProblems
@@ -310,427 +270,406 @@ const CreateChallenge: React.FC = () => {
     >
       <MainNavbar />
       <main className="page-container py-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Trophy className="h-8 w-8 text-green-400" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">Create New Challenge</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Trophy className="h-8 w-8 text-green-400" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">Create New Challenge</h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(-1)}
+              disabled={createChallengeMutation.isPending}
+              className="rounded-md border-gray-600 text-gray-300 hover:bg-gray-700/50 metallic-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              className="bg-green-500 hover:bg-green-600 relative group py-6 px-8 rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 hover:shadow-xl hover:shadow-green-600/30 transition-all duration-300"
+              disabled={createChallengeMutation.isPending || isLoadingCounts || !validateProblemSelection(useRandomProblems)}
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              {createChallengeMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" />
+                  <span className="relative z-10">Creating...</span>
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="mr-2 h-5 w-5 group-hover:animate-pulse relative z-10" />
+                  <span className="relative z-10">Create Challenge</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
-        <p className="text-sm text-gray-300 mb-8">
-          Design your own coding challenge and invite friends to compete!
-        </p>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-6 bg-gray-800/50 border-gray-600 rounded-lg p-1">
-            <TabsTrigger
-              value="metadata"
-              className="flex items-center gap-2 py-2 text-sm font-medium text-gray-300 data-[state=active]:bg-green-900/30 data-[state=active]:text-green-400 data-[state=active]:shadow-sm rounded-md"
-            >
-              <Settings className="h-4 w-4" />
-              Challenge Details
-            </TabsTrigger>
-            <TabsTrigger
-              value="problems"
-              className="flex items-center gap-2 py-2 text-sm font-medium text-gray-300 data-[state=active]:bg-green-900/30 data-[state=active]:text-green-400 data-[state=active]:shadow-sm rounded-md"
-            >
-              <Puzzle className="h-4 w-4" />
-              Select Problems
-            </TabsTrigger>
-          </TabsList>
+        <Form {...form}>
+          <form className="space-y-8">
+            {/* Bento Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <TabsContent value="metadata" className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-100">Challenge Title</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter challenge title"
-                            className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-400" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="difficulty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-100">Difficulty</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400">
-                              <SelectValue placeholder="Select difficulty" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-gray-800 border-gray-600 text-gray-300">
-                            <SelectItem value="Easy" className="flex items-center gap-2">
-                              <div className="flex items-center gap-2">
-                                <Flag className="h-4 w-4 text-green-400" />
-                                <span>Easy</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Medium" className="flex items-center gap-2">
-                              <div className="flex items-center gap-2">
-                                <Brain className="h-4 w-4 text-yellow-400" />
-                                <span>Medium</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Hard" className="flex items-center gap-2">
-                              <div className="flex items-center gap-2">
-                                <Trophy className="h-4 w-4 text-red-400" />
-                                <span>Hard</span>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-red-400" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="isPrivate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-600 p-4 bg-gray-800/50">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-sm font-medium text-gray-100">Private Challenge</FormLabel>
-                          <p className="text-xs text-gray-300">
-                            Only users with the access code can join.
-                          </p>
-                        </div>
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="border-gray-600 text-green-400 focus:ring-green-400"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="timeLimitMillis"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-100">Time Limit</FormLabel>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 flex items-center gap-2 bg-gray-800/50 border border-gray-600 rounded-md p-3">
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Days"
-                                className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
-                                value={Math.floor((field.value ?? 0) / 86400)}
-                                onChange={(e) => {
-                                  const days = Number(e.target.value);
-                                  const current = Number.isFinite(field.value) ? field.value : 0;
-                                  const hours = Math.floor((current % 86400) / 3600);
-                                  const minutes = Math.floor((current % 3600) / 60);
-                                  field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
-                                }}
-                                min={0}
-                                max={7}
-                              />
-                            </FormControl>
-                            <span className="text-gray-300 whitespace-nowrap">days</span>
-                            <div className="h-8 w-px bg-gray-600"></div>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Hours"
-                                className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
-                                value={Math.floor(((field.value ?? 0) % 86400) / 3600)}
-                                onChange={(e) => {
-                                  const hours = Number(e.target.value);
-                                  const current = Number.isFinite(field.value) ? field.value : 0;
-                                  const days = Math.floor(current / 86400);
-                                  const minutes = Math.floor((current % 3600) / 60);
-                                  field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
-                                }}
-                                min={0}
-                                max={23}
-                              />
-                            </FormControl>
-                            <span className="text-gray-300 whitespace-nowrap">hours</span>
-                            <div className="h-8 w-px bg-gray-600"></div>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Minutes"
-                                className="bg-transparent border-0 text-gray-300 focus:ring-0 w-full text-center"
-                                value={Math.floor(((field.value ?? 0) % 3600) / 60)}
-                                onChange={(e) => {
-                                  const minutes = Number(e.target.value);
-                                  const current = Number.isFinite(field.value) ? field.value : 0;
-                                  const days = Math.floor(current / 86400);
-                                  const hours = Math.floor((current % 86400) / 3600);
-                                  field.onChange((days * 86400) + (hours * 3600) + (minutes * 60));
-                                }}
-                                min={0}
-                                max={59}
-                              />
-                            </FormControl>
-                            <span className="text-gray-300 whitespace-nowrap">minutes</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1">Minimum time: 1 minute, maximum: 7 days</p>
-                        <FormMessage className="text-red-400" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="lobbyBufferSeconds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-100">Lobby Buffer (seconds)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Lobby buffer in seconds"
-                            className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            min={0}
-                            max={86400}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-400" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="config.maxUsers"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-100">Maximum Participants</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter maximum number of participants"
-                          className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                          min={1}
-                          max={30}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={goToProblemsTab}
-                    className="bg-green-600 hover:bg-green-700 metallic-button rounded-md"
-                    disabled={isLoadingCounts}
-                  >
-                    Continue to Problem Selection
-                    <Sparkles className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="problems" className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <FormLabel className="text-lg font-medium text-gray-100">Problem Selection</FormLabel>
-                    <span className="text-xl font-bold text-gray-100">
-                      {useRandomProblems ? `${totalQuestions}/10 problems selected` : `${selectedProblems.length}/10 problems selected`}
-                    </span>
+              {/* Challenge Details - Large Card */}
+              <div className="lg:col-span-2 lg:row-span-2">
+                <div className="bg-white rounded-2xl p-8 h-full">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                      <Settings className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Challenge Details</h2>
+                      <p className="text-gray-600">Configure your challenge settings</p>
+                    </div>
                   </div>
 
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-100">Selection Method</FormLabel>
-                    <p className="text-xs text-gray-300 mb-2">
-                      Choose random problems based on difficulty counts or select specific problems manually.
-                    </p>
-                    <div className="flex gap-4">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          id="random"
-                          checked={useRandomProblems}
-                          onChange={() => {
-                            setUseRandomProblems(true);
-                            setSelectedProblems([]);
-                          }}
-                          className="h-5 w-5 text-green-400 focus:ring-green-400"
-                        />
-                        <label htmlFor="random" className="text-base text-gray-300">Random Selection</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          id="predefined"
-                          checked={!useRandomProblems}
-                          onChange={() => {
-                            setUseRandomProblems(false);
-                            setSelectedProblems([]);
-                          }}
-                          className="h-5 w-5 text-green-400 focus:ring-green-400"
-                        />
-                        <label htmlFor="predefined" className="text-base text-gray-300">Predefined Selection</label>
-                      </div>
-                    </div>
-                  </FormItem>
+                  <div className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-900">Challenge Title</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter challenge title"
+                              className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage className="text-red-500" />
+                        </FormItem>
+                      )}
+                    />
 
-                  {useRandomProblems && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="config.maxEasyQuestions"
-                        render={({ field }) => {
-                          const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-100">Max Easy Questions</FormLabel>
+                        name="difficulty"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-semibold text-gray-900">Difficulty</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Max easy questions"
-                                  className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                                  disabled={isLoadingCounts || problemCounts.easy === 0 || totalQuestions >= 10}
-                                  {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                  max={problemCounts.easy}
-                                  min={0}
-                                />
+                                <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500">
+                                  <SelectValue placeholder="Select difficulty" />
+                                </SelectTrigger>
                               </FormControl>
-                              <FormMessage className="text-red-400" />
-                              <p className="text-base font-bold text-gray-100">
-                                Available: {problemCounts.easy}
-                              </p>
-                            </FormItem>
-                          );
-                        }}
+                              <SelectContent className="bg-white border-gray-200">
+                                <SelectItem value="Easy" className="flex items-center gap-2">
+                                  <Flag className="h-4 w-4 text-green-500" />
+                                  <span>Easy</span>
+                                </SelectItem>
+                                <SelectItem value="Medium" className="flex items-center gap-2">
+                                  <Brain className="h-4 w-4 text-yellow-500" />
+                                  <span>Medium</span>
+                                </SelectItem>
+                                <SelectItem value="Hard" className="flex items-center gap-2">
+                                  <Trophy className="h-4 w-4 text-red-500" />
+                                  <span>Hard</span>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        )}
                       />
 
                       <FormField
                         control={form.control}
-                        name="config.maxMediumQuestions"
-                        render={({ field }) => {
-                          const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-100">Max Medium Questions</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Max medium questions"
-                                  className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                                  disabled={isLoadingCounts || problemCounts.medium === 0 || totalQuestions >= 10}
-                                  {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                  max={problemCounts.medium}
-                                  min={0}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-red-400" />
-                              <p className="text-base font-bold text-gray-100">
-                                Available: {problemCounts.medium}
-                              </p>
-                            </FormItem>
-                          );
-                        }}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="config.maxHardQuestions"
-                        render={({ field }) => {
-                          const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
-                          return (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-gray-100">Max Hard Questions</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="Max hard questions"
-                                  className="bg-gray-800/50 border-gray-600 text-gray-300 rounded-md focus:ring-2 focus:ring-green-400"
-                                  disabled={isLoadingCounts || problemCounts.hard === 0 || totalQuestions >= 10}
-                                  {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                  max={problemCounts.hard}
-                                  min={0}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-red-400" />
-                              <p className="text-base font-bold text-gray-100">
-                                Available: {problemCounts.hard}
-                              </p>
-                            </FormItem>
-                          );
-                        }}
+                        name="config.maxUsers"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-semibold text-gray-900">Max Participants</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="30"
+                                className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500"
+                                {...field}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                min={1}
+                                max={30}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        )}
                       />
                     </div>
-                  )}
 
-                  {!useRandomProblems && (
-                    <>
-                      <div className="flex items-center border border-gray-600 rounded-md px-3 py-2 bg-gray-800/50 mb-4">
-                        <Search className="h-4 w-4 text-gray-300 mr-2" />
-                        <Input
-                          placeholder="Search problems by title..."
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-300"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                      </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="timeLimitMillis"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-semibold text-gray-900">Time Limit</FormLabel>
+                            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3">
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="1"
+                                  className="bg-transparent border-0 text-gray-900 focus:ring-0 text-center"
+                                  value={Math.floor((field.value ?? 0) / 3600)}
+                                  onChange={(e) => {
+                                    const hours = Number(e.target.value);
+                                    const current = Number.isFinite(field.value) ? field.value : 0;
+                                    const minutes = Math.floor((current % 3600) / 60);
+                                    field.onChange((hours * 3600) + (minutes * 60));
+                                  }}
+                                  min={0}
+                                  max={24}
+                                />
+                              </FormControl>
+                              <span className="text-gray-600 text-sm">hrs</span>
+                              <div className="h-6 w-px bg-gray-300"></div>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  className="bg-transparent border-0 text-gray-900 focus:ring-0 text-center"
+                                  value={Math.floor(((field.value ?? 0) % 3600) / 60)}
+                                  onChange={(e) => {
+                                    const minutes = Number(e.target.value);
+                                    const current = Number.isFinite(field.value) ? field.value : 0;
+                                    const hours = Math.floor(current / 3600);
+                                    field.onChange((hours * 3600) + (minutes * 60));
+                                  }}
+                                  min={0}
+                                  max={59}
+                                />
+                              </FormControl>
+                              <span className="text-gray-600 text-sm">min</span>
+                            </div>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        )}
+                      />
 
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
-                          <h3 className="text-sm font-medium text-gray-100 mb-2 flex items-center">
-                            <Puzzle className="h-4 w-4 mr-2 text-green-400" />
-                            Available Problems
-                            {searchQuery && <span className="ml-2 text-xs text-gray-400">Filtered by: "{searchQuery}"</span>}
-                          </h3>
+                      <FormField
+                        control={form.control}
+                        name="lobbyBufferSeconds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-semibold text-gray-900">Lobby Buffer</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="300"
+                                className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500"
+                                {...field}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                min={0}
+                                max={86400}
+                              />
+                            </FormControl>
+                            <p className="text-xs text-gray-500">seconds</p>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="isPrivate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 bg-gray-50">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm font-semibold text-gray-900">Private Challenge</FormLabel>
+                            <p className="text-xs text-gray-600">
+                              Only users with access code can join
+                            </p>
+                          </div>
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="border-gray-300 text-green-500 focus:ring-green-500"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Problem Selection - Purple Card */}
+              <div className="lg:col-span-2">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 h-full">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <Puzzle className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">Problem Selection</h2>
+                      <p className="text-purple-100 text-sm">Choose your challenges</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between bg-white/10 rounded-xl p-4">
+                      <span className="text-white font-medium">Problems Selected</span>
+                      <span className="text-2xl font-bold text-white">
+                        {useRandomProblems ? `${totalQuestions}/10` : `${selectedProblems.length}/10`}
+                      </span>
+                    </div>
+
+                    <Tabs value={useRandomProblems ? "random" : "predefined"} onValueChange={(value) => {
+                      setUseRandomProblems(value === "random");
+                      setSelectedProblems([]);
+                    }} className="w-full">
+                      <TabsList className="grid grid-cols-2 w-full bg-white/10 rounded-xl p-1">
+                        <TabsTrigger
+                          value="random"
+                          className="flex items-center gap-2 py-2 text-sm font-medium text-white data-[state=active]:bg-white data-[state=active]:text-purple-600 rounded-lg"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          Random
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="predefined"
+                          className="flex items-center gap-2 py-2 text-sm font-medium text-white data-[state=active]:bg-white data-[state=active]:text-purple-600 rounded-lg"
+                        >
+                          <Check className="h-4 w-4" />
+                          Predefined
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="random" className="space-y-3 mt-4">
+                        <div className="space-y-3">
+                          <FormField
+                            control={form.control}
+                            name="config.maxEasyQuestions"
+                            render={({ field }) => {
+                              const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
+                              return (
+                                <FormItem>
+                                  <FormLabel className="text-sm font-medium text-white flex items-center gap-2">
+                                    <Flag className="h-4 w-4" />
+                                    Easy Problems
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="0"
+                                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-200 rounded-xl focus:ring-2 focus:ring-white/50"
+                                      disabled={isLoadingCounts || problemCounts.easy === 0 || totalQuestions >= 10}
+                                      {...field}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      max={problemCounts.easy}
+                                      min={0}
+                                    />
+                                  </FormControl>
+                                  <p className="text-xs text-purple-200">
+                                    Available: {problemCounts.easy} problems
+                                  </p>
+                                </FormItem>
+                              );
+                            }}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="config.maxMediumQuestions"
+                            render={({ field }) => {
+                              const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
+                              return (
+                                <FormItem>
+                                  <FormLabel className="text-sm font-medium text-white flex items-center gap-2">
+                                    <Brain className="h-4 w-4" />
+                                    Medium Problems
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="0"
+                                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-200 rounded-xl focus:ring-2 focus:ring-white/50"
+                                      disabled={isLoadingCounts || problemCounts.medium === 0 || totalQuestions >= 10}
+                                      {...field}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      max={problemCounts.medium}
+                                      min={0}
+                                    />
+                                  </FormControl>
+                                  <p className="text-xs text-purple-200">
+                                    Available: {problemCounts.medium} problems
+                                  </p>
+                                </FormItem>
+                              );
+                            }}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="config.maxHardQuestions"
+                            render={({ field }) => {
+                              const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
+                              return (
+                                <FormItem>
+                                  <FormLabel className="text-sm font-medium text-white flex items-center gap-2">
+                                    <Trophy className="h-4 w-4" />
+                                    Hard Problems
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="0"
+                                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-200 rounded-xl focus:ring-2 focus:ring-white/50"
+                                      disabled={isLoadingCounts || problemCounts.hard === 0 || totalQuestions >= 10}
+                                      {...field}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      max={problemCounts.hard}
+                                      min={0}
+                                    />
+                                  </FormControl>
+                                  <p className="text-xs text-purple-200">
+                                    Available: {problemCounts.hard} problems
+                                  </p>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="predefined" className="space-y-3 mt-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center bg-white/10 border border-white/20 rounded-xl px-3 py-2">
+                            <Search className="h-4 w-4 text-purple-200 mr-2" />
+                            <Input
+                              placeholder="Search problems..."
+                              className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-white placeholder:text-purple-200"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                          </div>
 
                           {problemsLoading || isLoadingCounts ? (
-                            <div className="flex justify-center items-center h-[300px] border border-gray-600 rounded-md bg-gray-800/50">
+                            <div className="flex justify-center items-center h-[150px] bg-white/10 rounded-xl">
                               <div className="flex flex-col items-center gap-2">
-                                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
-                                <p className="text-sm text-gray-300">Loading problems...</p>
+                                <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                <p className="text-sm text-purple-200">Loading problems...</p>
                               </div>
                             </div>
                           ) : (
-                            <ScrollArea className="h-[400px] rounded-md border border-gray-600 p-3 bg-gray-800/50">
+                            <ScrollArea className="h-[200px] bg-white/10 rounded-xl p-3">
                               {filteredProblems.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-center text-gray-300">
-                                  <Search className="h-10 w-10 text-gray-500 mb-2" />
+                                <div className="flex flex-col items-center justify-center py-6 text-center text-purple-200">
+                                  <Search className="h-6 w-6 mb-2" />
                                   <p className="text-sm font-medium">No problems found</p>
                                   {searchQuery && (
-                                    <p className="text-xs mt-1 text-gray-400">Try different search terms</p>
+                                    <p className="text-xs mt-1">Try different search terms</p>
                                   )}
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="mt-4 text-green-400 border-green-400/50 hover:bg-green-900/20"
-                                    onClick={() => setSearchQuery("")}
-                                  >
-                                    Clear Search
-                                  </Button>
                                 </div>
                               ) : (
-                                <div className="grid grid-cols-1 gap-2">
+                                <div className="space-y-2">
                                   {filteredProblems.map((problem) => (
                                     <div
                                       key={problem.problemId}
@@ -739,9 +678,9 @@ const CreateChallenge: React.FC = () => {
                                         title: problem.title,
                                         difficulty: problem.difficulty,
                                       })}
-                                      className={`flex items-center justify-between rounded-md p-3 transition-all border cursor-pointer ${selectedProblems.find(p => p.problemId === problem.problemId)
-                                        ? 'bg-green-900/30 border-green-400 shadow-sm shadow-green-400/20'
-                                        : 'border-gray-600 hover:bg-gray-700/50 hover:border-green-400/50'
+                                      className={`flex items-center justify-between rounded-lg p-3 transition-all cursor-pointer ${selectedProblems.find(p => p.problemId === problem.problemId)
+                                        ? 'bg-white/20 border border-white/30'
+                                        : 'bg-white/5 hover:bg-white/10 border border-transparent'
                                         }`}
                                     >
                                       <div className="flex items-center gap-3 flex-1">
@@ -749,10 +688,10 @@ const CreateChallenge: React.FC = () => {
                                           {getDifficultyIcon(problem.difficulty)}
                                         </div>
                                         <div className="flex-1">
-                                          <p className="text-sm font-medium text-gray-100 line-clamp-1">{problem.title}</p>
+                                          <p className="text-sm font-medium text-white line-clamp-1">{problem.title}</p>
                                           <Badge
                                             variant="outline"
-                                            className={`text-xs mt-1 font-medium ${getColorsByDifficulty(problem.difficulty)}`}
+                                            className={`text-xs mt-1 font-medium border-white/30 text-white`}
                                           >
                                             {problem.difficulty}
                                           </Badge>
@@ -760,9 +699,9 @@ const CreateChallenge: React.FC = () => {
                                       </div>
                                       <div className="flex items-center">
                                         {selectedProblems.find(p => p.problemId === problem.problemId) ? (
-                                          <Check className="h-5 w-5 text-green-400" />
+                                          <Check className="h-4 w-4 text-white" />
                                         ) : (
-                                          <PlusCircle className="h-5 w-5 text-gray-400 opacity-60 group-hover:opacity-100" />
+                                          <PlusCircle className="h-4 w-4 text-purple-200" />
                                         )}
                                       </div>
                                     </div>
@@ -771,35 +710,38 @@ const CreateChallenge: React.FC = () => {
                               )}
                             </ScrollArea>
                           )}
-                        </div>
 
-                        <div className="w-full md:w-[300px]">
-                          <h3 className="text-sm font-medium text-gray-100 mb-2 flex items-center">
-                            <Check className="h-4 w-4 mr-2 text-green-400" />
-                            Selected Problems ({selectedProblems.length}/10)
-                          </h3>
-
-                          <div className="border border-gray-600 rounded-md bg-gray-800/50 p-3 h-[400px] flex flex-col">
-                            {selectedProblems.length === 0 ? (
-                              <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
-                                <Trophy className="h-10 w-10 text-gray-500 mb-2" />
-                                <p className="text-sm">No problems selected yet</p>
-                                <p className="text-xs mt-1">Click on problems to select them</p>
+                          {selectedProblems.length > 0 && (
+                            <div className="bg-white/10 rounded-xl p-3">
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-sm font-medium text-white flex items-center gap-2">
+                                  <Check className="h-4 w-4" />
+                                  Selected ({selectedProblems.length}/10)
+                                </h4>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-white border-white/30 hover:bg-white/10"
+                                  onClick={() => setSelectedProblems([])}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Clear
+                                </Button>
                               </div>
-                            ) : (
-                              <ScrollArea className="flex-1">
-                                <div className="grid grid-cols-1 gap-2">
+
+                              <ScrollArea className="max-h-[100px]">
+                                <div className="space-y-1">
                                   {selectedProblems.map((problem) => (
                                     <div
                                       key={problem.problemId}
-                                      className={`flex items-center justify-between p-2 rounded-md transition-all ${getColorsByDifficulty(problem.difficulty)}`}
+                                      className="flex items-center justify-between p-2 rounded-lg bg-white/5"
                                     >
                                       <div className="flex items-center gap-2 flex-1 min-w-0">
                                         {getDifficultyIcon(problem.difficulty)}
-                                        <span className="text-sm truncate">{problem.title}</span>
+                                        <span className="text-sm text-white truncate">{problem.title}</span>
                                       </div>
                                       <XCircle
-                                        className="h-5 w-5 cursor-pointer hover:text-red-400 flex-shrink-0 ml-2"
+                                        className="h-4 w-4 cursor-pointer hover:text-red-300 text-purple-200"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleProblemSelect(problem);
@@ -809,66 +751,85 @@ const CreateChallenge: React.FC = () => {
                                   ))}
                                 </div>
                               </ScrollArea>
-                            )}
+                            </div>
+                          )}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </div>
+              </div>
 
-                            {selectedProblems.length > 0 && (
-                              <div className="mt-3 pt-3 border-t border-gray-600">
-                                <div className="flex justify-between text-xs text-gray-300 mb-2">
-                                  <span>Easy: {selectedProblems.filter(p => ["easy", "e"].includes(p.difficulty.toLowerCase())).length}</span>
-                                  <span>Medium: {selectedProblems.filter(p => ["medium", "m"].includes(p.difficulty.toLowerCase())).length}</span>
-                                  <span>Hard: {selectedProblems.filter(p => ["hard", "h"].includes(p.difficulty.toLowerCase())).length}</span>
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full text-red-400 border-red-400/50 hover:bg-red-900/20"
-                                  onClick={() => setSelectedProblems([])}
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Clear All
-                                </Button>
-                              </div>
-                            )}
+              {/* Challenge Stats - Green Card */}
+              <div className="lg:col-span-2">
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 h-full">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <Trophy className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">Challenge Stats</h2>
+                      <p className="text-green-100 text-sm">Quick overview</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="bg-white/10 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white font-medium">Total Problems</span>
+                        <span className="text-2xl font-bold text-white">
+                          {useRandomProblems ? totalQuestions : selectedProblems.length}
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-2">
+                        <div
+                          className="bg-white h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${((useRandomProblems ? totalQuestions : selectedProblems.length) / 10) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-green-100 text-xs mt-2">Maximum 10 problems allowed</p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-white/10 rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-white">
+                          {selectedProblems.filter(p => p.difficulty.toLowerCase() === "easy").length}
+                        </div>
+                        <div className="text-green-100 text-xs">Easy</div>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-white">
+                          {selectedProblems.filter(p => p.difficulty.toLowerCase() === "medium").length}
+                        </div>
+                        <div className="text-green-100 text-xs">Medium</div>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-white">
+                          {selectedProblems.filter(p => p.difficulty.toLowerCase() === "hard").length}
+                        </div>
+                        <div className="text-green-100 text-xs">Hard</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-white font-medium">Time Limit</div>
+                          <div className="text-green-100 text-sm">
+                            {Math.floor((form.getValues().timeLimitMillis ?? 0) / 3600)}h {Math.floor(((form.getValues().timeLimitMillis ?? 0) % 3600) / 60)}m
                           </div>
                         </div>
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                          <Brain className="h-6 w-6 text-white" />
+                        </div>
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </div>
                 </div>
-              </TabsContent>
-
-              <div className="flex justify-between pt-6 border-t border-gray-600">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(-1)}
-                  disabled={createChallengeMutation.isPending}
-                  className="rounded-md border-gray-600 text-gray-300 hover:bg-gray-700/50 metallic-button"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="lg"
-                  className="bg-green-500 hover:bg-green-600 relative group py-6 px-8 rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 hover:shadow-xl hover:shadow-green-600/30 transition-all duration-300"
-                  disabled={createChallengeMutation.isPending || isLoadingCounts || !validateProblemSelection(useRandomProblems)}
-                >
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  {createChallengeMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" />
-                      <span className="relative z-10">Creating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <PlusCircle className="mr-2 h-5 w-5 group-hover:animate-pulse relative z-10" />
-                      <span className="relative z-10">Create Challenge</span>
-                    </>
-                  )}
-                </Button>
               </div>
-            </form>
-          </Form>
-        </Tabs>
+            </div>
+          </form>
+        </Form>
       </main>
     </div>
   );

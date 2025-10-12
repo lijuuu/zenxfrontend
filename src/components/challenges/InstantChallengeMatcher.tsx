@@ -13,7 +13,7 @@ const InstantChallengeMatcher: React.FC = () => {
   const password = searchParams.get('password');
   const difficulty = searchParams.get('difficulty') || 'Easy';
   const mode = searchParams.get('mode') || 'quick';
-
+  
   const [status, setStatus] = useState<'idle' | 'waiting' | 'ready' | 'starting' | 'active'>('idle');
   const [participants, setParticipants] = useState<string[]>([]);
   const [countdown, setCountdown] = useState(3);
@@ -26,10 +26,10 @@ const InstantChallengeMatcher: React.FC = () => {
       // We have room details, so we're either joining or creating a room
       setStatus('waiting');
       // In a real app, we would connect to a backend service here
-
+      
       // Simulate adding the current user to the room
       setParticipants(prev => [...prev, 'You']);
-
+      
       // For friend challenges, wait for others to join
       if (mode === 'friend') {
         // Wait for participants
@@ -51,7 +51,7 @@ const InstantChallengeMatcher: React.FC = () => {
     if (status === 'waiting') {
       const interval = setInterval(() => {
         setWaitTime(prev => prev + 1);
-
+        
         // For demo purposes, add a random user after some time
         if (waitTime > 5 && participants.length === 1 && Math.random() > 0.7) {
           setParticipants(prev => [...prev, 'Friend']);
@@ -92,14 +92,15 @@ const InstantChallengeMatcher: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <MainNavbar />
-
+      
       <div className="container mx-auto py-16">
         <div className="max-w-2xl mx-auto bg-zinc-900 rounded-xl shadow-lg overflow-hidden">
-          <div className={`p-6 ${status === 'active' ? 'bg-blue-600/20' :
-              status === 'starting' ? 'bg-green-600/20' :
-                status === 'ready' ? 'bg-amber-600/20' :
-                  status === 'waiting' ? 'bg-purple-600/20' : ''
-            }`}>
+          <div className={`p-6 ${
+            status === 'active' ? 'bg-blue-600/20' : 
+            status === 'starting' ? 'bg-green-600/20' : 
+            status === 'ready' ? 'bg-amber-600/20' : 
+            status === 'waiting' ? 'bg-purple-600/20' : ''
+          }`}>
             <div className="text-center py-4">
               {status === 'waiting' && (
                 <div className="space-y-6">
@@ -119,7 +120,7 @@ const InstantChallengeMatcher: React.FC = () => {
                       {mode === 'friend' ? 'Share the room link with your friends to join' : 'Looking for someone to join this challenge'}
                     </p>
                   </div>
-
+                  
                   <div className="bg-zinc-800 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-sm font-medium">Room Details</h3>
@@ -146,7 +147,7 @@ const InstantChallengeMatcher: React.FC = () => {
                       </div>
                     </div>
                   </div>
-
+                  
                   <div className="bg-zinc-800 rounded-lg p-4">
                     <h3 className="text-sm font-medium mb-3">Participants ({participants.length}/5)</h3>
                     <div className="space-y-2">
@@ -161,22 +162,22 @@ const InstantChallengeMatcher: React.FC = () => {
                       ))}
                     </div>
                   </div>
-
-                  <Button
-                    onClick={cancelMatch}
-                    variant="outline"
+                  
+                  <Button 
+                    onClick={cancelMatch} 
+                    variant="outline" 
                     className="w-full border-red-600 text-red-500"
                   >
                     <X className="mr-2 h-5 w-5" /> Cancel Challenge
                   </Button>
                 </div>
               )}
-
+              
               {status === 'ready' && (
                 <div className="space-y-6">
                   <div className="flex justify-center">
                     <div className="relative">
-                      <motion.div
+                      <motion.div 
                         className="w-24 h-24 rounded-full flex items-center justify-center bg-amber-600/20"
                         animate={{ scale: [1, 1.1, 1] }}
                         transition={{ repeat: Infinity, duration: 1.5 }}
@@ -191,7 +192,7 @@ const InstantChallengeMatcher: React.FC = () => {
                       {participants.length} participants have joined this challenge
                     </p>
                   </div>
-
+                  
                   <div className="bg-zinc-800 rounded-lg p-4">
                     <h3 className="text-sm font-medium mb-3">Participants</h3>
                     <div className="space-y-2">
@@ -206,7 +207,7 @@ const InstantChallengeMatcher: React.FC = () => {
                       ))}
                     </div>
                   </div>
-
+                  
                   <div className="flex items-center justify-center gap-2 text-sm text-zinc-400">
                     <Clock className="h-4 w-4" />
                     <span>Time Limit: 20 minutes</span>
@@ -214,17 +215,17 @@ const InstantChallengeMatcher: React.FC = () => {
                       {difficulty}
                     </span>
                   </div>
-
+                  
                   <div className="flex gap-2">
-                    <Button
-                      onClick={cancelMatch}
-                      variant="outline"
+                    <Button 
+                      onClick={cancelMatch} 
+                      variant="outline" 
                       className="flex-1 border-red-600 text-red-500"
                     >
                       <X className="mr-2 h-5 w-5" /> Cancel
                     </Button>
-                    <Button
-                      onClick={startMatch}
+                    <Button 
+                      onClick={startMatch} 
                       className="flex-1 bg-green-600 hover:bg-green-700"
                     >
                       <Zap className="mr-2 h-5 w-5" /> Start Challenge
@@ -232,12 +233,12 @@ const InstantChallengeMatcher: React.FC = () => {
                   </div>
                 </div>
               )}
-
+              
               {status === 'starting' && (
                 <div className="space-y-6">
                   <div className="flex justify-center">
                     <div className="relative">
-                      <motion.div
+                      <motion.div 
                         className="w-24 h-24 rounded-full flex items-center justify-center bg-green-600/20"
                         animate={{ scale: [1, 1.1, 1] }}
                         transition={{ repeat: Infinity, duration: 0.8 }}
@@ -267,12 +268,12 @@ const InstantChallengeMatcher: React.FC = () => {
                   </div>
                 </div>
               )}
-
+              
               {status === 'active' && (
                 <div className="space-y-6">
                   <div className="flex justify-center">
                     <div className="relative">
-                      <motion.div
+                      <motion.div 
                         className="w-24 h-24 rounded-full flex items-center justify-center bg-blue-600/20"
                       >
                         <Zap className="h-10 w-10 text-blue-400" />
@@ -285,7 +286,7 @@ const InstantChallengeMatcher: React.FC = () => {
                       Your problem would be displayed here in a real implementation.
                     </p>
                   </div>
-
+                  
                   <div className="bg-zinc-800 rounded-lg p-4">
                     <div className="flex items-center justify-center">
                       <AlertTriangle className="h-6 w-6 text-amber-400 mr-2" />
@@ -295,10 +296,10 @@ const InstantChallengeMatcher: React.FC = () => {
                       In a real app, the coding interface would be displayed here
                     </p>
                   </div>
-
-                  <Button
-                    onClick={cancelMatch}
-                    variant="outline"
+                  
+                  <Button 
+                    onClick={cancelMatch} 
+                    variant="outline" 
                   >
                     <X className="mr-2 h-5 w-5" /> Exit Challenge
                   </Button>
