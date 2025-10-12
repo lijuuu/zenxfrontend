@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Play, RefreshCw, ArrowLeft, Menu } from 'lucide-react';
+import { Play, RefreshCw, ArrowLeft, Menu, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import Loader3 from '../ui/loader3';
 import CodeResetModal from '@/components/common/CodeResetModal';
-import { ProblemDescriptionLayout } from './ProblemDescription';
+import { ProblemTabs } from './ProblemTabs';
 import { CodeEditor } from './CodeEditor';
-import { Console } from './Console';
 import { Timer } from './Timer';
 import { ProblemMetadata, ExecutionResult, TestCase } from '@/api/types';
 import { themes, ThemeInfo } from "@/components/playground/EditorThemes"
@@ -27,16 +26,21 @@ interface PlaygroundLayoutProps {
   executionResult: ExecutionResult | null;
   isExecuting: boolean;
   customTestCases: TestCase[];
-  consoleTab: 'output' | 'tests' | 'custom';
-  setConsoleTab: (value: 'output' | 'tests' | 'custom') => void;
   isResetModalOpen: boolean;
   handleCodeExecution: (type: string) => void;
   handleResetCode: () => void;
   confirmResetCode: () => void;
   cancelResetCode: () => void;
-  handleResetOutput: () => void;
   handleAddCustomTestCase: (input: string, expected: string) => void;
   navigate: (path: string) => void;
+  targetTime: number | null;
+  timeRemaining: number | null;
+  isTargetTimeActive: boolean;
+  hasAutoSubmitted: boolean;
+  handleSetTargetTime: (minutes: number) => void;
+  handleStopTargetTime: () => void;
+  formatTime: (seconds: number) => string;
+  handleOpenTargetTimeModal: () => void;
 }
 
 export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
@@ -54,18 +58,23 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
   executionResult,
   isExecuting,
   customTestCases,
-  consoleTab,
-  setConsoleTab,
   isResetModalOpen,
   handleCodeExecution,
   handleResetCode,
   confirmResetCode,
   cancelResetCode,
-  handleResetOutput,
   handleAddCustomTestCase,
   navigate,
+  targetTime,
+  timeRemaining,
+  isTargetTimeActive,
+  hasAutoSubmitted,
+  handleSetTargetTime,
+  handleStopTargetTime,
+  formatTime,
+  handleOpenTargetTimeModal,
 }) => {
-  //editorTheme state
+  //editor theme state
   const [editorTheme, setEditorTheme] = useState<ThemeInfo>({ name: 'vs-dark', backgroundColor: '#1e1e1e' });
 
   useEffect(() => {
@@ -123,7 +132,7 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
 
 
   return (
-    <div className="relative min-h-screen min-w-full bg-black flex flex-col">
+    <div className="relative h-screen w-full bg-black flex flex-col overflow-hidden">
       <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           {!hideBackButton && (
@@ -187,25 +196,58 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
           </select>
 
 
+          {/* Target Time Controls */}
+          {!isTargetTimeActive ? (
+            <Button
+              onClick={handleOpenTargetTimeModal}
+              size="sm"
+              variant="outline"
+              className="h-9 border-zinc-600 text-zinc-300 hover:text-white hover:border-blue-500 hover:bg-blue-500/10 text-sm px-4 font-medium rounded-lg transition-all duration-200"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Target Time
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className={`h-8 px-3 rounded flex items-center text-xs font-medium ${timeRemaining && timeRemaining <= 60
+                ? 'bg-red-600 text-white'
+                : 'bg-blue-600 text-white'
+                }`}>
+                <Clock className="h-3.5 w-3.5 mr-1" />
+                {timeRemaining ? formatTime(timeRemaining) : '00:00'}
+              </div>
+              <Button
+                onClick={handleStopTargetTime}
+                size="sm"
+                variant="outline"
+                className="h-9 border-zinc-600 text-zinc-300 hover:text-white hover:border-red-500 hover:bg-red-500/10 text-sm px-3 font-medium rounded-lg transition-all duration-200"
+              >
+                Stop
+              </Button>
+            </div>
+          )}
+
           <Button
             onClick={() => handleCodeExecution('run')}
-            className="h-8 bg-yellow-700 hover:bg-yellow-800 text-zinc-300 border border-zinc-700 text-xs px-3"
+            className="h-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
             disabled={isExecuting}
           >
-            <Play className="h-3.5 w-3.5 mr-1" />
-            Run
+            <Play className="h-3.5 w-3.5 mr-1.5" />
+            {isExecuting ? 'Running...' : 'Run'}
           </Button>
           <Button
             onClick={() => handleCodeExecution('submit')}
-            className="h-8 bg-green-600 hover:bg-green-700 text-white text-xs px-3"
+            className="h-8 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
             disabled={isExecuting}
           >
-            Submit
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isExecuting ? 'animate-spin' : ''}`} />
+            {isExecuting ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
             onClick={handleResetCode}
-            className="h-8 bg-red-600 hover:bg-red-700 text-white text-xs px-3"
+            className="h-8 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
           >
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
             Reset
           </Button>
         </div>
@@ -221,47 +263,49 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
                 maxSize={60}
                 className="bg-zinc-900/60"
               >
-                <ProblemDescriptionLayout problem={problem} hideBackButton={true} userCode={code} changeUserCode={setCode} handleCodeExecution={handleCodeExecution} isExecuting={isExecuting} />
+                <ProblemTabs
+                  problem={problem}
+                  executionResult={executionResult}
+                  output={output}
+                  hideBackButton={true}
+                  code={code}
+                  language={language}
+                  setCode={setCode}
+                />
               </ResizablePanel>
             )
           ) : (
             <>
               <ResizablePanel
-                defaultSize={30}
+                defaultSize={36}
                 minSize={25}
                 maxSize={50}
                 className="bg-zinc-900/60"
               >
-                <ProblemDescriptionLayout problem={problem} hideBackButton={true} />
+                <ProblemTabs
+                  problem={problem}
+                  executionResult={executionResult}
+                  output={output}
+                  hideBackButton={true}
+                  code={code}
+                  language={language}
+                  setCode={setCode}
+                />
               </ResizablePanel>
               <ResizableHandle className="w-1.5 bg-zinc-900/60" />
             </>
           )}
 
-          <ResizablePanel defaultSize={isMobile ? (showDescription ? 60 : 100) : 70} className="flex flex-col">
-            <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={isMobile ? 60 : 70} minSize={10} maxSize={80}>
-                <CodeEditor
-                  value={code}
-                  onChange={setCode}
-                  language={language}
-                  loading={isLoading}
-                  editorTheme={editorTheme}
-                />
-              </ResizablePanel>
-              <ResizableHandle className="h-1.5 bg-zinc-900/60" />
-              <ResizablePanel defaultSize={isMobile ? 40 : 30} minSize={20}>
-                <Console
-                  output={output}
-                  executionResult={executionResult}
-                  isMobile={isMobile}
-                  onResetOutput={handleResetOutput}
-                  testCases={problem.testcaseRun?.run || []}
-                  activeTab={consoleTab}
-                  setActiveTab={setConsoleTab}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
+          <ResizablePanel defaultSize={isMobile ? (showDescription ? 60 : 100) : 64} className="flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-hidden ">
+              <CodeEditor
+                value={code}
+                onChange={setCode}
+                language={language}
+                loading={isLoading}
+                editorTheme={editorTheme}
+              />
+            </div>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

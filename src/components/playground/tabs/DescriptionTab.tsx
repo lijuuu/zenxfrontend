@@ -1,26 +1,14 @@
-import { useNavigate } from "react-router";
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ProblemMetadata } from '@/api/types';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 
-
-interface ProblemDescriptionProps {
+interface DescriptionTabProps {
   problem: ProblemMetadata;
-  changeUserCode?: (value: string) => void;
-  handleCodeExecution?: (type: string) => void;
-  isExecuting?: boolean;
-  userCode?: string;
-  hideBackButton?: boolean
 }
 
-export const ProblemDescriptionLayout: React.FC<ProblemDescriptionProps> = ({ problem, hideBackButton }) => {
-  const navigate = useNavigate();
-
+export const DescriptionTab: React.FC<DescriptionTabProps> = ({ problem }) => {
   return (
-    <div
-      className="p-4 overflow-y-auto h-full bg-zinc-900/1 border-r border-zinc-800 relative"
-    >
+    <div className="h-full overflow-y-auto p-4">
       <div className="space-y-6 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-2xl font-semibold text-green-500">{problem.title}</h2>
@@ -45,35 +33,23 @@ export const ProblemDescriptionLayout: React.FC<ProblemDescriptionProps> = ({ pr
               h1: ({ node, ...props }) => <h1 className="text-lg font-bold text-green-500 mt-6 mb-3" {...props} />,
               h2: ({ node, ...props }) => <h2 className="text-base font-semibold text-white mt-6 mb-3 border-b border-zinc-700 pb-1" {...props} />,
               h3: ({ node, ...props }) => <h3 className="text-sm font-medium text-white mt-4 mb-2" {...props} />,
-              p: ({ node, ...props }) => <p className="text-zinc-300/90 mb-1 leading-relaxed" {...props} />,
+              p: ({ node, ...props }) => <p className="text-zinc-300/90 mb-1 leading-tight" {...props} />,
               ul: ({ node, ...props }) => (
                 <ul className="list-disc list-outside ml-6 text-zinc-300/90 space-y-2 mb-4" {...props} />
               ),
               li: ({ node, ...props }) => (
-                <li className="text-zinc-300/90 mb-1 leading-relaxed" {...props} />
+                <li className="text-zinc-300/90 mb-1 leading-tight" {...props} />
               ),
               strong: ({ node, ...props }) => <strong className="text-white font-medium" {...props} />,
               code: ({ node, ...props }) => (
                 <code className="bg-zinc-800 text-green-400 px-1.5 py-0.5 rounded-md font-mono text-sm" {...props} />
               ),
-
             }}
           >
             {problem.description}
           </ReactMarkdown>
         </div>
       </div>
-
-      {!hideBackButton && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate("/problems")}
-          className="absolute bottom-4 left-4 right-4 w-[calc(100%-2rem)] bg-zinc-800 text-green-500 hover:bg-zinc-700 hover:text-green-400 border-zinc-700"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Problems
-        </Button>
-      )}
     </div>
   );
 };

@@ -27,9 +27,9 @@ function Output({ className }: OutputProps) {
 
   const handleCopy = async () => {
     if (!result) return;
-    
+
     const textToCopy = result.output || result.status_message || result.error || '';
-    
+
     try {
       await navigator.clipboard.writeText(String(textToCopy));
       setCopied(true);
@@ -45,14 +45,16 @@ function Output({ className }: OutputProps) {
     try {
       const errorContext = result?.error || result?.status_message || '';
       const response = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyATP4kvlgboNEPOz60PtvgeqrLurYO6AoM',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': 'AIzaSyCNn8STgpbY2yyxKzH76vZXevxBaXnml6Y',
+          },
           body: JSON.stringify({
             contents: [
               {
-                role: 'user',
                 parts: [
                   {
                     text: `As a coding assistant, provide 3 concise hints to improve or fix this ${language} code:
@@ -65,8 +67,6 @@ function Output({ className }: OutputProps) {
                 ],
               },
             ],
-            generationConfig: { temperature: 0.4, maxOutputTokens: 5000 },
-            safetySettings: [],
           }),
         }
       );
@@ -102,11 +102,11 @@ function Output({ className }: OutputProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isHintsModalOpen]);
 
-  // Fixed version of isLongContent function with proper type handling
+  //fixed version of islongcontent function with proper type handling
   const isLongContent = (text: string | undefined): boolean => {
-    // If text is null, undefined, or empty, it's not "long"
+    //if text is null undefined or empty it is not long
     if (!text) return false;
-    
+
     // Safely convert to string before using split
     const textStr = String(text);
     return textStr.split('\n').length > 5;

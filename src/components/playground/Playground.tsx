@@ -6,6 +6,7 @@ import { useGetUserProfile } from '@/services/useGetUserProfile';
 import { getProblemMetadataExtended } from '@/api/problem';
 import { ProblemMetadata, ExecutionResult, TestCase, twoSumProblem } from '@/api/types';
 import { PlaygroundLayout } from '@/components/playground/PlaygroundLayout';
+import { TargetTimeModal } from '@/components/playground/TargetTimeModal';
 import { useIsMobile } from '@/hooks';
 
 interface PlaygroundProps {
@@ -64,9 +65,15 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
 
   // State for UI and test cases
   const [customTestCases, setCustomTestCases] = useState<TestCase[]>([]);
-  const [consoleTab, setConsoleTab] = useState<'output' | 'tests' | 'custom'>('tests');
   const [showDescription, setShowDescription] = useState<boolean>(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
+
+  // State for target time feature
+  const [targetTime, setTargetTime] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [isTargetTimeActive, setIsTargetTimeActive] = useState<boolean>(false);
+  const [hasAutoSubmitted, setHasAutoSubmitted] = useState<boolean>(false);
+  const [isTargetTimeModalOpen, setIsTargetTimeModalOpen] = useState<boolean>(false);
 
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -150,7 +157,6 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
       if (!data.success || !data.payload) {
         const errorMessage = data.error ? `${data.error.errorType}: ${data.error.message}` : 'Unknown error occurred';
         setOutput([`[Error] ${errorMessage}`]);
-        setConsoleTab('output');
         toast.error(`${type === 'run' ? 'Run' : 'Submit'} Failed`, {
           description: errorMessage,
         });
@@ -164,7 +170,6 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
       if (executionResult.error) {
         setOutput([`[Error] ${executionResult?.error}`]);
         setExecutionResult(executionResult);
-        setConsoleTab('output');
         toast.error(`Syntax Error`, {
           description: executionResult.error,
         });
@@ -181,7 +186,6 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
           toast.success(`${type === 'run' ? 'Run' : 'Submission'} Successful`, {
             description: `All ${executionResult.totalTestCases} test cases passed!`,
           });
-          setConsoleTab('tests');
         } else {
           toast[type === 'run' ? 'warning' : 'error'](
             `${type === 'run' ? 'Run' : 'Submission'} ${!executionResult.overallPass ? ' Successful' : 'Failed'}`,
@@ -189,7 +193,6 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
               description: `${executionResult.passedTestCases} of ${executionResult.totalTestCases} test cases passed.`,
             }
           );
-          setConsoleTab('tests');
         }
       }
     } catch (error) {
@@ -208,7 +211,6 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
         : fallbackMessage;
 
       setOutput([`[Error] ${finalErrorMessage}`]);
-      setConsoleTab('output');
 
       toast.error(`${type === 'run' ? 'Run' : 'Submit'} Failed`, {
         description: finalErrorMessage,
@@ -217,7 +219,33 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
       setIsLoading(false);
       setIsExecuting(false);
     }
-  }, [code, problem, language, userProfile?.userId]);
+  }, [code, problem, language, userProfile?.userId, challengeId]);
+
+  // Target time timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isTargetTimeActive && timeRemaining !== null && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev === null || prev <= 1) {
+            // Time's up - auto submit
+            if (!hasAutoSubmitted) {
+              setHasAutoSubmitted(true);
+              handleCodeExecution('submit');
+            }
+            setIsTargetTimeActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isTargetTimeActive, timeRemaining, hasAutoSubmitted, handleCodeExecution]);
 
   // Handle code reset
   const handleResetCode = () => {
@@ -234,7 +262,6 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
       setOutput([]);
       setExecutionResult(null);
       setCustomTestCases([]);
-      setConsoleTab('tests');
       toast.info('Code Reset', { description: 'Editor reset to default code.' });
       setIsResetModalOpen(false);
     }
@@ -244,18 +271,49 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
     setIsResetModalOpen(false);
   };
 
-  const handleResetOutput = () => {
-    setOutput([]);
-    setExecutionResult(null);
-    setConsoleTab('tests');
-  };
 
   const handleAddCustomTestCase = (input: string, expected: string) => {
     setCustomTestCases(prev => [...prev, { input, expected }]);
     toast.success('Custom Test Case Added', { description: 'Added to your test cases.' });
   };
 
+  // Target time functions
+  const handleSetTargetTime = (minutes: number) => {
+    setTargetTime(minutes);
+    setTimeRemaining(minutes * 60);
+    setIsTargetTimeActive(true);
+    setHasAutoSubmitted(false);
+    toast.success('Target Time Started', {
+      description: `Timer set for ${minutes} minute${minutes !== 1 ? 's' : ''}. Auto-submit when time expires.`,
+    });
+  };
+
+  const handleStopTargetTime = () => {
+    setIsTargetTimeActive(false);
+    setTimeRemaining(null);
+    setTargetTime(null);
+    setHasAutoSubmitted(false);
+    toast.info('Target Time Stopped', {
+      description: 'Timer has been cancelled.',
+    });
+  };
+
+  const handleOpenTargetTimeModal = () => {
+    setIsTargetTimeModalOpen(true);
+  };
+
+  const handleCloseTargetTimeModal = () => {
+    setIsTargetTimeModalOpen(false);
+  };
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
+    <>
     <PlaygroundLayout
       problem={problem}
       isLoading={isLoading}
@@ -271,17 +329,31 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
       executionResult={executionResult}
       isExecuting={isExecuting}
       customTestCases={customTestCases}
-      consoleTab={consoleTab}
-      setConsoleTab={setConsoleTab}
       isResetModalOpen={isResetModalOpen}
       handleCodeExecution={handleCodeExecution}
       handleResetCode={handleResetCode}
       confirmResetCode={confirmResetCode}
       cancelResetCode={cancelResetCode}
-      handleResetOutput={handleResetOutput}
       handleAddCustomTestCase={handleAddCustomTestCase}
       navigate={navigate}
+      targetTime={targetTime}
+      timeRemaining={timeRemaining}
+      isTargetTimeActive={isTargetTimeActive}
+      hasAutoSubmitted={hasAutoSubmitted}
+      handleSetTargetTime={handleSetTargetTime}
+      handleStopTargetTime={handleStopTargetTime}
+      formatTime={formatTime}
+      handleOpenTargetTimeModal={handleOpenTargetTimeModal}
     />
+
+    {/* Target Time Modal */ }
+  <TargetTimeModal
+    isOpen={isTargetTimeModalOpen}
+    onClose={handleCloseTargetTimeModal}
+    onSetTargetTime={handleSetTargetTime}
+    currentTargetTime={targetTime}
+  />
+  </>
   );
 };
 
