@@ -66,10 +66,6 @@ export const TargetTimeModal: React.FC<TargetTimeModalProps> = ({
             {/* Left Column - Settings */}
             <div className="space-y-3 overflow-y-auto">
               <div>
-                <h4 className="text-base font-medium text-white mb-3 flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-400" />
-                  Time Settings
-                </h4>
 
                 {/* Time Selection */}
                 <div className="mb-4">
@@ -124,33 +120,6 @@ export const TargetTimeModal: React.FC<TargetTimeModalProps> = ({
                   </div>
                 </div>
               </div>
-
-              {/* Benefits */}
-              <div>
-                <h4 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
-                  <Timer className="h-4 w-4 text-green-400" />
-                  Benefits
-                </h4>
-                <ul className="space-y-1 text-xs text-zinc-300">
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Practice under time pressure like real interviews</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Improve problem-solving speed and efficiency</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Prevent overthinking and analysis paralysis</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Automatic submission ensures no lost attempts</span>
-                  </li>
-                </ul>
-              </div>
-
               {/* How it Works */}
               <div className="bg-zinc-800/50 border border-zinc-700 rounded p-4">
                 <h4 className="text-xs font-medium text-white mb-2 flex items-center gap-2">

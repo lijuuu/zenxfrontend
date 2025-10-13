@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,17 +34,18 @@ const passwordChangeSchema = z.object({
 
 type PasswordChangeFormValues = z.infer<typeof passwordChangeSchema>;
 
-interface PassWordChangeProps{
-  email:string
+interface PassWordChangeProps {
+  email: string;
+  canChangePassword: boolean;
 }
 
-const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
+const PasswordChangeTab: React.FC<PassWordChangeProps> = ({ email, canChangePassword }) => {
   const [loading, setLoading] = React.useState(false);
   const [showOldPassword, setShowOldPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [isGoogleUser, setIsGoogleUser] = React.useState(false);
-  
+
   // Initialize form with react-hook-form and zod validation
   const form = useForm<PasswordChangeFormValues>({
     resolver: zodResolver(passwordChangeSchema),
@@ -55,12 +56,9 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
     },
   });
 
-  React.useEffect(() => {
-    // Check if user is a Google login user using the 2FA status endpoint
-    checkTwoFactorStatus();
-  }, []);
+  const checkTwoFactorStatus = useCallback(async () => {
+    if (!email) return;
 
-  const checkTwoFactorStatus = async () => {
     try {
       setLoading(true);
       // Using the same endpoint as TwoFactorAuthTab
@@ -79,7 +77,14 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email]);
+
+  React.useEffect(() => {
+    // Check if user is a Google login user using the 2FA status endpoint - only if email is available
+    if (email) {
+      checkTwoFactorStatus();
+    }
+  }, [email, checkTwoFactorStatus]);
 
   const handleChangePassword = async (values: PasswordChangeFormValues) => {
     try {
@@ -93,7 +98,7 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
           'X-Requires-Auth': 'true'
         }
       });
-      
+
       if (response.data.success) {
         toast.success(response.data.payload.message || 'Password changed successfully');
         // Reset form fields
@@ -112,9 +117,9 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
       setLoading(false);
     }
   };
-  
+
   // If user is a Google login user, show a notification instead of the password change form
-  if (isGoogleUser) {
+  if (!canChangePassword) {
     return (
       <div className="space-y-6">
         <Card className="border-zinc-800 bg-zinc-900/40">
@@ -133,12 +138,12 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
               <div>
                 <h3 className="font-medium text-amber-400">Password Change Not Available</h3>
                 <p className="text-sm text-zinc-400 mt-1">
-                  Password change is not available for accounts created using Google login. 
+                  Password change is not available for accounts created using Google login.
                   Your password is managed through your Google account.
                 </p>
               </div>
             </div>
-            
+
             <div className="rounded-lg border border-zinc-800 p-4 bg-zinc-900/60">
               <h3 className="font-medium mb-2">Account Security Recommendations</h3>
               <ul className="text-sm text-zinc-400 space-y-2">
@@ -153,7 +158,7 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <Card className="border-zinc-800 bg-zinc-900/40">
@@ -202,7 +207,7 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* New Password */}
                 <FormField
                   control={form.control}
@@ -235,7 +240,7 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Confirm New Password */}
                 <FormField
                   control={form.control}
@@ -268,7 +273,7 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
                     </FormItem>
                   )}
                 />
-                
+
                 <Button
                   type="submit"
                   className="w-full mt-2"
@@ -279,7 +284,7 @@ const PasswordChangeTab:React.FC<PassWordChangeProps> = ({email}) => {
               </form>
             </Form>
           </div>
-          
+
           <div className="flex items-center p-4 bg-amber-400/10 border border-amber-400/20 rounded-lg">
             <AlertCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0" />
             <div className="text-sm text-amber-200">

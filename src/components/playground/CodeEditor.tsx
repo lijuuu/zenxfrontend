@@ -14,6 +14,7 @@ interface CodeEditorProps {
   editorTheme?: ThemeInfo;
   onRun?: () => void;
   onSubmit?: () => void;
+  isAuthenticated?: boolean;
 }
 
 const defaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -53,6 +54,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   editorTheme,
   onRun,
   onSubmit,
+  isAuthenticated = true,
 }) => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -64,25 +66,44 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     editorRef.current = editor;
     editor.focus();
 
-    //add custom keybindings
-    if (onRun) {
+    // Register keybindings: Ctrl+Enter for run, Ctrl+Alt+Enter for submit (only if authenticated)
+    if (onRun && isAuthenticated) {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
         onRun();
-      });
+      }, 'runCode');
     }
 
-    if (onSubmit) {
+    if (onSubmit && isAuthenticated) {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.Enter, () => {
         onSubmit();
-      });
+      }, 'submitCode');
     }
+
+    // Add a keydown listener to catch key events and prevent default behavior (only if authenticated)
+    editor.onKeyDown((e) => {
+      if (e.ctrlKey && e.keyCode === monaco.KeyCode.Enter && isAuthenticated) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.altKey) {
+          // Ctrl+Alt+Enter for submit
+          if (onSubmit) {
+            onSubmit();
+          }
+        } else {
+          // Ctrl+Enter for run
+          if (onRun) {
+            onRun();
+          }
+        }
+      }
+    });
   };
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
       if (editorRef.current) editorRef.current.layout();
     });
-    const container = document.getElementById('editor-container');
+    const container = document.getElementById('playground-editor-container');
     if (container) resizeObserver.observe(container);
     return () => {
       if (container) resizeObserver.unobserve(container);
@@ -90,10 +111,27 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   }, []);
 
+  // Re-register keybindings when handlers change (only if authenticated)
+  useEffect(() => {
+    if (editorRef.current && isAuthenticated) {
+      if (onRun) {
+        editorRef.current.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+          onRun();
+        }, 'runCodeUpdated');
+      }
+
+      if (onSubmit) {
+        editorRef.current.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.Enter, () => {
+          onSubmit();
+        }, 'submitCodeUpdated');
+      }
+    }
+  }, [onRun, onSubmit, isAuthenticated]);
+
 
 
   return (
-    <div id="editor-container" className="w-full h-full overflow-hidden rounded-md border relative bg-[#1e1e1e]">
+    <div id="playground-editor-container" className="w-full h-full overflow-hidden rounded-md border relative bg-[#1e1e1e]">
       <Editor
         height="100%"
         language={language}

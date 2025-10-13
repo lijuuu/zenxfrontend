@@ -2,23 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Copy, CheckCheck, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { RootState } from '@/store';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ReactMarkdown from 'react-markdown';
+import { CompilerResponse } from '@/api/compilerApi';
 
 interface OutputProps {
   className?: string;
+  result?: CompilerResponse | null;
+  isLoading?: boolean;
+  code?: string;
+  language?: string;
 }
 
-function Output({ className }: OutputProps) {
-  const { loading, result } = useSelector((state: RootState) => state.xCodeCompiler);
-  const { code, language } = useSelector((state: RootState) => state.xCodeCompiler);
+function Output({ className, result, isLoading, code, language }: OutputProps) {
   const [copied, setCopied] = useState(false);
   const [isErrorExpanded, setIsErrorExpanded] = useState(false);
   const [hints, setHints] = useState<string | null>("");
@@ -124,7 +125,7 @@ function Output({ className }: OutputProps) {
 
   return (
     <div className={cn('h-full bg-background', className)}>
-      <div className="p-4 h-full flex flex-col">
+      <div className="p-1 h-full flex flex-col">
         <div className="flex justify-between items-center mb-4 p-2 bg-muted/20 rounded-md border border-border/50">
           <h2 className="text-base font-semibold text-foreground">output</h2>
           <div className="flex items-center gap-2">
@@ -247,7 +248,7 @@ function Output({ className }: OutputProps) {
 
         <ScrollArea className="flex-1 p-4 bg-muted/20 rounded-md border border-border/50">
           <AnimatePresence mode="wait">
-            {loading ? (
+            {isLoading ? (
               <motion.div
                 key="loading"
                 initial={{ opacity: 0 }}

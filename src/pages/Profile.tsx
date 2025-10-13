@@ -5,24 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
-// import { getChallenges } from "@/api/challengeApi";
 import { useIsMobile } from "@/hooks/useMobile";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import MonthlyActivityHeatmap from "@/components/activity/MonthlyActivityHeatmap";
 import ProblemsSolvedChart from "@/components/profile/ProblemsSolvedChart";
 import RecentSubmissions from "@/components/profile/RecentSubmissions";
-import ProfileAchievements from "@/components/profile/ProfileAchievements";
 import MainNavbar from "@/components/common/MainNavbar";
 import { useGetUserProfile } from "@/services/useGetUserProfile";
 import { useLeaderboard } from "@/hooks";
 import { Link } from "react-router-dom";
-import { useProblemStats } from "@/services/useProblemStats";
 import { useOwner } from "@/hooks/useOwner";
 
 const Profile = React.memo(() => {
   const { username } = useParams<{ username: string }>();
   const { toast } = useToast();
-  const [challenges, setChallenges] = useState<any[]>([]);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -45,14 +41,6 @@ const Profile = React.memo(() => {
   // Fetch leaderboard data for this user on component mount
   const { data: leaderboardData } = useLeaderboard(profile?.userId);
 
-  // Count private and public challenges
-  const privateChallenges = Array.isArray(challenges)
-    ? challenges.filter((c) => c.isPrivate).length
-    : 0;
-
-  const publicChallenges = Array.isArray(challenges)
-    ? challenges.filter((c) => !c.isPrivate).length
-    : 0;
 
 
   if (profileLoading) {

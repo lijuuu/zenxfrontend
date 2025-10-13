@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Play, RefreshCw, ArrowLeft, Menu, Clock } from 'lucide-react';
+import { Play, RefreshCw, ArrowLeft, Menu, Clock, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import Loader3 from '../ui/loader3';
@@ -8,7 +8,8 @@ import { ProblemTabs } from './ProblemTabs';
 import { CodeEditor } from './CodeEditor';
 import { Timer } from './Timer';
 import { ProblemMetadata, ExecutionResult, TestCase } from '@/api/types';
-import { themes, ThemeInfo } from "@/components/playground/EditorThemes"
+import { themes, ThemeInfo } from "@/components/playground/EditorThemes";
+import { useAuth } from '@/hooks/useAuth';
 
 
 interface PlaygroundLayoutProps {
@@ -76,6 +77,9 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
 }) => {
   //editor theme state
   const [editorTheme, setEditorTheme] = useState<ThemeInfo>({ name: 'vs-dark', backgroundColor: '#1e1e1e' });
+
+  // Authentication state
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const localStorageTheme = localStorage.getItem("editorTheme");
@@ -202,9 +206,18 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
               onClick={handleOpenTargetTimeModal}
               size="sm"
               variant="outline"
-              className="h-9 border-zinc-600 text-zinc-300 hover:text-white hover:border-blue-500 hover:bg-blue-500/10 text-sm px-4 font-medium rounded-lg transition-all duration-200"
+              disabled={!isAuthenticated}
+              className={`h-9 text-sm px-4 font-medium rounded-lg transition-all duration-200 ${!isAuthenticated
+                  ? 'border-zinc-600 text-zinc-500 cursor-not-allowed'
+                  : 'border-zinc-600 text-zinc-300 hover:text-white hover:border-blue-500 hover:bg-blue-500/10'
+                }`}
+              title={!isAuthenticated ? "Please log in to set target time" : "Set target time"}
             >
-              <Clock className="h-4 w-4 mr-2" />
+              {!isAuthenticated ? (
+                <Lock className="h-4 w-4 mr-2" />
+              ) : (
+                <Clock className="h-4 w-4 mr-2" />
+              )}
               Target Time
             </Button>
           ) : (
@@ -229,23 +242,37 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
 
           <Button
             onClick={() => handleCodeExecution('run')}
-            className="h-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
-            disabled={isExecuting}
-            title="Run code (Ctrl+Enter)"
+            className={`h-8 border-0 shadow-lg transition-all duration-200 text-xs px-3 font-medium rounded-md ${!isAuthenticated
+              ? 'bg-zinc-600 text-zinc-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white'
+              }`}
+            disabled={isExecuting || !isAuthenticated}
+            title={!isAuthenticated ? "Please log in to run code" : "Run code (Ctrl+Enter)"}
           >
-            <Play className="h-3.5 w-3.5 mr-1.5" />
+            {!isAuthenticated ? (
+              <Lock className="h-3.5 w-3.5 mr-1.5" />
+            ) : (
+              <Play className="h-3.5 w-3.5 mr-1.5" />
+            )}
             {isExecuting ? 'Running...' : 'Run'}
-            <span className="ml-2 text-xs opacity-70">⌃↵</span>
+            {isAuthenticated && <span className="ml-2 text-xs opacity-70">⌃↵</span>}
           </Button>
           <Button
             onClick={() => handleCodeExecution('submit')}
-            className="h-8 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-lg  transition-all duration-200 text-xs px-3 font-medium rounded-md"
-            disabled={isExecuting}
-            title="Submit code (Ctrl+Alt+Enter)"
+            className={`h-8 border-0 shadow-lg transition-all duration-200 text-xs px-3 font-medium rounded-md ${!isAuthenticated
+              ? 'bg-zinc-600 text-zinc-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
+              }`}
+            disabled={isExecuting || !isAuthenticated}
+            title={!isAuthenticated ? "Please log in to submit code" : "Submit code (Ctrl+Alt+Enter)"}
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isExecuting ? 'animate-spin' : ''}`} />
+            {!isAuthenticated ? (
+              <Lock className="h-3.5 w-3.5 mr-1.5" />
+            ) : (
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isExecuting ? 'animate-spin' : ''}`} />
+            )}
             {isExecuting ? 'Submitting...' : 'Submit'}
-            <span className="ml-2 text-xs opacity-70">⌃⌥↵</span>
+            {isAuthenticated && <span className="ml-2 text-xs opacity-70">⌃⌥↵</span>}
           </Button>
           <Button
             onClick={handleResetCode}
@@ -310,6 +337,7 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
                 editorTheme={editorTheme}
                 onRun={() => handleCodeExecution('run')}
                 onSubmit={() => handleCodeExecution('submit')}
+                isAuthenticated={isAuthenticated}
               />
             </div>
           </ResizablePanel>

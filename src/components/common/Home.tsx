@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
 import { Badge } from '@/components/ui/badge';
-import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star, Sparkles } from 'lucide-react';
+import { GitCompare, Sword, Trophy, Code, Flame, ArrowRight, Users, Github, Zap, Shield, Star, Sparkles, Play, Target, Brain, Rocket, ChevronRight, CheckCircle, TrendingUp, Clock, Award } from 'lucide-react';
 import Footer from './Footer';
 import ChatChallengeNotification from '@/components/challenges/ChatChallengeNotification';
 import MainNavbar from './MainNavbar';
@@ -14,16 +14,15 @@ const Home = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showAnimation, setShowAnimation] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   const handleQuickMatch = () => {
     navigate('/problems');
   };
 
   const handleChallengeAccept = () => {
-    // toast({
-    //   title: "Challenge accepted",
-    //   description: "You've joined the coding battle",
-    // });
     navigate('/challenges');
   };
 
@@ -41,12 +40,29 @@ const Home = () => {
   };
 
   useEffect(() => {
-    // Trigger animation after a short delay
     const timer = setTimeout(() => {
       setShowAnimation(true);
     }, 50);
 
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        setMousePosition({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      }
+    };
+
+    const heroElement = heroRef.current;
+    if (heroElement) {
+      heroElement.addEventListener('mousemove', handleMouseMove);
+      return () => heroElement.removeEventListener('mousemove', handleMouseMove);
+    }
   }, []);
 
   return (

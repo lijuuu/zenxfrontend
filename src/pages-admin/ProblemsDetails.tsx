@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, Loader2, Trash2 } from "lucide-react";
 import MDEditor from '@uiw/react-md-editor';
+import {LEETCODE_TAGS} from "@/constants/problemTags"
 
 // Schema definition
 const problemSchema = z.object({
@@ -55,11 +56,6 @@ interface MultiSelectProps {
   errors?: any;
 }
 
-const predefinedTags = [
-  "Array", "String", "Dynamic Programming", "Graph", "Tree",
-  "Linked List", "Stack", "Queue", "Heap", "Backtracking",
-  "Greedy", "Binary Search", "Sorting", "Recursion", "Bit Manipulation"
-];
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
@@ -302,7 +298,7 @@ const ProblemDetailsView: React.FC<ProblemDetailsProps> = ({
                     control={control}
                     render={({ field }) => (
                       <MultiSelect
-                        options={predefinedTags.map((tag) => ({ value: tag, label: tag }))}
+                        options={LEETCODE_TAGS.map((tag) => ({ value: tag, label: tag }))}
                         selected={field.value.map((tag) => ({ value: tag, label: tag })) || []}
                         onChange={(selected) => field.onChange(selected.map((s) => s.value))}
                         placeholder="Select tags..."

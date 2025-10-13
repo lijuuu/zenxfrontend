@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { format, parseISO, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths, isSameMonth, addDays, subDays } from 'date-fns';
 import { Activity } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/useMobile';
 import { useMonthlyActivity } from '@/services/useMonthlyActivityHeatmap';
+import { FIRE_ANIMATION_THRESHOLD } from '@/constants/activityConstants';
+import fireBubbleImage from '@/assets/fireBubble.png';
 
 type ActivityDay = {
   date: string;
@@ -91,6 +93,36 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   const [hoveredDay, setHoveredDay] = useState<ActivityDay | null>(null);
   const isMobile = useIsMobile();
 
+  // Add fire animation styles
+  const fireAnimationStyles = `
+    @keyframes fireFlicker {
+      0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1) hue-rotate(0deg);
+      }
+      25% { 
+        transform: scale(1.05) rotate(1deg);
+        filter: brightness(1.1) hue-rotate(5deg);
+      }
+      50% { 
+        transform: scale(0.98) rotate(-1deg);
+        filter: brightness(1.2) hue-rotate(-5deg);
+      }
+      75% { 
+        transform: scale(1.02) rotate(0.5deg);
+        filter: brightness(1.15) hue-rotate(3deg);
+      }
+    }
+    
+    .fire-animation {
+      animation: fireFlicker 2s ease-in-out infinite;
+    }
+    
+    .fire-glow {
+      box-shadow: 0 0 10px rgba(255, 100, 0, 0.6), 0 0 20px rgba(255, 150, 0, 0.4), 0 0 30px rgba(255, 200, 0, 0.2);
+    }
+  `;
+
   // Get a fallback user ID if none is provided
   const {
     activityData,
@@ -134,6 +166,24 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
   const gap = 'gap-1';
 
   const weeksNeeded = Math.ceil((getDaysInMonth(selectedDate) + getDay(startOfMonth(selectedDate))) / 7);
+
+  // Inject fire animation styles
+  useEffect(() => {
+    const styleId = 'fire-animation-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = fireAnimationStyles;
+      document.head.appendChild(style);
+    }
+
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
 
   // Determine card styling based on variant
   const getCardStyles = () => {
@@ -269,18 +319,35 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
                         );
                       }
 
+                      const isHighContribution = day.isActive && day.count >= FIRE_ANIMATION_THRESHOLD;
+
                       return (
                         <Tooltip key={`${weekIndex}-${dayIndex}`}>
                           <TooltipTrigger asChild>
                             <div
-                              className={`${circleSize} rounded-full cursor-pointer transition-all duration-200 transform hover:scale-125 hover:z-10 ${day.isActive
+                              className={`${circleSize} rounded-full cursor-pointer transition-all duration-200 transform hover:scale-125 hover:z-10 relative ${isHighContribution
+                                ? 'fire-animation fire-glow'
+                                : day.isActive
                                   ? 'bg-green-500 hover:bg-green-400'
                                   : 'bg-red-500 hover:bg-red-400'
                                 }`}
                               onMouseEnter={() => setHoveredDay(day)}
                               onMouseLeave={() => setHoveredDay(null)}
                               style={{ transformOrigin: 'center' }}
-                            />
+                            >
+                              {isHighContribution && (
+                                <img
+                                  src={fireBubbleImage}
+                                  alt="Fire contribution"
+                                  className="w-full h-full scale-150 rounded-full object-cover"
+                                  style={{
+                                    filter: 'brightness(1.1) contrast(1.1)',
+                                    mixBlendMode: 'multiply',
+                                    marginBottom: '10px'
+                                  }}
+                                />
+                              )}
+                            </div>
                           </TooltipTrigger>
                           <TooltipContent
                             side="top"
@@ -289,7 +356,7 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
                             <p>{format(parseISO(day.date), 'MMMM d, yyyy')}</p>
                             <p>
                               {day.isActive
-                                ? `${day.count} contribution${day.count !== 1 ? 's' : ''}`
+                                ? `${day.count} contribution${day.count !== 1 ? 's' : ''}${isHighContribution ? ' 🔥' : ''}`
                                 : 'No activity'}
                             </p>
                           </TooltipContent>
@@ -308,6 +375,20 @@ const MonthlyActivityHeatmap: React.FC<MonthlyActivityHeatmapProps> = ({
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   <span>Active</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full fire-animation fire-glow relative">
+                    <img
+                      src={fireBubbleImage}
+                      alt="Fire"
+                      className="w-full h-full rounded-full object-cover"
+                      style={{
+                        filter: 'brightness(1.1) contrast(1.1)',
+                        mixBlendMode: 'multiply'
+                      }}
+                    />
+                  </div>
+                  <span>High Activity ({FIRE_ANIMATION_THRESHOLD}+)</span>
                 </div>
               </div>
             </div>

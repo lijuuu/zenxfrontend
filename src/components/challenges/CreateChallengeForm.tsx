@@ -259,21 +259,13 @@ const CreateChallenge: React.FC = () => {
   const totalQuestions = form.getValues().config.maxEasyQuestions + form.getValues().config.maxMediumQuestions + form.getValues().config.maxHardQuestions;
 
   return (
-    <div
-      className="min-h-screen text-foreground pt-16 pb-8"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.5)), url(${bgGradient})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="min-h-screen bg-black/80 backdrop-blur-sm text-white pt-16 pb-8">
       <MainNavbar />
       <main className="page-container py-6 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Trophy className="h-8 w-8 text-green-400" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">Create New Challenge</h1>
+            <Trophy className="h-8 w-8 text-white" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Create New Challenge</h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -282,27 +274,26 @@ const CreateChallenge: React.FC = () => {
               variant="outline"
               onClick={() => navigate(-1)}
               disabled={createChallengeMutation.isPending}
-              className="rounded-md border-gray-600 text-gray-300 hover:bg-gray-700/50 metallic-button"
+              className="rounded-md border-gray-600 text-gray-300 hover:bg-gray-800/50"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               size="lg"
-              className="bg-green-500 hover:bg-green-600 relative group py-6 px-8 rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 hover:shadow-xl hover:shadow-green-600/30 transition-all duration-300"
+              className="bg-white text-black hover:bg-gray-200 relative group py-6 px-8 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-300"
               disabled={createChallengeMutation.isPending || isLoadingCounts || !validateProblemSelection(useRandomProblems)}
               onClick={form.handleSubmit(onSubmit)}
             >
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               {createChallengeMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" />
-                  <span className="relative z-10">Creating...</span>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <span>Creating...</span>
                 </>
               ) : (
                 <>
-                  <PlusCircle className="mr-2 h-5 w-5 group-hover:animate-pulse relative z-10" />
-                  <span className="relative z-10">Create Challenge</span>
+                  <PlusCircle className="mr-2 h-5 w-5" />
+                  <span>Create Challenge</span>
                 </>
               )}
             </Button>
@@ -316,16 +307,16 @@ const CreateChallenge: React.FC = () => {
 
               {/* Challenge Details - Large Card */}
               <div className="lg:col-span-2 lg:row-span-2">
-                <div className="bg-white rounded-2xl p-8 h-full">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                <div className="bg-black/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 h-full">
+                  {/* <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-black/60 backdrop-blur-sm rounded-xl flex items-center justify-center">
                       <Settings className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">Challenge Details</h2>
-                      <p className="text-gray-600">Configure your challenge settings</p>
+                      <h2 className="text-2xl font-bold text-white">Challenge Details</h2>
+                      <p className="text-gray-400">Configure your challenge settings</p>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="space-y-6">
                     <FormField
@@ -333,15 +324,15 @@ const CreateChallenge: React.FC = () => {
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold text-gray-900">Challenge Title</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-white">Challenge Title</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Enter challenge title"
-                              className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/50"
                               {...field}
                             />
                           </FormControl>
-                          <FormMessage className="text-red-500" />
+                          <FormMessage className="text-red-400" />
                         </FormItem>
                       )}
                     />
@@ -352,29 +343,29 @@ const CreateChallenge: React.FC = () => {
                         name="difficulty"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-semibold text-gray-900">Difficulty</FormLabel>
+                            <FormLabel className="text-sm font-semibold text-white">Difficulty</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
-                                <SelectTrigger className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500">
+                                <SelectTrigger className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-white/50">
                                   <SelectValue placeholder="Select difficulty" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="bg-white border-gray-200">
-                                <SelectItem value="Easy" className="flex items-center gap-2">
-                                  <Flag className="h-4 w-4 text-green-500" />
+                              <SelectContent className="bg-black/60 backdrop-blur-sm border-gray-600/50">
+                                <SelectItem value="Easy" className="flex items-center gap-2 text-white hover:bg-black/40">
+                                  <Flag className="h-4 w-4 text-white" />
                                   <span>Easy</span>
                                 </SelectItem>
-                                <SelectItem value="Medium" className="flex items-center gap-2">
-                                  <Brain className="h-4 w-4 text-yellow-500" />
+                                <SelectItem value="Medium" className="flex items-center gap-2 text-white hover:bg-black/40">
+                                  <Brain className="h-4 w-4 text-white" />
                                   <span>Medium</span>
                                 </SelectItem>
-                                <SelectItem value="Hard" className="flex items-center gap-2">
-                                  <Trophy className="h-4 w-4 text-red-500" />
+                                <SelectItem value="Hard" className="flex items-center gap-2 text-white hover:bg-black/40">
+                                  <Trophy className="h-4 w-4 text-white" />
                                   <span>Hard</span>
                                 </SelectItem>
                               </SelectContent>
                             </Select>
-                            <FormMessage className="text-red-500" />
+                            <FormMessage className="text-red-400" />
                           </FormItem>
                         )}
                       />
@@ -384,19 +375,19 @@ const CreateChallenge: React.FC = () => {
                         name="config.maxUsers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-semibold text-gray-900">Max Participants</FormLabel>
+                            <FormLabel className="text-sm font-semibold text-white">Max Participants</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 placeholder="30"
-                                className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500"
+                                className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-white/50"
                                 {...field}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                                 min={1}
                                 max={30}
                               />
                             </FormControl>
-                            <FormMessage className="text-red-500" />
+                            <FormMessage className="text-red-400" />
                           </FormItem>
                         )}
                       />
@@ -408,13 +399,13 @@ const CreateChallenge: React.FC = () => {
                         name="timeLimitMillis"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-semibold text-gray-900">Time Limit</FormLabel>
-                            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3">
+                            <FormLabel className="text-sm font-semibold text-white">Time Limit</FormLabel>
+                            <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm border border-gray-600/50 rounded-xl p-3">
                               <FormControl>
                                 <Input
                                   type="number"
                                   placeholder="1"
-                                  className="bg-transparent border-0 text-gray-900 focus:ring-0 text-center"
+                                  className="bg-transparent border-0 text-white focus:ring-0 text-center"
                                   value={Math.floor((field.value ?? 0) / 3600)}
                                   onChange={(e) => {
                                     const hours = Number(e.target.value);
@@ -426,13 +417,13 @@ const CreateChallenge: React.FC = () => {
                                   max={24}
                                 />
                               </FormControl>
-                              <span className="text-gray-600 text-sm">hrs</span>
-                              <div className="h-6 w-px bg-gray-300"></div>
+                              <span className="text-gray-400 text-sm">hrs</span>
+                              <div className="h-6 w-px bg-gray-500/50"></div>
                               <FormControl>
                                 <Input
                                   type="number"
                                   placeholder="0"
-                                  className="bg-transparent border-0 text-gray-900 focus:ring-0 text-center"
+                                  className="bg-transparent border-0 text-white focus:ring-0 text-center"
                                   value={Math.floor(((field.value ?? 0) % 3600) / 60)}
                                   onChange={(e) => {
                                     const minutes = Number(e.target.value);
@@ -444,9 +435,9 @@ const CreateChallenge: React.FC = () => {
                                   max={59}
                                 />
                               </FormControl>
-                              <span className="text-gray-600 text-sm">min</span>
+                              <span className="text-gray-400 text-sm">min</span>
                             </div>
-                            <FormMessage className="text-red-500" />
+                            <FormMessage className="text-red-400" />
                           </FormItem>
                         )}
                       />
@@ -456,20 +447,20 @@ const CreateChallenge: React.FC = () => {
                         name="lobbyBufferSeconds"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-semibold text-gray-900">Lobby Buffer</FormLabel>
+                            <FormLabel className="text-sm font-semibold text-white">Lobby Buffer</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 placeholder="300"
-                                className="bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-green-500"
+                                className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-white/50"
                                 {...field}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                                 min={0}
                                 max={86400}
                               />
                             </FormControl>
-                            <p className="text-xs text-gray-500">seconds</p>
-                            <FormMessage className="text-red-500" />
+                            <p className="text-xs text-gray-400">seconds</p>
+                            <FormMessage className="text-red-400" />
                           </FormItem>
                         )}
                       />
@@ -479,10 +470,10 @@ const CreateChallenge: React.FC = () => {
                       control={form.control}
                       name="isPrivate"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-200 p-4 bg-gray-50">
+                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-600/50 p-4 bg-black/30 backdrop-blur-sm">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm font-semibold text-gray-900">Private Challenge</FormLabel>
-                            <p className="text-xs text-gray-600">
+                            <FormLabel className="text-sm font-semibold text-white">Private Challenge</FormLabel>
+                            <p className="text-xs text-gray-400">
                               Only users with access code can join
                             </p>
                           </div>
@@ -490,7 +481,7 @@ const CreateChallenge: React.FC = () => {
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              className="border-gray-300 text-green-500 focus:ring-green-500"
+                              className="border-gray-500/50 text-white focus:ring-white/50"
                             />
                           </FormControl>
                         </FormItem>
@@ -500,21 +491,21 @@ const CreateChallenge: React.FC = () => {
                 </div>
               </div>
 
-              {/* Problem Selection - Purple Card */}
+              {/* Problem Selection - Black Card */}
               <div className="lg:col-span-2">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 h-full">
+                <div className="bg-black/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 h-full">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-black/60 backdrop-blur-sm rounded-lg flex items-center justify-center">
                       <Puzzle className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-white">Problem Selection</h2>
-                      <p className="text-purple-100 text-sm">Choose your challenges</p>
+                      <p className="text-gray-400 text-sm">Choose your challenges</p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between bg-white/10 rounded-xl p-4">
+                    <div className="flex items-center justify-between bg-black/30 backdrop-blur-sm rounded-xl p-4">
                       <span className="text-white font-medium">Problems Selected</span>
                       <span className="text-2xl font-bold text-white">
                         {useRandomProblems ? `${totalQuestions}/10` : `${selectedProblems.length}/10`}
@@ -525,17 +516,17 @@ const CreateChallenge: React.FC = () => {
                       setUseRandomProblems(value === "random");
                       setSelectedProblems([]);
                     }} className="w-full">
-                      <TabsList className="grid grid-cols-2 w-full bg-white/10 rounded-xl p-1">
+                      <TabsList className="grid grid-cols-2 w-full bg-black/30 backdrop-blur-sm rounded-xl p-1">
                         <TabsTrigger
                           value="random"
-                          className="flex items-center gap-2 py-2 text-sm font-medium text-white data-[state=active]:bg-white data-[state=active]:text-purple-600 rounded-lg"
+                          className="flex items-center gap-2 py-2 text-sm font-medium text-white data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"
                         >
                           <Sparkles className="h-4 w-4" />
                           Random
                         </TabsTrigger>
                         <TabsTrigger
                           value="predefined"
-                          className="flex items-center gap-2 py-2 text-sm font-medium text-white data-[state=active]:bg-white data-[state=active]:text-purple-600 rounded-lg"
+                          className="flex items-center gap-2 py-2 text-sm font-medium text-white data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"
                         >
                           <Check className="h-4 w-4" />
                           Predefined
@@ -559,7 +550,7 @@ const CreateChallenge: React.FC = () => {
                                     <Input
                                       type="number"
                                       placeholder="0"
-                                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-200 rounded-xl focus:ring-2 focus:ring-white/50"
+                                      className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-gray-400 rounded-xl focus:ring-2 focus:ring-white/50"
                                       disabled={isLoadingCounts || problemCounts.easy === 0 || totalQuestions >= 10}
                                       {...field}
                                       onChange={(e) => field.onChange(Number(e.target.value))}
@@ -567,7 +558,7 @@ const CreateChallenge: React.FC = () => {
                                       min={0}
                                     />
                                   </FormControl>
-                                  <p className="text-xs text-purple-200">
+                                  <p className="text-xs text-gray-400">
                                     Available: {problemCounts.easy} problems
                                   </p>
                                 </FormItem>
@@ -590,7 +581,7 @@ const CreateChallenge: React.FC = () => {
                                     <Input
                                       type="number"
                                       placeholder="0"
-                                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-200 rounded-xl focus:ring-2 focus:ring-white/50"
+                                      className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-gray-400 rounded-xl focus:ring-2 focus:ring-white/50"
                                       disabled={isLoadingCounts || problemCounts.medium === 0 || totalQuestions >= 10}
                                       {...field}
                                       onChange={(e) => field.onChange(Number(e.target.value))}
@@ -598,7 +589,7 @@ const CreateChallenge: React.FC = () => {
                                       min={0}
                                     />
                                   </FormControl>
-                                  <p className="text-xs text-purple-200">
+                                  <p className="text-xs text-gray-400">
                                     Available: {problemCounts.medium} problems
                                   </p>
                                 </FormItem>
@@ -621,7 +612,7 @@ const CreateChallenge: React.FC = () => {
                                     <Input
                                       type="number"
                                       placeholder="0"
-                                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-200 rounded-xl focus:ring-2 focus:ring-white/50"
+                                      className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-gray-400 rounded-xl focus:ring-2 focus:ring-white/50"
                                       disabled={isLoadingCounts || problemCounts.hard === 0 || totalQuestions >= 10}
                                       {...field}
                                       onChange={(e) => field.onChange(Number(e.target.value))}
@@ -629,7 +620,7 @@ const CreateChallenge: React.FC = () => {
                                       min={0}
                                     />
                                   </FormControl>
-                                  <p className="text-xs text-purple-200">
+                                  <p className="text-xs text-gray-400">
                                     Available: {problemCounts.hard} problems
                                   </p>
                                 </FormItem>
@@ -641,27 +632,27 @@ const CreateChallenge: React.FC = () => {
 
                       <TabsContent value="predefined" className="space-y-3 mt-4">
                         <div className="space-y-3">
-                          <div className="flex items-center bg-white/10 border border-white/20 rounded-xl px-3 py-2">
-                            <Search className="h-4 w-4 text-purple-200 mr-2" />
+                          <div className="flex items-center bg-black/30 backdrop-blur-sm border border-gray-600/50 rounded-xl px-3 py-2">
+                            <Search className="h-4 w-4 text-gray-400 mr-2" />
                             <Input
                               placeholder="Search problems..."
-                              className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-white placeholder:text-purple-200"
+                              className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-white placeholder:text-gray-400"
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                             />
                           </div>
 
                           {problemsLoading || isLoadingCounts ? (
-                            <div className="flex justify-center items-center h-[150px] bg-white/10 rounded-xl">
+                            <div className="flex justify-center items-center h-[150px] bg-black/30 backdrop-blur-sm rounded-xl">
                               <div className="flex flex-col items-center gap-2">
                                 <Loader2 className="h-6 w-6 animate-spin text-white" />
-                                <p className="text-sm text-purple-200">Loading problems...</p>
+                                <p className="text-sm text-gray-400">Loading problems...</p>
                               </div>
                             </div>
                           ) : (
-                            <ScrollArea className="h-[200px] bg-white/10 rounded-xl p-3">
+                            <ScrollArea className="h-[200px] bg-black/30 backdrop-blur-sm rounded-xl p-3">
                               {filteredProblems.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-6 text-center text-purple-200">
+                                <div className="flex flex-col items-center justify-center py-6 text-center text-gray-400">
                                   <Search className="h-6 w-6 mb-2" />
                                   <p className="text-sm font-medium">No problems found</p>
                                   {searchQuery && (
@@ -679,8 +670,8 @@ const CreateChallenge: React.FC = () => {
                                         difficulty: problem.difficulty,
                                       })}
                                       className={`flex items-center justify-between rounded-lg p-3 transition-all cursor-pointer ${selectedProblems.find(p => p.problemId === problem.problemId)
-                                        ? 'bg-white/20 border border-white/30'
-                                        : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                                        ? 'bg-black/40 backdrop-blur-sm border border-gray-600/50'
+                                        : 'bg-black/20 hover:bg-black/30 border border-transparent'
                                         }`}
                                     >
                                       <div className="flex items-center gap-3 flex-1">
@@ -691,7 +682,7 @@ const CreateChallenge: React.FC = () => {
                                           <p className="text-sm font-medium text-white line-clamp-1">{problem.title}</p>
                                           <Badge
                                             variant="outline"
-                                            className={`text-xs mt-1 font-medium border-white/30 text-white`}
+                                            className={`text-xs mt-1 font-medium border-gray-600/50 text-white`}
                                           >
                                             {problem.difficulty}
                                           </Badge>
@@ -701,7 +692,7 @@ const CreateChallenge: React.FC = () => {
                                         {selectedProblems.find(p => p.problemId === problem.problemId) ? (
                                           <Check className="h-4 w-4 text-white" />
                                         ) : (
-                                          <PlusCircle className="h-4 w-4 text-purple-200" />
+                                          <PlusCircle className="h-4 w-4 text-gray-400" />
                                         )}
                                       </div>
                                     </div>
@@ -712,7 +703,7 @@ const CreateChallenge: React.FC = () => {
                           )}
 
                           {selectedProblems.length > 0 && (
-                            <div className="bg-white/10 rounded-xl p-3">
+                            <div className="bg-black/30 backdrop-blur-sm rounded-xl p-3">
                               <div className="flex items-center justify-between mb-3">
                                 <h4 className="text-sm font-medium text-white flex items-center gap-2">
                                   <Check className="h-4 w-4" />
@@ -721,7 +712,7 @@ const CreateChallenge: React.FC = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-white border-white/30 hover:bg-white/10"
+                                  className="text-white border-gray-600/50 hover:bg-black/40"
                                   onClick={() => setSelectedProblems([])}
                                 >
                                   <XCircle className="h-4 w-4 mr-1" />
@@ -734,14 +725,14 @@ const CreateChallenge: React.FC = () => {
                                   {selectedProblems.map((problem) => (
                                     <div
                                       key={problem.problemId}
-                                      className="flex items-center justify-between p-2 rounded-lg bg-white/5"
+                                      className="flex items-center justify-between p-2 rounded-lg bg-black/20"
                                     >
                                       <div className="flex items-center gap-2 flex-1 min-w-0">
                                         {getDifficultyIcon(problem.difficulty)}
                                         <span className="text-sm text-white truncate">{problem.title}</span>
                                       </div>
                                       <XCircle
-                                        className="h-4 w-4 cursor-pointer hover:text-red-300 text-purple-200"
+                                        className="h-4 w-4 cursor-pointer hover:text-red-300 text-gray-400"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleProblemSelect(problem);
@@ -760,73 +751,6 @@ const CreateChallenge: React.FC = () => {
                 </div>
               </div>
 
-              {/* Challenge Stats - Green Card */}
-              <div className="lg:col-span-2">
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 h-full">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                      <Trophy className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-white">Challenge Stats</h2>
-                      <p className="text-green-100 text-sm">Quick overview</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="bg-white/10 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-medium">Total Problems</span>
-                        <span className="text-2xl font-bold text-white">
-                          {useRandomProblems ? totalQuestions : selectedProblems.length}
-                        </span>
-                      </div>
-                      <div className="w-full bg-white/20 rounded-full h-2">
-                        <div
-                          className="bg-white h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${((useRandomProblems ? totalQuestions : selectedProblems.length) / 10) * 100}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-green-100 text-xs mt-2">Maximum 10 problems allowed</p>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="bg-white/10 rounded-lg p-3 text-center">
-                        <div className="text-lg font-bold text-white">
-                          {selectedProblems.filter(p => p.difficulty.toLowerCase() === "easy").length}
-                        </div>
-                        <div className="text-green-100 text-xs">Easy</div>
-                      </div>
-                      <div className="bg-white/10 rounded-lg p-3 text-center">
-                        <div className="text-lg font-bold text-white">
-                          {selectedProblems.filter(p => p.difficulty.toLowerCase() === "medium").length}
-                        </div>
-                        <div className="text-green-100 text-xs">Medium</div>
-                      </div>
-                      <div className="bg-white/10 rounded-lg p-3 text-center">
-                        <div className="text-lg font-bold text-white">
-                          {selectedProblems.filter(p => p.difficulty.toLowerCase() === "hard").length}
-                        </div>
-                        <div className="text-green-100 text-xs">Hard</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white/10 rounded-xl p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-white font-medium">Time Limit</div>
-                          <div className="text-green-100 text-sm">
-                            {Math.floor((form.getValues().timeLimitMillis ?? 0) / 3600)}h {Math.floor(((form.getValues().timeLimitMillis ?? 0) % 3600) / 60)}m
-                          </div>
-                        </div>
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                          <Brain className="h-6 w-6 text-white" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </form>
         </Form>

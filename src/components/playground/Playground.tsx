@@ -137,7 +137,9 @@ const Playground: React.FC<PlaygroundProps> = ({ propsProblemId, hideBackButton,
 
   // Handle code execution
   const handleCodeExecution = useCallback(async (type: string) => {
-    if (!problem) return;
+    if (!problem) {
+      return;
+    }
 
     setIsExecuting(true);
     setOutput([]);

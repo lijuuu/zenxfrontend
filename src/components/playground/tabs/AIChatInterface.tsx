@@ -245,9 +245,9 @@ export const AIChatInterface = forwardRef<AIChatInterfaceRef, AIChatInterfacePro
                 className="prose prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
               />
-              <div className="text-xs opacity-70 mt-2">
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </div>
+              {/* <div className="text-xs opacity-70 mt-2">
+                {new Date(message.timestamp).toLocaleDateString()}
+              </div> */}
             </div>
 
             {message.role === 'user' && (

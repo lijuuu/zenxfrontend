@@ -11,9 +11,10 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 
 interface TwoFactorAuthTabProps {
   userProfile: UserProfile;
+  canUse2FA: boolean;
 }
 
-const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
+const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile, canUse2FA }) => {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,15 +25,17 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
   const [verifyCode, setVerifyCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
-  
+
   useEffect(() => {
-    // Check if 2FA is enabled
-    checkTwoFactorStatus();
-  }, []);
-  
+    // Check if 2FA is enabled - only if userProfile is available
+    if (userProfile?.email) {
+      checkTwoFactorStatus();
+    }
+  }, [userProfile?.email]);
+
   const checkTwoFactorStatus = async () => {
     if (!userProfile?.email) return;
-    
+
     try {
       setLoading(true);
       const response = await axiosInstance.get(`/auth/2fa/status?email=${userProfile.email}`);
@@ -50,17 +53,17 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       setLoading(false);
     }
   };
-  
+
   const handleGenerateQRCode = async () => {
     if (!password) {
       toast.error('Please enter your password');
       return;
     }
-    
+
     try {
       setLoading(true);
       const response = await axiosInstance.post('/users/security/2fa/setup', { password });
-      
+
       if (response.data.success) {
         setQrCode(response.data.payload.image || null);
         setSecret(response.data.payload.secret || null);
@@ -78,19 +81,19 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       setLoading(false);
     }
   };
-  
+
   const handleVerify2FA = async () => {
     if (!verifyCode) {
       toast.error('Please enter the verification code');
       return;
     }
-    
+
     try {
       setLoading(true);
-      const response = await axiosInstance.post('/users/security/2fa/verify', { 
-        otp: verifyCode 
+      const response = await axiosInstance.post('/users/security/2fa/verify', {
+        otp: verifyCode
       });
-      
+
       if (response.data.success) {
         if (response.data.payload.verified) {
           toast.success(response.data.payload.message || 'Two-factor authentication verified successfully');
@@ -116,27 +119,27 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       setVerifyCode('');
     }
   };
-  
+
   const handleDisable2FA = async () => {
     if (!password) {
       toast.error('Please enter your password');
       return;
     }
-    
+
     if (!twoFactorCode) {
       toast.error('Please enter your two-factor code');
       return;
     }
-    
+
     try {
       setLoading(true);
-      const response = await axiosInstance.delete('/users/security/2fa/setup', { 
+      const response = await axiosInstance.delete('/users/security/2fa/setup', {
         data: {
           password,
           otp: twoFactorCode
         }
       });
-      
+
       if (response.data.success) {
         toast.success(response.data.payload.message || 'Two-factor authentication disabled successfully');
         setIsEnabled(false);
@@ -159,13 +162,13 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       setLoading(false);
     }
   };
-  
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  
+
   // If user is a Google login user, show a notification instead of the 2FA settings
-  if (isGoogleUser) {
+  if (!canUse2FA) {
     return (
       <div className="space-y-6">
         <Card className="border-zinc-800 bg-zinc-900/40">
@@ -184,12 +187,12 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
               <div>
                 <h3 className="font-medium text-amber-400">Two-Factor Authentication Not Available</h3>
                 <p className="text-sm text-zinc-400 mt-1">
-                  Two-factor authentication is not available for accounts created using Google login. 
+                  Two-factor authentication is not available for accounts created using Google login.
                   Your Google account already has its own security features like 2FA.
                 </p>
               </div>
             </div>
-            
+
             <div className="rounded-lg border border-zinc-800 p-4 bg-zinc-900/60">
               <h3 className="font-medium mb-2">Security Recommendations</h3>
               <ul className="text-sm text-zinc-400 space-y-2">
@@ -203,7 +206,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <Card className="border-zinc-800 bg-zinc-900/40">
@@ -222,7 +225,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
               <div className={`h-3 w-3 rounded-full ${isEnabled ? 'bg-green-500' : 'bg-zinc-500'}`}></div>
               <span>{isEnabled ? 'Enabled' : 'Disabled'}</span>
             </div>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -232,7 +235,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
               Refresh Status
             </Button>
           </div>
-          
+
           {!isEnabled ? (
             <div className="space-y-4">
               <div className="rounded-lg border border-zinc-800 p-4 bg-zinc-900/60">
@@ -240,7 +243,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                 <p className="text-sm text-zinc-400 mb-4">
                   Two-factor authentication adds an additional layer of security to your account by requiring a code from your mobile device in addition to your password.
                 </p>
-                
+
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <Label htmlFor="password">Password</Label>
@@ -266,7 +269,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <Button
                     onClick={handleGenerateQRCode}
                     className="w-full"
@@ -275,7 +278,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                     {loading ? 'Generating...' : 'Generate QR Code'}
                   </Button>
                 </div>
-                
+
                 {qrCode && (
                   <div className="mt-6 space-y-4">
                     <div className="border border-zinc-800 rounded-lg p-4 flex flex-col items-center bg-zinc-900/80">
@@ -283,7 +286,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                       <p className="text-sm text-zinc-400 mb-4 text-center">
                         Use a two-factor authentication app like Google Authenticator to scan this QR code
                       </p>
-                      <img 
+                      <img
                         src={`data:image/png;base64,${qrCode}`}
                         alt="Two-factor authentication QR code"
                         className="w-48 h-48 mb-2"
@@ -294,14 +297,14 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center p-4 bg-amber-400/10 border border-amber-400/20 rounded-lg">
                       <AlertCircle className="h-5 w-5 text-amber-400 mr-2 flex-shrink-0" />
                       <p className="text-sm text-amber-200">
                         Please scan this QR code with your authentication app. For security reasons, it will only be shown once.
                       </p>
                     </div>
-                    
+
                     <div className="space-y-4 mt-4">
                       <div className="space-y-2">
                         <Label htmlFor="verify-code">Verification Code</Label>
@@ -318,7 +321,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                           className="text-center font-mono text-lg"
                         />
                       </div>
-                      
+
                       <Button
                         onClick={handleVerify2FA}
                         className="w-full"
@@ -338,7 +341,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                 <p className="text-sm text-zinc-400 mb-4">
                   Warning: Disabling two-factor authentication will make your account less secure.
                 </p>
-                
+
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <Label htmlFor="disable-password">Password</Label>
@@ -364,7 +367,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1">
                     <Label htmlFor="two-factor-code">Two-Factor Code</Label>
                     <Input
@@ -377,7 +380,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                       className="text-center font-mono text-lg"
                     />
                   </div>
-                  
+
                   <Button
                     onClick={handleDisable2FA}
                     variant="destructive"
@@ -388,7 +391,7 @@ const TwoFactorAuthTab: React.FC<TwoFactorAuthTabProps> = ({ userProfile }) => {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="flex items-center p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
                 <LockIcon className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
                 <p className="text-sm text-green-200">

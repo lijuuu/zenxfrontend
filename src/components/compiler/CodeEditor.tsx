@@ -26,7 +26,7 @@ interface CodeEditorProps {
   code: string;
   onCodeChange: (value: string | undefined) => void;
   onMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
-  onRun?: () => void;
+  onRun: () => void;
 }
 
 function getLineHeight(fontSize: number): number {
@@ -35,17 +35,44 @@ function getLineHeight(fontSize: number): number {
 }
 
 const CodeEditor = ({ className, isMobile, fontSize, editorTheme, language, code, onCodeChange, onMount, onRun }: CodeEditorProps) => {
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
   useEffect(() => {
     loader.init().then(monacoInstance => defineAllThemes(monacoInstance));
   }, []);
 
+
+  // Update editor content when code prop changes
+  useEffect(() => {
+    if (editorRef.current && code !== undefined) {
+      const currentValue = editorRef.current.getValue();
+      if (currentValue !== code) {
+        editorRef.current.setValue(code);
+      }
+    }
+  }, [code]);
+
+
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    //add custom keybinding for run
+    editorRef.current = editor;
+
+    // Register Ctrl+Enter keybinding for run
     if (onRun) {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
         onRun();
-      });
+      }, 'compilerRunCode');
     }
+
+    // Add a keydown listener to catch key events and prevent default behavior
+    editor.onKeyDown((e) => {
+      if (e.ctrlKey && e.keyCode === monaco.KeyCode.Enter && !e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onRun) {
+          onRun();
+        }
+      }
+    });
 
     //call the original onMount if provided
     if (onMount) {
@@ -57,10 +84,11 @@ const CodeEditor = ({ className, isMobile, fontSize, editorTheme, language, code
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className={cn("w-full h-full flex flex-col p-2 sm:p-4 bg-background", className)}
+      className={cn("w-full h-full flex flex-col p-2  bg-background", className)}
     >
-      <div className="flex-1 rounded-md overflow-hidden border border-border/50">
+      <div id="compiler-editor-container" className="flex-1 rounded-md overflow-hidden border border-border/50">
         <Editor
+          key={`editor-${language}`} // Force re-render when language changes
           height="100%"
           language={language}
           value={code}

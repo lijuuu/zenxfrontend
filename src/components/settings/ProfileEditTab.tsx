@@ -51,15 +51,69 @@ interface CountriesWithFlagsProps {
 const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
   const { countries } = useCountries();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const handleSelect = (code: string) => {
     console.log(`Selected code: ${code}, name: ${countries[code]}`);
     onChange(code); // Pass country code to form
     setDropdownOpen(false);
+    setSearchTerm("");
+    setHighlightedIndex(-1);
   };
 
   // Get display name for the selected country code
   const displayName = value && countries[value] ? countries[value] : "";
+
+  // Filter countries based on search term
+  const filteredCountries = Object.entries(countries)
+    .filter(([code, name]) =>
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      code.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort(([, a], [, b]) => a.localeCompare(b));
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!dropdownOpen) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setDropdownOpen(true);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev =>
+          prev < filteredCountries.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev =>
+          prev > 0 ? prev - 1 : filteredCountries.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < filteredCountries.length) {
+          handleSelect(filteredCountries[highlightedIndex][0]);
+        }
+        break;
+      case 'Escape':
+        setDropdownOpen(false);
+        setSearchTerm("");
+        setHighlightedIndex(-1);
+        break;
+    }
+  };
+
+  // Reset highlighted index when search term changes
+  React.useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [searchTerm]);
 
   return (
     <div className="relative w-full">
@@ -67,6 +121,11 @@ const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
       <div
         className="flex items-center justify-between bg-zinc-800 text-white p-3 rounded-md mt-1 cursor-pointer hover:border-green-500 border border-zinc-700 transition-all duration-200"
         onClick={() => setDropdownOpen(!dropdownOpen)}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="combobox"
+        aria-expanded={dropdownOpen}
+        aria-haspopup="listbox"
       >
         {value && displayName ? (
           <div className="flex items-center space-x-2">
@@ -84,30 +143,59 @@ const CountriesWithFlags = ({ value, onChange }: CountriesWithFlagsProps) => {
         ) : (
           <span>Select a country</span>
         )}
-        <span>▼</span>
+        <span className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}>▼</span>
       </div>
       {dropdownOpen && (
-        <div className="absolute w-full bg-zinc-900 text-white mt-2 max-h-60 overflow-y-auto rounded-xl shadow-lg z-10 border border-zinc-800">
-          {Object.entries(countries)
-            .sort(([, a], [, b]) => a.localeCompare(b))
-            .map(([code, name]) => (
-              <div
-                key={code}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-zinc-800 cursor-pointer transition-colors duration-200"
-                onClick={() => handleSelect(code)}
-              >
-                <img
-                  src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
-                  alt={`${name} flag`}
-                  className="w-6 h-6"
-                  onError={(e) => {
-                    console.error(`Failed to load flag for ${code}`);
-                    e.currentTarget.src = "https://flagcdn.com/24x18/us.png"; // Fallback to US
-                  }}
-                />
-                <span>{name}</span>
+        <div className="absolute w-full bg-zinc-900 text-white mt-2 rounded-xl shadow-lg z-10 border border-zinc-800">
+          {/* Search input */}
+          <div className="p-3 border-b border-zinc-700">
+            <Input
+              type="text"
+              placeholder="Search countries..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-zinc-800 border-zinc-600 text-white placeholder-gray-400 focus:border-green-500 focus:ring-green-500"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  handleKeyDown(e);
+                }
+              }}
+            />
+          </div>
+
+          {/* Countries list */}
+          <div className="max-h-60 overflow-y-auto">
+            {filteredCountries.length > 0 ? (
+              filteredCountries.map(([code, name], index) => (
+                <div
+                  key={code}
+                  className={`flex items-center space-x-2 px-3 py-2 cursor-pointer transition-colors duration-200 ${index === highlightedIndex
+                    ? 'bg-green-600/20 border-l-2 border-green-500'
+                    : 'hover:bg-zinc-800'
+                    }`}
+                  onClick={() => handleSelect(code)}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                >
+                  <img
+                    src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
+                    alt={`${name} flag`}
+                    className="w-6 h-6"
+                    onError={(e) => {
+                      console.error(`Failed to load flag for ${code}`);
+                      e.currentTarget.src = "https://flagcdn.com/24x18/us.png"; // Fallback to US
+                    }}
+                  />
+                  <span>{name}</span>
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-4 text-center text-gray-400">
+                No countries found matching "{searchTerm}"
               </div>
-            ))}
+            )}
+          </div>
         </div>
       )}
     </div>

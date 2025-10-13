@@ -19,45 +19,37 @@ import {
 import { Input } from '@/components/ui/input';
 import { FileIcon, PlusIcon, TrashIcon, Edit2Icon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { File } from './CompilerPlayground';
 
-const FileSystem: React.FC = () => {
-  const dispatch = useDispatch();
-  const { language, file, files, currentFile } = useSelector((state: RootState) =>
-    state.xCodeCompiler ? state.xCodeCompiler : { language: 'javascript', file: 'js', files: [], currentFile: null }
-  );
+interface File {
+  id: string;
+  name: string;
+  content: string;
+  language: string;
+}
+
+interface FileSystemProps {
+  files: File[];
+  currentFile: string;
+  onFileSwitch: (fileId: string) => void;
+  onCreateFile: () => void;
+  onDeleteFile: (fileId: string) => void;
+  onRenameFile: (fileId: string, newName: string) => void;
+}
+
+const FileSystem: React.FC<FileSystemProps> = ({
+  files,
+  currentFile,
+  onFileSwitch,
+  onCreateFile,
+  onDeleteFile,
+  onRenameFile
+}) => {
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   // Load files from localStorage on component mount
-  useEffect(() => {
-    const loadFilesFromLocalStorage = () => {
-      try {
-        const storedFiles = localStorage.getItem('xcode-files');
-        if (storedFiles && dispatch) {
-          const parsedFiles: File[] = JSON.parse(storedFiles);
-          if (Array.isArray(parsedFiles)) {
-            dispatch({ type: 'xCodeCompiler/setFiles', payload: parsedFiles });
-            if (parsedFiles.length > 0 && currentFile === null) {
-              const sortedFiles = [...parsedFiles].sort(
-                (a, b) =>
-                  new Date(b.lastModified).getTime() -
-                  new Date(a.lastModified).getTime()
-              );
-              dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: sortedFiles[0].id });
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error loading files from localStorage:', error);
-      }
-    };
-    loadFilesFromLocalStorage();
-  }, [dispatch, currentFile]);
 
   // Get placeholder code based on language
   const getPlaceholder = (language: string): string => {
@@ -77,36 +69,12 @@ const FileSystem: React.FC = () => {
 
   // Create a new file
   const createNewFile = () => {
-    if (!dispatch) return;
-
-    const newId = Date.now().toString();
-    const newFile: File = {
-      id: newId,
-      name: `NewFile${files.length + 1}.${file}`,
-      language,
-      content: files.length === 0 ? '' : getPlaceholder(language),
-      createdAt: new Date().toISOString(),
-      lastModified: new Date().toISOString(),
-    };
-
-    dispatch({ type: 'xCodeCompiler/setFiles', payload: [...files, newFile] });
-    dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: newId });
+    onCreateFile();
   };
 
   // Delete a file
   const deleteFile = (id: string) => {
-    if (!dispatch) return;
-
-    const updatedFiles = files.filter((f: File) => f.id !== id);
-    dispatch({ type: 'xCodeCompiler/setFiles', payload: updatedFiles });
-
-    if (currentFile === id) {
-      if (updatedFiles.length > 0) {
-        dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: updatedFiles[0].id });
-      } else {
-        dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: null });
-      }
-    }
+    onDeleteFile(id);
   };
 
   // Start renaming a file
@@ -115,15 +83,13 @@ const FileSystem: React.FC = () => {
     if (file) {
       setNewFileName(file.name);
       setIsRenaming(true);
-      if (dispatch) {
-        dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: id });
-      }
+      onFileSwitch(id);
     }
   };
 
   // Complete file rename
   const completeRename = () => {
-    if (!newFileName.trim() || !currentFile || !dispatch) {
+    if (!newFileName.trim() || !currentFile) {
       if (newFileName.trim() === '') {
         setErrorMessage('File name cannot be empty');
         return;
@@ -131,21 +97,13 @@ const FileSystem: React.FC = () => {
       return;
     }
 
-    const updatedFiles = files.map((file: File) =>
-      file.id === currentFile
-        ? { ...file, name: newFileName, lastModified: new Date().toISOString() }
-        : file
-    );
-
-    dispatch({ type: 'xCodeCompiler/setFiles', payload: updatedFiles });
+    onRenameFile(currentFile, newFileName.trim());
     setIsRenaming(false);
   };
 
   // Set current file
   const setCurrentFileFn = (id: string) => {
-    if (dispatch) {
-      dispatch({ type: 'xCodeCompiler/setCurrentFile', payload: id });
-    }
+    onFileSwitch(id);
   };
 
   // Handle file name change

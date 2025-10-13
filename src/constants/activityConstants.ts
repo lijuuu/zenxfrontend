@@ -1,0 +1,1 @@
+export const FIRE_ANIMATION_THRESHOLD = 5;

@@ -9,6 +9,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import NotificationsSettingsTab from '@/components/settings/NotificationsSettingsTab';
 import { useGetUserProfile } from '@/services/useGetUserProfile';
 import ThemeColorTab from '@/components/settings/ThemeColorTab';
+import { useUserCapabilities } from '@/hooks/useUserCapabilities';
 
 const Settings = () => {
   const {
@@ -18,6 +19,7 @@ const Settings = () => {
     error
   } = useGetUserProfile();
 
+  const { canUse2FA, canChangePassword, isLoading: capabilitiesLoading } = useUserCapabilities(userProfile?.email);
   const [activeTab, setActiveTab] = useState('profile');
 
   if (profileLoading) {
@@ -113,11 +115,11 @@ const Settings = () => {
                 </TabsContent>
 
                 <TabsContent value="security" className="space-y-6">
-                  <TwoFactorAuthTab userProfile={userProfile} />
+                  <TwoFactorAuthTab userProfile={userProfile} canUse2FA={canUse2FA} />
                 </TabsContent>
 
                 <TabsContent value="password" className="space-y-6">
-                  <PasswordChangeTab email={userProfile?.email} />
+                  <PasswordChangeTab email={userProfile?.email} canChangePassword={canChangePassword} />
                 </TabsContent>
 
                 <TabsContent value="theme" className="space-y-6">

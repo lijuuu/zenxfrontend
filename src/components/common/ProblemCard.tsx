@@ -11,6 +11,7 @@ interface ProblemCardProps {
   tags: string[];
   solved: boolean;
   onClick: () => void;
+  viewMode?: "grid" | "list";
 }
 
 const mapDifficulty = (difficulty: string): string => {
@@ -41,51 +42,100 @@ const getDifficultyColor = (difficulty: string) => {
   }
 };
 
-const ProblemCard: React.FC<ProblemCardProps> = ({ id, title, difficulty, tags, solved, onClick }) => {
+const ProblemCard: React.FC<ProblemCardProps> = ({ id, title, difficulty, tags, solved, onClick, viewMode = "grid" }) => {
 
-  return (
+  if (viewMode === "list") {
+    return (
       <Card
         className={cn(
-          "bg-zinc-800/40 border border-zinc-700/40 hover:border-green-500/50 transition-colors cursor-pointer relative h-full group",
+          "bg-zinc-800/40 border border-zinc-700/40 hover:border-green-500/50 transition-colors cursor-pointer relative group",
           solved && "border-green-200 dark:border-green-900/50"
         )}
         onClick={onClick}
       >
         {solved && (
           <div className="absolute top-4 right-4">
-            <CheckCircle className="w-5 h-5 text-green-500" />
+            <CheckCircle className="w-4 h-4 text-green-500" />
           </div>
         )}
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <Badge className={cn(getDifficultyColor(difficulty))}>{mapDifficulty(difficulty)}</Badge>
-          </div>
-          <CardTitle className="text-lg mt-2 text-white  transition-colors">
-            {title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {tags.slice(0, 3).map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {tags.length > 3 && (
-              <Badge
-                variant="outline"
-                className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
-              >
-                +{tags.length - 3}
-              </Badge>
-            )}
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="text-lg font-semibold text-white truncate">
+                  {title}
+                </h3>
+                <Badge className={cn(getDifficultyColor(difficulty))}>{mapDifficulty(difficulty)}</Badge>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1 ml-4 max-w-xs">
+              {tags.slice(0, 3).map((tag, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {tags.length > 3 && (
+                <Badge
+                  variant="outline"
+                  className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
+                >
+                  +{tags.length - 3}
+                </Badge>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  return (
+    <Card
+      className={cn(
+        "bg-zinc-800/40 border border-zinc-700/40 hover:border-green-500/50 transition-colors cursor-pointer relative h-full group",
+        solved && "border-green-200 dark:border-green-900/50"
+      )}
+      onClick={onClick}
+    >
+      {solved && (
+        <div className="absolute top-4 right-4">
+          <CheckCircle className="w-5 h-5 text-green-500" />
+        </div>
+      )}
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <Badge className={cn(getDifficultyColor(difficulty))}>{mapDifficulty(difficulty)}</Badge>
+        </div>
+        <CardTitle className="text-lg mt-2 text-white  transition-colors">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {tags.slice(0, 3).map((tag) => (
+            <Badge
+              key={tag}
+              variant="outline"
+              className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
+            >
+              {tag}
+            </Badge>
+          ))}
+          {tags.length > 3 && (
+            <Badge
+              variant="outline"
+              className="bg-zinc-800/60 text-zinc-300 border-zinc-700 text-xs"
+            >
+              +{tags.length - 3}
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

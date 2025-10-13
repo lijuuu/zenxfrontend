@@ -10,7 +10,6 @@ export interface CompilerResponse {
 
 export const executeCode = async (code: string, language: string): Promise<CompilerResponse> => {
   if (!language) {
-    console.error("No language selected");
     return {
       output: "",
       status_message: "No language selected",
@@ -20,9 +19,9 @@ export const executeCode = async (code: string, language: string): Promise<Compi
 
   try {
     const response = await axiosInstance.post(
-      "/compile", 
+      "/compile",
       { code: btoa(code), language },
-      { headers: { "Content-Type": "application/json" } } 
+      { headers: { "Content-Type": "application/json" } }
     );
 
     const responseData = response.data as CompilerResponse;
