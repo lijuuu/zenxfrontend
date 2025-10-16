@@ -30,7 +30,6 @@ export type LeaderboardEntry = {
 };
 
 export type ChallengeConfig = {
-  maxUsers: number;
   maxEasyQuestions: number;
   maxMediumQuestions: number;
   maxHardQuestions: number;
@@ -42,9 +41,9 @@ export type ChallengeDocument = {
   title: string;
   isPrivate: boolean;
   password: string;
-  status: "pending" | "active" | "completed"; 
-  timeLimit: number; 
-  startTime: number; 
+  status: "pending" | "active" | "completed";
+  timeLimit: number;
+  startTime: number;
   participants: Record<string, ParticipantMetadata>;
   submissions: Record<string, Record<string, Submission>>;
   leaderboard: LeaderboardEntry[];

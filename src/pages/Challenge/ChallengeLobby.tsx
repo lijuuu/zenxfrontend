@@ -8,7 +8,7 @@ import { useGetUserProfileMetadataBulk } from "@/services/useGetUserProfileMetad
 import { useAuth } from "@/hooks/useAuth";
 import { useChallengeWebSocket } from "@/services/useChallengeWebsocket";
 import { sendWSEvent } from "@/lib/wsHandler";
-import { PUSH_NEW_CHAT, CHALLENGE_STARTED } from "@/lib/ws";
+import { PUSH_NEW_CHAT, CHALLENGE_STARTED } from "@/constants/eventTypes";
 import { useGetBulkProblemMetadata } from "@/services/useGetBulkProblemMetadata";
 import ProblemListing from "./BulkMetaDataProblemListing";
 import ChatPanel from "@/components/challenges/ChatPanel";
@@ -34,6 +34,10 @@ const ChallengeLobby: React.FC = () => {
     visible: false,
     countdown: 5,
   });
+  const [finishedOverlay, setFinishedOverlay] = useState<{ visible: boolean; countdown: number }>({
+    visible: false,
+    countdown: 10,
+  });
   const [chatInput, setChatInput] = useState<string>("");
 
   //websocket connection
@@ -54,6 +58,7 @@ const ChallengeLobby: React.FC = () => {
     setParticipantIds,
     setProblemIds,
     setAbandonOverlay,
+    setFinishedOverlay,
   });
 
   //data fetching
@@ -86,6 +91,25 @@ const ChallengeLobby: React.FC = () => {
 
     return () => clearInterval(timer);
   }, [abandonOverlay, navigate]);
+
+  //finished overlay countdown
+  useEffect(() => {
+    if (!finishedOverlay.visible) return;
+
+    if (finishedOverlay.countdown <= 0) {
+      navigate("/challenges");
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setFinishedOverlay((prev) => ({
+        ...prev,
+        countdown: prev.countdown - 1,
+      }));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [finishedOverlay, navigate]);
 
   //lobby and challenge countdown timers
   useEffect(() => {
@@ -161,6 +185,7 @@ const ChallengeLobby: React.FC = () => {
   };
 
   const isChallengeStarted = challenge && Date.now() >= (challenge.startTime * 1000);
+  const isChallengeFinished = challenge?.status === 'FINISHED';
   const isCreator = userProfile?.userId === challenge?.creatorId;
 
   return (
@@ -184,6 +209,11 @@ const ChallengeLobby: React.FC = () => {
                 <Badge variant={challenge?.isPrivate ? "destructive" : "secondary"}>
                   {challenge?.isPrivate ? "Private" : "Public"}
                 </Badge>
+                {isChallengeFinished && (
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
+                    Finished
+                  </Badge>
+                )}
                 <span className="text-sm text-zinc-400">
                   Connection: {wsStatus} <span className={getLatencyColor()}>
                     ({latency !== null ? `${latency}ms` : "N/A"})
@@ -264,7 +294,37 @@ const ChallengeLobby: React.FC = () => {
         )}
 
         {/*lobby vs challenge content*/}
-        {!isChallengeStarted ? (
+        {isChallengeFinished ? (
+          <Card className="bg-gradient-to-br from-amber-900/80 to-amber-800/60 border-amber-700">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2 text-2xl text-amber-400">
+                <Trophy className="h-6 w-6" />
+                Challenge Finished
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <p className="text-amber-300 mb-6 text-lg">The challenge has ended!</p>
+                {challenge?.finalLeaderboard && challenge.finalLeaderboard.length > 0 && (
+                  <div className="bg-amber-800/50 rounded-2xl p-6 border border-amber-700/50">
+                    <h3 className="font-semibold text-white mb-4">Final Results</h3>
+                    <div className="space-y-2">
+                      {challenge.finalLeaderboard.slice(0, 5).map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-amber-700/30 rounded">
+                          <span className="text-sm font-medium">
+                            {index === 0 && "🥇"} {index === 1 && "🥈"} {index === 2 && "🥉"}
+                            {index > 2 && `${index + 1}.`} {entry.userName || entry.userId}
+                          </span>
+                          <span className="text-sm font-bold text-amber-300">{entry.score || 0} pts</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : !isChallengeStarted ? (
           <Card className="bg-gradient-to-br from-zinc-900/80 to-zinc-800/60 border-zinc-700">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2 text-2xl">
@@ -303,9 +363,9 @@ const ChallengeLobby: React.FC = () => {
 
         {/*challenge details and chat - side by side layout*/}
         {challenge && (
-          <div className={`grid gap-6 ${isChallengeStarted ? 'grid-cols-1 xl:grid-cols-3' : 'grid-cols-1 lg:grid-cols-2'}`}>
+          <div className={`grid gap-6 ${isChallengeStarted && !isChallengeFinished ? 'grid-cols-1 xl:grid-cols-3' : 'grid-cols-1 lg:grid-cols-2'}`}>
             {/*challenge details - left side during join phase*/}
-            <div className={isChallengeStarted ? 'xl:col-span-2' : ''}>
+            <div className={isChallengeStarted && !isChallengeFinished ? 'xl:col-span-2' : ''}>
               <Card className="bg-zinc-900/50 border-zinc-800 h-96">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -361,8 +421,8 @@ const ChallengeLobby: React.FC = () => {
               </Card>
             </div>
 
-            {/*leaderboard and notifications - only show when game starts*/}
-            {isChallengeStarted && (
+            {/*leaderboard and notifications - only show when game starts but not finished*/}
+            {isChallengeStarted && !isChallengeFinished && (
               <div className="space-y-6">
                 {/*leaderboard - only visible after game starts*/}
                 <Card className="bg-zinc-900/50 border-zinc-800">
@@ -432,6 +492,51 @@ const ChallengeLobby: React.FC = () => {
                 <p className="text-lg font-semibold text-white">
                   Redirecting in {abandonOverlay.countdown} seconds...
                 </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/*finished overlay modal*/}
+        {finishedOverlay.visible && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <Card className="bg-zinc-900 border-zinc-700 max-w-lg mx-4">
+              <CardHeader>
+                <CardTitle className="text-center text-green-500 flex items-center justify-center gap-2">
+                  <Trophy className="h-6 w-6" />
+                  Challenge Finished!
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <p className="text-zinc-300">
+                  The challenge has ended. Check the final results below.
+                </p>
+                {challenge?.finalLeaderboard && challenge.finalLeaderboard.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-white">Final Results</h3>
+                    <div className="space-y-1">
+                      {challenge.finalLeaderboard.slice(0, 3).map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-zinc-800 rounded">
+                          <span className="text-sm">
+                            {index === 0 && "🥇"} {index === 1 && "🥈"} {index === 2 && "🥉"}
+                            {entry.userName || entry.userId}
+                          </span>
+                          <span className="text-sm font-medium">{entry.score || 0} pts</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-lg font-semibold text-white">
+                  Redirecting in {finishedOverlay.countdown} seconds...
+                </p>
+                <Button
+                  onClick={() => navigate("/challenges")}
+                  className="w-full mt-4"
+                  variant="outline"
+                >
+                  Go to Challenges Now
+                </Button>
               </CardContent>
             </Card>
           </div>

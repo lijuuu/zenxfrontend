@@ -59,11 +59,12 @@ const formSchema = z.object({
   }).default(3600),
   // lobby buffer in SECONDS before start time
   lobbyBufferSeconds: z.number().min(0).max(86400).default(300),
+  ownerReserveSlot: z.boolean().default(false),
   config: z.object({
+    maxParticipants: z.number().min(2).max(30).default(2),
     maxEasyQuestions: z.number().min(0).default(0),
     maxMediumQuestions: z.number().min(0).default(0),
     maxHardQuestions: z.number().min(0).default(0),
-    maxUsers: z.number().min(1).default(30),
   }),
 }).refine(
   (data) => {
@@ -95,11 +96,12 @@ const CreateChallenge: React.FC = () => {
       isPrivate: false,
       timeLimitMillis: 3600, // 1 hour default in seconds
       lobbyBufferSeconds: 300, // 5 minutes default lobby
+      ownerReserveSlot: false,
       config: {
+        maxParticipants: 2,
         maxEasyQuestions: 0,
         maxMediumQuestions: 0,
         maxHardQuestions: 0,
-        maxUsers: 30,
       },
     },
   });
@@ -223,12 +225,15 @@ const CreateChallenge: React.FC = () => {
     }
 
     const config = useRandomProblems
-      ? formData.config
+      ? {
+        maxEasyQuestions: formData.config.maxEasyQuestions,
+        maxMediumQuestions: formData.config.maxMediumQuestions,
+        maxHardQuestions: formData.config.maxHardQuestions,
+      }
       : {
         maxEasyQuestions: selectedProblems.filter(p => p.difficulty.toLowerCase() === "easy").length,
         maxMediumQuestions: selectedProblems.filter(p => p.difficulty.toLowerCase() === "medium").length,
         maxHardQuestions: selectedProblems.filter(p => p.difficulty.toLowerCase() === "hard").length,
-        maxUsers: formData.config.maxUsers,
       };
 
     try {
@@ -240,6 +245,8 @@ const CreateChallenge: React.FC = () => {
         isPrivate: formData.isPrivate,
         timeLimitMillis: clampedTimeLimit * 1000,
         startTimeUnix,
+        maxParticipants: formData.config.maxParticipants, //separate field for maxParticipants
+        ownerReserveSlot: formData.ownerReserveSlot, //owner reserve slot toggle
         config: { ...config } as ChallengeConfig,
       });
 
@@ -372,18 +379,18 @@ const CreateChallenge: React.FC = () => {
 
                       <FormField
                         control={form.control}
-                        name="config.maxUsers"
+                        name="config.maxParticipants"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-sm font-semibold text-white">Max Participants</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
-                                placeholder="30"
+                                placeholder="2"
                                 className="bg-black/30 backdrop-blur-sm border-gray-600/50 text-white rounded-xl focus:ring-2 focus:ring-white/50"
                                 {...field}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
-                                min={1}
+                                min={2}
                                 max={30}
                               />
                             </FormControl>
@@ -475,6 +482,28 @@ const CreateChallenge: React.FC = () => {
                             <FormLabel className="text-sm font-semibold text-white">Private Challenge</FormLabel>
                             <p className="text-xs text-gray-400">
                               Only users with access code can join
+                            </p>
+                          </div>
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="border-gray-500/50 text-white focus:ring-white/50"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ownerReserveSlot"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-xl border border-gray-600/50 p-4 bg-black/30 backdrop-blur-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-sm font-semibold text-white">Owner Reserve Slot</FormLabel>
+                            <p className="text-xs text-gray-400">
+                              Reserve a slot for the challenge owner
                             </p>
                           </div>
                           <FormControl>

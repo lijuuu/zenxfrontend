@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { initWSHandler, sendWSEvent } from "../lib/wsHandler";
+import { getWS } from "../lib/ws";
 import {
-  getWS,
   JOIN_CHALLENGE,
   USER_JOINED,
   PING_SERVER,
@@ -10,12 +10,13 @@ import {
   OWNER_LEFT,
   OWNER_JOINED,
   CREATOR_ABANDON,
-  WHOLE_CHAT,
-  WHOLE_NOTIFICATION,
   GET_CHALLENGE_MIN,
   GET_PARTICIPANTS_DATA,
+  WHOLE_CHAT,
+  WHOLE_NOTIFICATION,
   CURRENT_LEADERBOARD,
-} from "../lib/ws";
+  GAME_FINISHED,
+} from "@/constants/eventTypes";
 import { useWSEvent } from "../hooks/useWSEvent";
 import { toast } from "sonner";
 import { eventCallbacks } from "@/services/eventCallback";
@@ -35,6 +36,7 @@ interface UseChallengeWebSocketProps {
   setParticipantIds: React.Dispatch<React.SetStateAction<string[]>>;
   setProblemIds: React.Dispatch<React.SetStateAction<string[]>>;
   setAbandonOverlay: React.Dispatch<React.SetStateAction<{ visible: boolean; countdown: number }>>;
+  setFinishedOverlay?: React.Dispatch<React.SetStateAction<{ visible: boolean; countdown: number }>>;
 }
 
 export const useChallengeWebSocket = ({
@@ -45,6 +47,7 @@ export const useChallengeWebSocket = ({
   setParticipantIds,
   setProblemIds,
   setAbandonOverlay,
+  setFinishedOverlay,
 }: UseChallengeWebSocketProps) => {
   const wsRef = useRef<WebSocket | null>(null);
   const pingSentAtRef = useRef<number>(0);
@@ -208,6 +211,13 @@ export const useChallengeWebSocket = ({
   useSubscribeToEvent(CREATOR_ABANDON, (payload) => {
     toast.success(`Owner abandoned: ${payload?.userId || "unknown"}`);
     setAbandonOverlay({ visible: true, countdown: 5 });
+  });
+  useSubscribeToEvent(GAME_FINISHED, (payload) => {
+    //the event callback will handle the challenge state update and toast
+    console.log("Challenge finished:", payload);
+    if (setFinishedOverlay) {
+      setFinishedOverlay({ visible: true, countdown: 10 });
+    }
   });
 
   const sendRefetchChallenge = () => {

@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { PING_SERVER, JOIN_CHALLENGE, RETRIEVE_CHALLENGE, LEADERBOARD_UPDATE, PUSH_SUBMISSION, CHAT_MESSAGE, GAME_FINISHED, WHOLE_CHAT, PUSH_NEW_CHAT, WHOLE_NOTIFICATION, PUSH_NEW_NOTIFICATION, GET_NOTIFICATIONS, CURRENT_LEADERBOARD, CHALLENGE_STARTED } from "@/lib/ws";
+import { PING_SERVER, JOIN_CHALLENGE, RETRIEVE_CHALLENGE, LEADERBOARD_UPDATE, PUSH_SUBMISSION, CHAT_MESSAGE, GAME_FINISHED, PUSH_NEW_CHAT, PUSH_NEW_NOTIFICATION, GET_NOTIFICATIONS, CHALLENGE_STARTED, WHOLE_CHAT, WHOLE_NOTIFICATION, CURRENT_LEADERBOARD } from "@/constants/eventTypes";
 
 interface WSResponse {
   type: string;
@@ -75,11 +75,22 @@ export const eventCallbacks: Record<string, (response: WSResponse, context: any)
       ...prev.slice(0, 50),
     ]);
   },
-  [GAME_FINISHED]: (response, { setOutgoingEvents }) => {
+  [GAME_FINISHED]: (response, { setOutgoingEvents, setChallenge }) => {
     setOutgoingEvents((prev: string[]) => [
       JSON.stringify({ type: GAME_FINISHED, payload: response?.payload }, null, 2),
       ...prev.slice(0, 50),
     ]);
+    //update challenge status to finished
+    setChallenge((prev: any) => ({
+      ...(prev || {}),
+      status: 'FINISHED',
+      finishedAt: response?.payload?.finishedAt || Date.now(),
+      finalLeaderboard: response?.payload?.finalLeaderboard || prev?.leaderboard
+    }));
+    //show success toast
+    toast.success("Challenge Finished!", {
+      description: "The challenge has ended. Check the final results!",
+    });
   },
   [CHALLENGE_STARTED]: (response, { setOutgoingEvents, setChallenge }) => {
     setOutgoingEvents((prev: string[]) => [

@@ -208,8 +208,8 @@ export const PlaygroundLayout: React.FC<PlaygroundLayoutProps> = ({
               variant="outline"
               disabled={!isAuthenticated}
               className={`h-9 text-sm px-4 font-medium rounded-lg transition-all duration-200 ${!isAuthenticated
-                  ? 'border-zinc-600 text-zinc-500 cursor-not-allowed'
-                  : 'border-zinc-600 text-zinc-300 hover:text-white hover:border-blue-500 hover:bg-blue-500/10'
+                ? 'border-zinc-600 text-zinc-500 cursor-not-allowed'
+                : 'border-zinc-600 text-zinc-300 hover:text-white hover:border-blue-500 hover:bg-blue-500/10'
                 }`}
               title={!isAuthenticated ? "Please log in to set target time" : "Set target time"}
             >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Code, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, Code, AlertCircle, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { useChallengeWebSocket } from "@/services/useChallengeWebsocket";
 import { useAuth } from "@/hooks/useAuth";
 import { sendWSEvent } from "@/lib/wsHandler";
-import { PUSH_NEW_CHAT } from "@/lib/ws";
+import { PUSH_NEW_CHAT } from "@/constants/eventTypes";
 import Cookies from "js-cookie";
 import Loader3 from "@/components/ui/loader3";
 import ParticipantGrid from "@/components/challenges/ParticipantGrid";
@@ -22,10 +22,11 @@ const ActiveChallenge = () => {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [problemIds, setProblemIds] = useState<string[]>([]);
   const [abandonOverlay, setAbandonOverlay] = useState({ visible: false, countdown: 5 });
-  
+  const [finishedOverlay, setFinishedOverlay] = useState({ visible: false, countdown: 10 });
+
   const accessToken = Cookies.get("accessToken");
   const challengeToken = Cookies.get(`challenge_token_${challengeId}`);
-  
+
   const {
     wsStatus,
     challenge,
@@ -40,6 +41,7 @@ const ActiveChallenge = () => {
     setParticipantIds,
     setProblemIds,
     setAbandonOverlay,
+    setFinishedOverlay,
   });
 
   // Countdown for abandon overlay
@@ -55,16 +57,29 @@ const ActiveChallenge = () => {
     return () => clearTimeout(timer);
   }, [abandonOverlay, navigate]);
 
+  // Countdown for finished overlay
+  useEffect(() => {
+    if (!finishedOverlay.visible) return;
+    if (finishedOverlay.countdown <= 0) {
+      navigate("/challenges");
+      return;
+    }
+    const timer = setTimeout(() => {
+      setFinishedOverlay((prev) => ({ ...prev, countdown: prev.countdown - 1 }));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [finishedOverlay, navigate]);
+
   const handleSendMessage = (text: string) => {
     if (!userProfile || !challengeId || !challengeToken) return;
-    
+
     const payload = {
       userId: userProfile.userId,
       challengeId,
       challengeToken,
       message: text,
     };
-    
+
     sendWSEvent(PUSH_NEW_CHAT, payload, (response) => {
       if (response?.success) {
         addLocalChatMessage({
@@ -136,6 +151,54 @@ const ActiveChallenge = () => {
     );
   }
 
+  // Finished overlay
+  if (finishedOverlay.visible) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Card className="max-w-lg w-full bg-zinc-900 border-zinc-800">
+          <CardHeader>
+            <CardTitle className="text-center text-green-500 flex items-center justify-center gap-2">
+              <Trophy className="h-6 w-6" />
+              Challenge Finished!
+            </CardTitle>
+            <CardDescription className="text-center">
+              The challenge has ended. Check the final results below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            {challenge?.finalLeaderboard && challenge.finalLeaderboard.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-white">Final Results</h3>
+                <div className="space-y-1">
+                  {challenge.finalLeaderboard.slice(0, 3).map((entry: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-zinc-800 rounded">
+                      <span className="text-sm">
+                        {index === 0 && "🥇"} {index === 1 && "🥈"} {index === 2 && "🥉"}
+                        {entry.userName || entry.userId}
+                      </span>
+                      <span className="text-sm font-medium">{entry.score || 0} pts</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="pt-4">
+              <p className="text-4xl font-bold text-green-500 mb-2">{finishedOverlay.countdown}</p>
+              <p className="text-sm text-zinc-400">Redirecting to challenges...</p>
+            </div>
+            <Button
+              onClick={() => navigate("/challenges")}
+              className="w-full mt-4"
+              variant="outline"
+            >
+              Go to Challenges Now
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const participants = Object.entries(challenge?.participants || {}).map(([userId, data]: [string, any]) => ({
     userId,
     firstName: data?.firstName,
@@ -156,8 +219,8 @@ const ActiveChallenge = () => {
       {/* Header */}
       <div className="h-14 border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-sm px-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => navigate("/challenges")}
             className="text-zinc-400 hover:text-zinc-100"
@@ -176,8 +239,15 @@ const ActiveChallenge = () => {
             </div>
           </div>
         </div>
-        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-          {challenge?.status || "Active"}
+        <Badge
+          variant="outline"
+          className={
+            challenge?.status === 'FINISHED'
+              ? "bg-amber-500/10 text-amber-600 border-amber-200"
+              : "bg-green-500/10 text-green-600 border-green-200"
+          }
+        >
+          {challenge?.status === 'FINISHED' ? 'Finished' : (challenge?.status || "Active")}
         </Badge>
       </div>
 

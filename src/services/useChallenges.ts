@@ -18,6 +18,8 @@ export const useCreateChallenge = () => {
       config: ChallengeConfig;
       password?: string;
       inviteUserIds?: string[];
+      maxParticipants: number;
+      ownerReserveSlot?: boolean;
     }) => challengeApi.createChallenge(data),
     onSuccess: (data: ChallengeDocument) => {
       queryClient.invalidateQueries({ queryKey: ['active-open-challenges'], exact: false });

@@ -13,6 +13,8 @@ export const createChallenge = async (data: {
   config: ChallengeConfig;
   password?: string;
   inviteUserIds?: string[];
+  maxParticipants: number;
+  ownerReserveSlot?: boolean;
 }) => {
   try {
     const response = await axiosInstance.post('/challenges', {
@@ -21,6 +23,8 @@ export const createChallenge = async (data: {
       isPrivate: data.isPrivate,
       timeLimitMillis: data.timeLimitMillis,
       startTimeUnix: data.startTimeUnix,
+      maxParticipants: data.maxParticipants,
+      ownerReserveSlot: data.ownerReserveSlot,
       config: data.config,
       password: data.password,
     }, {
