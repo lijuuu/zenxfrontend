@@ -1,19 +1,7 @@
 //websocket event types constants
-//must mirror backend constants
+//must mirror actual backend constants
 
-//server events (server to client)
-export const PING_SERVER = "PING_SERVER";
-
-//user events (server to client)
-export const USER_JOINED = "USER_JOINED";
-export const USER_LEFT = "USER_LEFT";
-export const CREATOR_ABANDON = "CREATOR_ABANDON";
-export const CHALLENGE_STARTED = "CHALLENGE_STARTED";
-export const OWNER_LEFT = "OWNER_LEFT";
-export const OWNER_JOINED = "OWNER_JOINED";
-export const NEW_OWNER_ASSIGNED = "NEW_OWNER_ASSIGNED";
-
-//client requests (client to server)
+//client to server events
 export const JOIN_CHALLENGE = "JOIN_CHALLENGE";
 export const RETRIEVE_CHALLENGE = "RETRIEVE_CHALLENGE";
 export const GET_ALL_CHALLENGES = "GET_ALL_CHALLENGES";
@@ -24,13 +12,12 @@ export const GET_PARTICIPANTS_DATA = "GET_PARTICIPANTS_DATA";
 export const GET_NOTIFICATIONS = "GET_NOTIFICATIONS";
 export const GET_CHAT = "GET_CHAT";
 export const GET_LEADERBOARD = "GET_LEADERBOARD";
-
-//push events (client to server)
 export const PUSH_NEW_CHAT = "PUSH_NEW_CHAT";
 export const PUSH_NEW_NOTIFICATION = "PUSH_NEW_NOTIFICATION";
 export const PUSH_SUBMISSION = "PUSH_SUBMISSION";
+export const FORCE_START_CHALLENGE = "FORCE_START_CHALLENGE";
 
-//accept events (server to client)
+//server to client events (responses)
 export const ACCEPT_CHALLENGE_DATA = "ACCEPT_CHALLENGE_DATA";
 export const ACCEPT_CHALLENGE_MIN = "ACCEPT_CHALLENGE_MIN";
 export const ACCEPT_PARTICIPANT_DATA = "ACCEPT_PARTICIPANT_DATA";
@@ -42,13 +29,15 @@ export const ACCEPT_NEW_CHAT = "ACCEPT_NEW_CHAT";
 export const ACCEPT_NEW_NOTIFICATION = "ACCEPT_NEW_NOTIFICATION";
 export const ACCEPT_NEW_SUBMISSION = "ACCEPT_NEW_SUBMISSION";
 
-//game events (server to client)
+//server to client broadcast events
+export const USER_JOINED = "USER_JOINED";
+export const USER_LEFT = "USER_LEFT";
+export const OWNER_JOINED = "OWNER_JOINED";
+export const OWNER_LEFT = "OWNER_LEFT";
+export const NEW_OWNER_ASSIGNED = "NEW_OWNER_ASSIGNED";
+export const CREATOR_ABANDON = "CREATOR_ABANDON";
+export const FORCE_CHALLENGE_STARTED = "FORCE_CHALLENGE_STARTED";
+export const GAME_FINISHED = "GAME_FINISHED";
 export const LEADERBOARD_UPDATE = "LEADERBOARD_UPDATE";
 export const NEW_SUBMISSION = "NEW_SUBMISSION";
-export const GAME_FINISHED = "GAME_FINISHED";
 export const CHAT_MESSAGE = "CHAT_MESSAGE";
-
-//legacy constants for backward compatibility
-export const WHOLE_CHAT = "WHOLECHAT";
-export const WHOLE_NOTIFICATION = "WHOLENOTIFICATION";
-export const CURRENT_LEADERBOARD = "CURRENT_LEADERBOARD";

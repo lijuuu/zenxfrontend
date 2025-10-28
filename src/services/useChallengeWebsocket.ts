@@ -4,7 +4,6 @@ import { getWS } from "../lib/ws";
 import {
   JOIN_CHALLENGE,
   USER_JOINED,
-  PING_SERVER,
   RETRIEVE_CHALLENGE,
   USER_LEFT,
   OWNER_LEFT,
@@ -12,14 +11,15 @@ import {
   CREATOR_ABANDON,
   GET_CHALLENGE_MIN,
   GET_PARTICIPANTS_DATA,
-  WHOLE_CHAT,
-  WHOLE_NOTIFICATION,
-  CURRENT_LEADERBOARD,
+  GET_CHAT,
+  GET_NOTIFICATIONS,
+  GET_LEADERBOARD,
   GAME_FINISHED,
 } from "@/constants/eventTypes";
 import { useWSEvent } from "../hooks/useWSEvent";
 import { toast } from "sonner";
 import { eventCallbacks } from "@/services/eventCallback";
+import { challengeTokenService } from "@/services/challengeTokenService";
 
 interface WSPayload {
   userId: string;
@@ -50,13 +50,11 @@ export const useChallengeWebSocket = ({
   setFinishedOverlay,
 }: UseChallengeWebSocketProps) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const pingSentAtRef = useRef<number>(0);
   const [wsStatus, setWsStatus] = useState("Connecting");
   const [outgoingEvents, setOutgoingEvents] = useState<string[]>([]);
   const [subscribedEvents, setSubscribedEvents] = useState<string[]>([]);
   const [challenge, setChallenge] = useState<any>();
   const [err, setError] = useState<string>();
-  const [latency, setLatency] = useState<number | null>(null);
   const challengeTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -72,9 +70,14 @@ export const useChallengeWebSocket = ({
     const handleMessage = (e: MessageEvent) => {
       try {
         const data = JSON.parse(e.data);
-        // ensure join sets challengeToken on state so UI can use it for sends
+        // ensure join sets challengeToken on state and cookies so UI can use it for sends
         if (data?.type === JOIN_CHALLENGE && data?.payload?.challengeToken) {
-          setChallenge((prev: any) => ({ ...(prev || {}), challengeToken: data.payload.challengeToken }));
+          const challengeToken = data.payload.challengeToken;
+          const challengeId = data.payload.challengeId || challengeid;
+          //store in state
+          setChallenge((prev: any) => ({ ...(prev || {}), challengeToken }));
+          //store in cookies
+          challengeTokenService.setChallengeToken(challengeToken, challengeId);
         }
         if (eventCallbacks[data.type]) {
           eventCallbacks[data.type](data, {
@@ -83,8 +86,6 @@ export const useChallengeWebSocket = ({
             setOutgoingEvents,
             setParticipantIds,
             setProblemIds,
-            setLatency,
-            pingSentAtRef,
           });
         }
       } catch (err) {
@@ -107,6 +108,35 @@ export const useChallengeWebSocket = ({
           const token = response?.payload?.challengeToken;
           if (typeof token === "string" && token.length > 0) {
             challengeTokenRef.current = token;
+            //store token in cookies
+            challengeTokenService.setChallengeToken(token, challengeid);
+            //now that we have the token, make authenticated requests
+            const authenticatedPayload = { ...payload, challengeToken: token };
+
+            // Granular fetches: min, participants, chat, notifications, leaderboard
+            // 1) Challenge Min
+            sendWSEvent(GET_CHALLENGE_MIN, authenticatedPayload, (resp) => {
+              // merge min into challenge
+              const min = resp?.payload;
+              if (min) setChallenge((prev: any) => ({ ...(prev || {}), ...min }));
+            });
+            // 2) Participants
+            sendWSEvent(GET_PARTICIPANTS_DATA, authenticatedPayload, (resp) => {
+              const participants = resp?.payload?.participants || {};
+              setChallenge((prev: any) => ({ ...(prev || {}), participants }));
+              setParticipantIds(Object.keys(participants || {}));
+            });
+            // 3) Chat and 4) Notifications from MongoDB
+            sendWSEvent(GET_CHAT, authenticatedPayload, (resp) =>
+              eventCallbacks[GET_CHAT](resp, { setChallenge, setError, setOutgoingEvents })
+            );
+            sendWSEvent(GET_NOTIFICATIONS, authenticatedPayload, (resp) =>
+              eventCallbacks[GET_NOTIFICATIONS](resp, { setChallenge, setError, setOutgoingEvents })
+            );
+            // 5) Current leaderboard
+            sendWSEvent(GET_LEADERBOARD, authenticatedPayload, (resp) =>
+              eventCallbacks[GET_LEADERBOARD](resp, { setChallenge, setOutgoingEvents })
+            );
           }
         } catch (e) {
           // ignore token capture errors
@@ -119,31 +149,6 @@ export const useChallengeWebSocket = ({
           setProblemIds,
         });
       });
-
-      // Granular fetches: min, participants, chat, notifications, leaderboard
-      // 1) Challenge Min
-      sendWSEvent(GET_CHALLENGE_MIN, { ...payload, challengeToken: challengeTokenRef.current }, (resp) => {
-        // merge min into challenge
-        const min = resp?.payload;
-        if (min) setChallenge((prev: any) => ({ ...(prev || {}), ...min }));
-      });
-      // 2) Participants
-      sendWSEvent(GET_PARTICIPANTS_DATA, { ...payload, challengeToken: challengeTokenRef.current }, (resp) => {
-        const participants = resp?.payload?.participants || {};
-        setChallenge((prev: any) => ({ ...(prev || {}), participants }));
-        setParticipantIds(Object.keys(participants || {}));
-      });
-      // 3) Chat and 4) Notifications from MongoDB
-      sendWSEvent(WHOLE_CHAT, { ...payload, challengeToken: challengeTokenRef.current }, (resp) =>
-        eventCallbacks[WHOLE_CHAT](resp, { setChallenge, setError, setOutgoingEvents })
-      );
-      sendWSEvent(WHOLE_NOTIFICATION, { ...payload, challengeToken: challengeTokenRef.current }, (resp) =>
-        eventCallbacks[WHOLE_NOTIFICATION](resp, { setChallenge, setError, setOutgoingEvents })
-      );
-      // 5) Current leaderboard
-      sendWSEvent(CURRENT_LEADERBOARD, { ...payload, challengeToken: challengeTokenRef.current }, (resp) =>
-        eventCallbacks[CURRENT_LEADERBOARD](resp, { setChallenge, setOutgoingEvents })
-      );
     };
 
     ws.addEventListener("open", handleOpen);
@@ -151,22 +156,14 @@ export const useChallengeWebSocket = ({
     ws.addEventListener("error", () => setWsStatus("Error"));
     ws.addEventListener("close", () => setWsStatus("Closed"));
 
-    const pingInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        pingSentAtRef.current = Date.now();
-        sendWSEvent(PING_SERVER, {}, (response) =>
-          eventCallbacks[PING_SERVER](response, { setLatency, pingSentAtRef })
-        );
-      }
-    }, 3000);
-
     return () => {
-      clearInterval(pingInterval);
       ws.removeEventListener("open", handleOpen);
       ws.removeEventListener("message", handleMessage);
       ws.removeEventListener("error", () => { });
       ws.removeEventListener("close", () => { });
       ws.close();
+      //clear challenge token from cookies when connection is closed
+      challengeTokenService.clearChallengeToken();
     };
   }, [userProfile, challengeid, password, accessToken, setParticipantIds, setProblemIds]);
 
@@ -180,13 +177,15 @@ export const useChallengeWebSocket = ({
       // On presence events, re-fetch participants
       if (event === USER_JOINED || event === USER_LEFT || event === OWNER_JOINED || event === OWNER_LEFT) {
         if (!userProfile) return;
+        const challengeToken = challengeTokenService.getChallengeToken();
+        if (!challengeToken) return;
         const base: WSPayload = {
           userId: userProfile.userId,
           challengeId: challengeid,
           password: password || "",
           token: `Bearer ${accessToken}`,
         };
-        sendWSEvent(GET_PARTICIPANTS_DATA, base, (resp) => {
+        sendWSEvent(GET_PARTICIPANTS_DATA, { ...base, challengeToken }, (resp) => {
           const participants = resp?.payload?.participants || {};
           setChallenge((prev: any) => ({ ...(prev || {}), participants }));
           setParticipantIds(Object.keys(participants || {}));
@@ -222,30 +221,33 @@ export const useChallengeWebSocket = ({
 
   const sendRefetchChallenge = () => {
     if (!userProfile) return;
+    const challengeToken = challengeTokenService.getChallengeToken();
+    if (!challengeToken) return;
     const payload: WSPayload = {
       userId: userProfile.userId,
       challengeId: challengeid,
       password: password || "",
       token: `Bearer ${accessToken}`,
     };
+    const authenticatedPayload = { ...payload, challengeToken };
     // Full refresh on demand
-    sendWSEvent(GET_CHALLENGE_MIN, { ...payload, challengeToken: challengeTokenRef.current }, (resp) => {
+    sendWSEvent(GET_CHALLENGE_MIN, authenticatedPayload, (resp) => {
       const min = resp?.payload;
       if (min) setChallenge((prev: any) => ({ ...(prev || {}), ...min }));
     });
-    sendWSEvent(GET_PARTICIPANTS_DATA, { ...payload, challengeToken: challengeTokenRef.current }, (resp) => {
+    sendWSEvent(GET_PARTICIPANTS_DATA, authenticatedPayload, (resp) => {
       const participants = resp?.payload?.participants || {};
       setChallenge((prev: any) => ({ ...(prev || {}), participants }));
       setParticipantIds(Object.keys(participants || {}));
     });
-    sendWSEvent(WHOLE_CHAT, { ...payload, challengeToken: challengeTokenRef.current }, (resp) =>
-      eventCallbacks[WHOLE_CHAT](resp, { setChallenge, setError, setOutgoingEvents })
+    sendWSEvent(GET_CHAT, authenticatedPayload, (resp) =>
+      eventCallbacks[GET_CHAT](resp, { setChallenge, setError, setOutgoingEvents })
     );
-    sendWSEvent(WHOLE_NOTIFICATION, { ...payload, challengeToken: challengeTokenRef.current }, (resp) =>
-      eventCallbacks[WHOLE_NOTIFICATION](resp, { setChallenge, setError, setOutgoingEvents })
+    sendWSEvent(GET_NOTIFICATIONS, authenticatedPayload, (resp) =>
+      eventCallbacks[GET_NOTIFICATIONS](resp, { setChallenge, setError, setOutgoingEvents })
     );
-    sendWSEvent(CURRENT_LEADERBOARD, { ...payload, challengeToken: challengeTokenRef.current }, (resp) =>
-      eventCallbacks[CURRENT_LEADERBOARD](resp, { setChallenge, setOutgoingEvents })
+    sendWSEvent(GET_LEADERBOARD, authenticatedPayload, (resp) =>
+      eventCallbacks[GET_LEADERBOARD](resp, { setChallenge, setOutgoingEvents })
     );
   };
 
@@ -265,7 +267,6 @@ export const useChallengeWebSocket = ({
     subscribedEvents,
     challenge,
     err,
-    latency,
     sendRefetchChallenge,
     addLocalChatMessage,
   };

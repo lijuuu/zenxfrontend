@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { PING_SERVER, JOIN_CHALLENGE, RETRIEVE_CHALLENGE, LEADERBOARD_UPDATE, PUSH_SUBMISSION, CHAT_MESSAGE, GAME_FINISHED, PUSH_NEW_CHAT, PUSH_NEW_NOTIFICATION, GET_NOTIFICATIONS, CHALLENGE_STARTED, WHOLE_CHAT, WHOLE_NOTIFICATION, CURRENT_LEADERBOARD } from "@/constants/eventTypes";
+import { JOIN_CHALLENGE, RETRIEVE_CHALLENGE, LEADERBOARD_UPDATE, PUSH_SUBMISSION, CHAT_MESSAGE, GAME_FINISHED, PUSH_NEW_CHAT, PUSH_NEW_NOTIFICATION, GET_NOTIFICATIONS, FORCE_START_CHALLENGE, GET_CHAT, GET_LEADERBOARD } from "@/constants/eventTypes";
 
 interface WSResponse {
   type: string;
@@ -9,9 +9,6 @@ interface WSResponse {
 }
 
 export const eventCallbacks: Record<string, (response: WSResponse, context: any) => void> = {
-  [PING_SERVER]: (_, { setLatency, pingSentAtRef }) => {
-    setLatency(Date.now() - pingSentAtRef.current);
-  },
   [JOIN_CHALLENGE]: (response, { setChallenge, setError, setOutgoingEvents, setParticipantIds, setProblemIds }) => {
     setOutgoingEvents((prev: string[]) => [
       JSON.stringify({ type: JOIN_CHALLENGE, payload: response }, null, 2),
@@ -54,9 +51,9 @@ export const eventCallbacks: Record<string, (response: WSResponse, context: any)
       setChallenge((prev: any) => ({ ...(prev || {}), leaderboard: response.payload.leaderboard }));
     }
   },
-  [CURRENT_LEADERBOARD]: (response, { setOutgoingEvents, setChallenge }) => {
+  [GET_LEADERBOARD]: (response, { setOutgoingEvents, setChallenge }) => {
     setOutgoingEvents((prev: string[]) => [
-      JSON.stringify({ type: CURRENT_LEADERBOARD, payload: response?.payload }, null, 2),
+      JSON.stringify({ type: GET_LEADERBOARD, payload: response?.payload }, null, 2),
       ...prev.slice(0, 50),
     ]);
     if (response?.payload?.leaderboard) {
@@ -92,9 +89,9 @@ export const eventCallbacks: Record<string, (response: WSResponse, context: any)
       description: "The challenge has ended. Check the final results!",
     });
   },
-  [CHALLENGE_STARTED]: (response, { setOutgoingEvents, setChallenge }) => {
+  [FORCE_START_CHALLENGE]: (response, { setOutgoingEvents, setChallenge }) => {
     setOutgoingEvents((prev: string[]) => [
-      JSON.stringify({ type: CHALLENGE_STARTED, payload: response?.payload }, null, 2),
+      JSON.stringify({ type: FORCE_START_CHALLENGE, payload: response?.payload }, null, 2),
       ...prev.slice(0, 50),
     ]);
     const startTime = response?.payload?.startTime;
@@ -130,9 +127,9 @@ export const eventCallbacks: Record<string, (response: WSResponse, context: any)
     });
   },
   // Chat full sync: replace entire chat list
-  [WHOLE_CHAT]: (response, { setChallenge, setOutgoingEvents }) => {
+  [GET_CHAT]: (response, { setChallenge, setOutgoingEvents }) => {
     setOutgoingEvents((prev: string[]) => [
-      JSON.stringify({ type: WHOLE_CHAT, payload: response?.payload }, null, 2),
+      JSON.stringify({ type: GET_CHAT, payload: response?.payload }, null, 2),
       ...prev.slice(0, 50),
     ]);
     const chat = response?.payload?.chat;
@@ -161,18 +158,13 @@ export const eventCallbacks: Record<string, (response: WSResponse, context: any)
     }
   },
   // Notification full sync: replace
-  [WHOLE_NOTIFICATION]: (response, { setChallenge, setOutgoingEvents }) => {
+  [GET_NOTIFICATIONS]: (response, { setChallenge, setOutgoingEvents }) => {
     setOutgoingEvents((prev: string[]) => [
-      JSON.stringify({ type: WHOLE_NOTIFICATION, payload: response?.payload }, null, 2),
+      JSON.stringify({ type: GET_NOTIFICATIONS, payload: response?.payload }, null, 2),
       ...prev.slice(0, 50),
     ]);
     const notifs = response?.payload?.notifications;
     if (!Array.isArray(notifs)) return;
     setChallenge((prev: any) => ({ ...(prev || {}), notifications: notifs }));
-  },
-  // Optional: GET_NOTIFICATIONS handler mirrors WHOLE_NOTIFICATION
-  [GET_NOTIFICATIONS]: (response, ctx) => {
-    const payload = { payload: { notifications: response?.payload?.notifications } } as WSResponse;
-    (eventCallbacks[WHOLE_NOTIFICATION] as any)(payload, ctx);
   },
 };

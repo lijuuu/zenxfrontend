@@ -9,6 +9,8 @@ import { useChallengeWebSocket } from "@/services/useChallengeWebsocket";
 import { useAuth } from "@/hooks/useAuth";
 import { sendWSEvent } from "@/lib/wsHandler";
 import { PUSH_NEW_CHAT } from "@/constants/eventTypes";
+import { challengeTokenService } from "@/services/challengeTokenService";
+import { toast } from "sonner";
 import Cookies from "js-cookie";
 import Loader3 from "@/components/ui/loader3";
 import ParticipantGrid from "@/components/challenges/ParticipantGrid";
@@ -31,7 +33,6 @@ const ActiveChallenge = () => {
     wsStatus,
     challenge,
     err,
-    latency,
     addLocalChatMessage,
   } = useChallengeWebSocket({
     userProfile,
@@ -71,7 +72,13 @@ const ActiveChallenge = () => {
   }, [finishedOverlay, navigate]);
 
   const handleSendMessage = (text: string) => {
-    if (!userProfile || !challengeId || !challengeToken) return;
+    if (!userProfile || !challengeId) return;
+
+    const challengeToken = challengeTokenService.getChallengeToken();
+    if (!challengeToken) {
+      toast.error("Challenge token not found. Please rejoin the challenge.");
+      return;
+    }
 
     const payload = {
       userId: userProfile.userId,
@@ -233,9 +240,6 @@ const ActiveChallenge = () => {
             <div className="flex items-center gap-2 text-xs text-zinc-400">
               <Clock className="h-3 w-3" />
               {Math.floor(timeRemaining / 60000)}:{String(Math.floor((timeRemaining % 60000) / 1000)).padStart(2, '0')} remaining
-              {latency !== null && (
-                <span className="ml-2">• Latency: {latency}ms</span>
-              )}
             </div>
           </div>
         </div>

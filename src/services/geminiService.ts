@@ -29,7 +29,7 @@ export interface ChatResponse {
 }
 
 class GeminiService {
-  private apiKey = 'AIzaSyCNn8STgpbY2yyxKzH76vZXevxBaXnml6Y';
+  private apiKey = 'AIzaSyCBJwdiP7yo60_Hb4zLoOiWG6aoXgciIWg';
   private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
   async analyzeCode(code: string, language: string, output?: string[], error?: string): Promise<CodeAnalysis> {

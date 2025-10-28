@@ -8,7 +8,8 @@ import { useGetUserProfileMetadataBulk } from "@/services/useGetUserProfileMetad
 import { useAuth } from "@/hooks/useAuth";
 import { useChallengeWebSocket } from "@/services/useChallengeWebsocket";
 import { sendWSEvent } from "@/lib/wsHandler";
-import { PUSH_NEW_CHAT, CHALLENGE_STARTED } from "@/constants/eventTypes";
+import { PUSH_NEW_CHAT, FORCE_START_CHALLENGE } from "@/constants/eventTypes";
+import { challengeTokenService } from "@/services/challengeTokenService";
 import { useGetBulkProblemMetadata } from "@/services/useGetBulkProblemMetadata";
 import ProblemListing from "./BulkMetaDataProblemListing";
 import ChatPanel from "@/components/challenges/ChatPanel";
@@ -47,7 +48,6 @@ const ChallengeLobby: React.FC = () => {
     subscribedEvents,
     challenge,
     err,
-    latency,
     sendRefetchChallenge,
     addLocalChatMessage
   } = useChallengeWebSocket({
@@ -137,12 +137,6 @@ const ChallengeLobby: React.FC = () => {
     navigate("/challenges");
   };
 
-  const getLatencyColor = () => {
-    if (latency === null) return "text-gray-400";
-    if (latency < 150) return "text-green-500";
-    if (latency < 400) return "text-yellow-400";
-    return "text-red-500";
-  };
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -153,16 +147,19 @@ const ChallengeLobby: React.FC = () => {
   const handleSendChat = (text: string) => {
     if (!userProfile || !challengeid || !text.trim()) return;
 
+    const challengeToken = challengeTokenService.getChallengeToken();
+    if (!challengeToken) {
+      toast.error("Challenge token not found. Please rejoin the challenge.");
+      return;
+    }
+
     const payload: any = {
       userId: userProfile.userId,
       challengeId: challengeid,
       profilePic: userProfile?.profileImage || "",
       message: text.trim(),
+      challengeToken,
     };
-
-    if (challenge?.challengeToken) {
-      payload.challengeToken = challenge.challengeToken;
-    }
 
     sendWSEvent(PUSH_NEW_CHAT, payload);
     addLocalChatMessage({
@@ -176,12 +173,19 @@ const ChallengeLobby: React.FC = () => {
 
   const handleForceStart = () => {
     if (!userProfile || !challengeid) return;
+
+    const challengeToken = challengeTokenService.getChallengeToken();
+    if (!challengeToken) {
+      toast.error("Challenge token not found. Please rejoin the challenge.");
+      return;
+    }
+
     const payload: any = {
       userId: userProfile.userId,
       challengeId: challengeid,
+      challengeToken,
     };
-    if (challenge?.challengeToken) payload.challengeToken = challenge.challengeToken;
-    sendWSEvent(CHALLENGE_STARTED, payload);
+    sendWSEvent(FORCE_START_CHALLENGE, payload);
   };
 
   const isChallengeStarted = challenge && Date.now() >= (challenge.startTime * 1000);
@@ -215,9 +219,7 @@ const ChallengeLobby: React.FC = () => {
                   </Badge>
                 )}
                 <span className="text-sm text-zinc-400">
-                  Connection: {wsStatus} <span className={getLatencyColor()}>
-                    ({latency !== null ? `${latency}ms` : "N/A"})
-                  </span>
+                  Connection: {wsStatus}
                 </span>
               </div>
             </div>
