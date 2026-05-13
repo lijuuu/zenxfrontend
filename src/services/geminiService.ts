@@ -265,6 +265,46 @@ Return only valid JSON, no additional text.`;
     }
   }
 
+  async getHints(code: string, language: string, errorContext?: string): Promise<string> {
+    const prompt = `As a coding assistant, provide 3 concise hints to improve or fix this ${language} code:
+\`\`\`${language}
+${code}
+\`\`\`
+${errorContext ? `The code has the following error: ${errorContext}` : ''}
+Provide logical answers and exact code to fix or replace within a few lines. Format in markdown with code blocks within 2500 tokens`;
+
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': this.apiKey,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Could not generate hints at this time. Please try again later.';
+    } catch (error) {
+      console.error('Error getting hints:', error);
+      throw error;
+    }
+  }
+
   async getPredefinedAnalysis(code: string, language: string, output: string[]): Promise<ChatResponse> {
     const hasError = output.some(line => line.startsWith('[Error]'));
     const errorContext = output.filter(line => line.startsWith('[Error]')).join('\n');

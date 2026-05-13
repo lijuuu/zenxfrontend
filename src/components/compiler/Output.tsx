@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ReactMarkdown from 'react-markdown';
 import { CompilerResponse } from '@/api/compilerApi';
+import { geminiService } from '@/services/geminiService';
 
 interface OutputProps {
   className?: string;
@@ -45,38 +46,8 @@ function Output({ className, result, isLoading, code, language }: OutputProps) {
     setLoadingHints(true);
     try {
       const errorContext = result?.error || result?.status_message || '';
-      const response = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-goog-api-key': 'AIzaSyDt_MyiwGByuUFNXR2X43456c_43EqfbLc',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: `As a coding assistant, provide 3 concise hints to improve or fix this ${language} code:
-                    \`\`\`${language}
-                    ${code}
-                    \`\`\`
-                    ${errorContext ? `The code has the following error: ${errorContext}` : ''}
-                    Provide logical answers and exact code to fix or replace within a few lines. Format in markdown with code blocks within 2500 tokens`,
-                  },
-                ],
-              },
-            ],
-          }),
-        }
-      );
-
-      const data = await response.json();
-      setHints(
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        'Could not generate hints at this time. Please try again later.'
-      );
+      const hints = await geminiService.getHints(code || '', language || '', errorContext);
+      setHints(hints);
     } catch (error) {
       setHints('Error fetching hints. Please check your API key and try again.');
       console.error('Error fetching hints:', error);
