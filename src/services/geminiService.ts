@@ -29,8 +29,8 @@ export interface ChatResponse {
 }
 
 class GeminiService {
-  private apiKey = 'AIzaSyCBJwdiP7yo60_Hb4zLoOiWG6aoXgciIWg';
-  private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  private apiKey = 'AIzaSyDt_MyiwGByuUFNXR2X43456c_43EqfbLc';
+  private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
   async analyzeCode(code: string, language: string, output?: string[], error?: string): Promise<CodeAnalysis> {
     const prompt = `As a senior software engineer, analyze this ${language} code and provide a comprehensive analysis in the following JSON format. Focus only on the current coding problem and implementation.

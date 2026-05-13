@@ -46,12 +46,12 @@ function Output({ className, result, isLoading, code, language }: OutputProps) {
     try {
       const errorContext = result?.error || result?.status_message || '';
       const response = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-goog-api-key': 'AIzaSyCNn8STgpbY2yyxKzH76vZXevxBaXnml6Y',
+            'X-goog-api-key': 'AIzaSyDt_MyiwGByuUFNXR2X43456c_43EqfbLc',
           },
           body: JSON.stringify({
             contents: [
